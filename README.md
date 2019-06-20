@@ -1,60 +1,110 @@
 # KAIST CS492: Design and Analysis of Concurrent Programs
 
-
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
 - Time & Place: Mon & Wed 09:00am-10:15am, Rm 2111, Bldg E3-1
 - Website: https://github.com/kaist-cp/cs492-concur
-- Announcements: [issue
-  tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement).
+- Announcements: in [issue
+  tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+
 
 
 ## Course description
 
-TODO
+### Context
+
+I expect computers in the next 700 years will be **massively parallel**. We the humankind want to
+improve the performance of computers in the era of big data. But it is becoming more and more
+challenging after the breakdown of [Dennard scaling](https://en.wikipedia.org/wiki/Dennard_scaling)
+around 2005, which means the performance of sequential computers will not be improved. Thus not only
+servers but also personal computers have been multi-core systems since then. The problem is only
+worsened by the ending of the [Moore's law](https://en.wikipedia.org/wiki/Moore%27s_law), which
+means we are no longer able to benefit from denser electrical circuit. It seems the only remaining
+way to optimize performance is specialization, which aims to better exploit parallelism of
+workloads. Because of these technology trends, I expect computers in the future will be massively
+parallel.
+
+But we are not ready yet for the era of massive parallelism. The main difficulty lies on handling
+**shared mutable states**, which is the main topic of concurrency. To coordinate multiple cores and
+other resources, their inputs and outputs should be somehow properly synchronized with each other
+via shared mutable states like memory. But handling shared mutable states is inherently challenging,
+both theoretically and practically. For example, in the presence of thousands and millions of cores,
+how to efficiently synchronize concurrent accesses to shared memory? In the presence of
+nondeterministic interleaving of thread executions, how to make sure the safety of a concurrent
+program? In the presence of compiler and hardware optimizations, what is the right specification of
+a concurrent data structure?
+
+Fortunately, the theory of shared mutable states has advanced quite impressively in the past five
+years, and now it is greatly helpful in designing and analyzing practical systems with shared
+mutable states. So in this course, we will discuss the recent theory of shared mutable states and
+its application to real-world practical systems.
 
 
+### Goal
 
-## Prerequisites
+This course is geared towards senior undergraduate/graduate students in computer science (or related
+disciplines) who are interested in the modern theory and practice of parallel computer systems.
+This course aims to help such students to:
 
-This course assumes a basic understanding of:
-
-- Mathematics (freshman calculus): proposition statement and proof
-- Data structures (CS206): linked list, stack, queue
-- Systems programming (CS230): memory layout, cacheline, lock
-
-While they are not official prerequisites, without a proper understanding of those topics you will
-likely struggle to take this course.
-
-
-Other recommendations which would greatly help you in this course:
-
-- Basic understanding of computer architecture (CS311)
-- Programming experience in [Rust](https://www.rust-lang.org/)
+- Understand the motivations and challenges in concurrent programming
+- Learn design patterns and reasoning principles of concurrent programs
+- Design, implement, and evaluate concurrent programs
+- Apply the understanding to real-world parallel systems
 
 
-## Textbook
+### Textbook
 
-- Main: slides (TBA)
-- Sub: research papers and concurrency libraries
-    + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language & ISA
-      semantics of shared-memory concurrency
+- Slides (TBA)
+- Research papers and libraries
+    + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language &
+      architecture semantics for shared-memory concurrency
     + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library in
       [Rust](https://www.rust-lang.org/)
     + [Iris](https://iris-project.org/): concurrent program logic
 
 
-## Grading
+### Tools
 
-- Homework & project: 70%
-- Final exam: 30%
+- We will use [Rust](https://www.rust-lang.org/) as the language of implementation, because its
+  ownership type system greatly simplifies the reasoning of shared mutable states without incurring
+  significant runtime overheads.
+
+- You should host all your implementation in [GitHub](https://github.com).
+
+
+## Prerequisites
+
+- It is **strongly recommended** that students already took courses on:
+
+    + Mathematics (freshman calculus, MAS101 & MAS102): proposition statement and proof
+    + Data structures (CS206): linked list, stack, queue
+    + Systems programming (CS230): memory layout, cache, lock
+
+  Without a proper understanding of these topics, you will likely struggle in this course.
+
+- Other recommendations which would help you in this course:
+
+    + Basic understanding of computer architecture (CS311)
+    + Programming experience in [Rust](https://www.rust-lang.org/)
 
 
 
-## Honor code
+## Grading & honor code
 
-Please sign the KAIST SoC Honor Code (TBA).
+### Homework & project (60%)
+
+- Reading assignment, both paper and code
+- Programming assignment
+- System design, implementation, and evaluation project
+
+### Midterm and final exams (40%)
+
+The exams will evaluate your theoretical understanding of shared mutable states.
+
+### Honor code
+
+Please sign the KAIST School of Computing Honor Code (TBA).
 
 
 
