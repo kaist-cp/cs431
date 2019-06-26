@@ -104,7 +104,7 @@ The exams will evaluate your theoretical understanding of shared mutable states.
 
 ### Honor code
 
-Please sign the KAIST School of Computing Honor Code (TBA).
+Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZYuKwZ9).
 
 
 
