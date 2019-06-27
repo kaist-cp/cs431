@@ -56,12 +56,7 @@ This course aims to help such students to:
 ### Textbook
 
 - Slides (TBA)
-- Research papers and libraries
-    + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language &
-      architecture semantics for shared-memory concurrency
-    + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library in
-      [Rust](https://www.rust-lang.org/)
-    + [Iris](https://iris-project.org/): concurrent program logic
+- Classical papers and libraries (TBA)
 
 
 ### Tools
