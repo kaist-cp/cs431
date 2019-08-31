@@ -55,7 +55,7 @@ This course aims to help such students to:
 
 ### Textbook
 
-- Slides (TBA)
+- [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
 - Classical papers and libraries (TBA)
 
 
@@ -114,7 +114,7 @@ Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZ
 - Ask your questions via email **only if** they are either confidential or personal.  Otherwise, ask
   administrative questions in [this repository's issue
   tracker](https://github.com/kaist-cp/cs492-concur/issues) and technical questions in [the
-  helpdesk](https://github.com/kaist-cp/helpdesk/issues).  Any questions failing to do so
+  helpdesk](https://github.com/kaist-cp/helpdesk).  Any questions failing to do so
   (e.g. email questions on course materials) will not be answered.
 
 - Emails to the instructor or TAs should begin with "CS492:" in the subject line, followed by a
