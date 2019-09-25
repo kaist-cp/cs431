@@ -138,23 +138,22 @@ pub mod tests {
     use super::{Lock, RawLock};
 
     pub fn smoke<L: RawLock>() {
-        let d = Lock::<L, Vec<usize>>::new(vec![1, 2, 3]);
+        const LENGTH: usize = 1024;
+        let d = Lock::<L, Vec<usize>>::new(vec![]);
 
         scope(|s| {
-            s.spawn(|_| {
-                let mut d = d.lock();
-                d.push(4);
-            });
-
-            s.spawn(|_| {
-                let mut d = d.lock();
-                d.push(5);
-            });
+            for i in 1..LENGTH {
+                let d = &d;
+                s.spawn(move |_| {
+                    let mut d = d.lock();
+                    d.push(i);
+                });
+            }
         })
         .unwrap();
 
         let mut d = d.lock();
         d.sort();
-        assert_eq!(d.deref(), &vec![1, 2, 3, 4, 5]);
+        assert_eq!(d.deref(), &(1..LENGTH).collect::<Vec<usize>>());
     }
 }
