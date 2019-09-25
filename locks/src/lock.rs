@@ -128,3 +128,33 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
         }
     }
 }
+
+#[cfg(test)]
+pub mod tests {
+    use core::ops::Deref;
+
+    use crossbeam_utils::thread::scope;
+
+    use super::{Lock, RawLock};
+
+    pub fn smoke<L: RawLock>() {
+        let d = Lock::<L, Vec<usize>>::new(vec![1, 2, 3]);
+
+        scope(|s| {
+            s.spawn(|_| {
+                let mut d = d.lock();
+                d.push(4);
+            });
+
+            s.spawn(|_| {
+                let mut d = d.lock();
+                d.push(5);
+            });
+        })
+        .unwrap();
+
+        let mut d = d.lock();
+        d.sort();
+        assert_eq!(d.deref(), &vec![1, 2, 3, 4, 5]);
+    }
+}

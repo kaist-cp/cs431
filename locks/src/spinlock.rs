@@ -41,3 +41,13 @@ impl RawTryLock for SpinLock {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::spinlock::SpinLock;
+
+    #[test]
+    fn smoke() {
+        crate::lock::tests::smoke::<SpinLock>();
+    }
+}

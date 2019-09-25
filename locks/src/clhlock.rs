@@ -51,3 +51,13 @@ impl RawLock for ClhLock {
         (*token.0).locked.store(false, Ordering::Release);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::clhlock::ClhLock;
+
+    #[test]
+    fn smoke() {
+        crate::lock::tests::smoke::<ClhLock>();
+    }
+}

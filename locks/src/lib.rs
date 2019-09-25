@@ -1,5 +1,7 @@
 #![feature(const_fn)]
 
+extern crate crossbeam_utils;
+
 mod clhlock;
 mod lock;
 mod spinlock;
