@@ -1,0 +1,8 @@
+[package]
+name = "locks"
+version = "0.1.0"
+authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
+edition = "2018"
+
+[dependencies]
+crossbeam-utils = "0.6"
