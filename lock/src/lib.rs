@@ -1,5 +1,3 @@
-#![feature(const_fn)]
-
 extern crate crossbeam_utils;
 
 mod clhlock;
@@ -9,8 +7,9 @@ mod mcsparkinglock;
 mod spinlock;
 mod ticketlock;
 
-pub use clhlock::ClhLock;
-pub use lock::{Lock, LockGuard, RawLock, RawTryLock};
-pub use mcsparkinglock::McsParkingLock;
-pub use spinlock::SpinLock;
-pub use ticketlock::TicketLock;
+pub use crate::clhlock::ClhLock;
+pub use crate::lock::{Lock, LockGuard, RawLock, RawTryLock};
+pub use crate::mcslock::McsLock;
+pub use crate::mcsparkinglock::McsParkingLock;
+pub use crate::spinlock::SpinLock;
+pub use crate::ticketlock::TicketLock;

@@ -1,5 +1,5 @@
 [package]
-name = "locks"
+name = "lock"
 version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
 edition = "2018"
