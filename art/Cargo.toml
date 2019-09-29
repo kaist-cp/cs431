@@ -1,0 +1,12 @@
+[package]
+name = "cs492-concur-art"
+version = "0.1.0"
+authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
+edition = "2018"
+
+[dependencies]
+itertools = "0.8"
+static_assertions = "0.3"
+crossbeam-epoch = "0.7"
+either = "1.5"
+lock = { git = "https://github.com/kaist-cp/cs492-concur" }
