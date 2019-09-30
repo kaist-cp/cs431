@@ -8,6 +8,7 @@ extern crate itertools;
 #[macro_use]
 extern crate static_assertions;
 extern crate crossbeam_epoch;
+extern crate crossbeam_utils;
 extern crate either;
 extern crate lock;
 

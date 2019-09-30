@@ -2,15 +2,14 @@ use core::marker::PhantomData;
 use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, DerefMut};
 
+use crossbeam_utils::CachePadded;
 use either::Either;
-use itertools::Itertools;
 
 const INDEX_SENTINEL: u8 = 0xffu8;
 
 #[derive(Default, Debug, Clone, Copy)]
-#[repr(align(8))]
 pub struct NodeHeader {
-    pub length: u8,
+    length: u8,
     key: [u8; NodeHeader::MAX_LENGTH],
 }
 
@@ -45,16 +44,13 @@ pub trait NodeBase<V> {
             .map(|(i, n)| (i, unsafe { &mut *(n as *const _ as *mut NodeBox<V>) }))
     }
 
+    // TODO: distinguishing (1) occupied and (2) size errors
     fn insert(&mut self, key: u8, node: NodeBox<V>) -> Result<u8, NodeBox<V>>;
 
     fn delete(&mut self, index: u8) -> Result<NodeBox<V>, ()>;
-
-    fn update(&mut self, index: u8, node: NodeBox<V>) -> Result<NodeBox<V>, NodeBox<V>>;
-
-    // TODO: implement iterator and use it in drop
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct NodeBox<V> {
     inner: usize,
     _marker: PhantomData<Box<V>>,
@@ -71,9 +67,14 @@ impl NodeHeader {
 
     pub fn shrink_key(&mut self, delta: u8) {
         for i in delta..self.length {
-            self.key[(i - delta) as usize] = self.key[i as usize];
+            self.key[usize::from(i - delta)] = self.key[usize::from(i)];
         }
         self.length -= delta;
+    }
+
+    #[inline]
+    pub fn length(&self) -> u8 {
+        self.length
     }
 
     #[inline]
@@ -91,7 +92,17 @@ impl<V> NodeBase<V> for NodeBase4<V> {
     }
 
     fn insert(&mut self, key: u8, node: NodeBox<V>) -> Result<u8, NodeBox<V>> {
-        unimplemented!()
+        match izip!(self.indexes.iter_mut(), self.children.iter_mut())
+            .enumerate()
+            .find(|(_, (k, _))| **k == INDEX_SENTINEL)
+        {
+            None => Err(node),
+            Some((i, (k, c))) => {
+                *k = key;
+                *c = node;
+                Ok(i as u8)
+            }
+        }
     }
 
     fn delete(&mut self, index: u8) -> Result<NodeBox<V>, ()> {
@@ -107,10 +118,6 @@ impl<V> NodeBase<V> for NodeBase4<V> {
                 NodeBox::null(),
             ))
         }
-    }
-
-    fn update(&mut self, index: u8, node: NodeBox<V>) -> Result<NodeBox<V>, NodeBox<V>> {
-        unimplemented!()
     }
 }
 
@@ -123,7 +130,17 @@ impl<V> NodeBase<V> for NodeBase16<V> {
     }
 
     fn insert(&mut self, key: u8, node: NodeBox<V>) -> Result<u8, NodeBox<V>> {
-        unimplemented!()
+        match izip!(self.indexes.iter_mut(), self.children.iter_mut())
+            .enumerate()
+            .find(|(_, (k, _))| **k == INDEX_SENTINEL)
+        {
+            None => Err(node),
+            Some((i, (k, c))) => {
+                *k = key;
+                *c = node;
+                Ok(i as u8)
+            }
+        }
     }
 
     fn delete(&mut self, index: u8) -> Result<NodeBox<V>, ()> {
@@ -139,10 +156,6 @@ impl<V> NodeBase<V> for NodeBase16<V> {
                 NodeBox::null(),
             ))
         }
-    }
-
-    fn update(&mut self, index: u8, node: NodeBox<V>) -> Result<NodeBox<V>, NodeBox<V>> {
-        unimplemented!()
     }
 }
 
@@ -160,7 +173,24 @@ impl<V> NodeBase<V> for NodeBase48<V> {
     }
 
     fn insert(&mut self, key: u8, node: NodeBox<V>) -> Result<u8, NodeBox<V>> {
-        unimplemented!()
+        let index = self.indexes.get_mut(usize::from(key)).unwrap();
+        if *index != INDEX_SENTINEL {
+            return Err(node);
+        }
+
+        match self
+            .children
+            .iter_mut()
+            .enumerate()
+            .find(|(_, c)| c.is_null())
+        {
+            None => Err(node),
+            Some((i, c)) => {
+                *index = i as u8;
+                *c = node;
+                Ok(i as u8)
+            }
+        }
     }
 
     fn delete(&mut self, index: u8) -> Result<NodeBox<V>, ()> {
@@ -173,10 +203,6 @@ impl<V> NodeBase<V> for NodeBase48<V> {
             ))
         }
     }
-
-    fn update(&mut self, index: u8, node: NodeBox<V>) -> Result<NodeBox<V>, NodeBox<V>> {
-        unimplemented!()
-    }
 }
 
 impl<V> NodeBase<V> for NodeBase256<V> {
@@ -187,7 +213,13 @@ impl<V> NodeBase<V> for NodeBase256<V> {
     }
 
     fn insert(&mut self, key: u8, node: NodeBox<V>) -> Result<u8, NodeBox<V>> {
-        unimplemented!()
+        let child = unsafe { self.children.get_unchecked_mut(usize::from(key)) };
+        if !child.is_null() {
+            return Err(node);
+        }
+
+        *child = node;
+        Ok(key)
     }
 
     fn delete(&mut self, index: u8) -> Result<NodeBox<V>, ()> {
@@ -197,10 +229,6 @@ impl<V> NodeBase<V> for NodeBase256<V> {
                 NodeBox::null(),
             ))
         }
-    }
-
-    fn update(&mut self, index: u8, node: NodeBox<V>) -> Result<NodeBox<V>, NodeBox<V>> {
-        unimplemented!()
     }
 }
 
@@ -218,16 +246,14 @@ impl<V> DerefMut for NodeBaseV<V> {
     }
 }
 
-const TAG_MASK: usize = 0b111;
-
-// TODO: make sure alignment requirements with `CachePadded`
-const_assert!(nodeheader_align; mem::align_of::<NodeHeader>() >= 8);
-const_assert!(node4_size; mem::size_of::<(NodeHeader, NodeBase4<usize>)>() == 64);
+const TAG_BITS: usize = 3;
+const TAG_MASK: usize = (1 << TAG_BITS) - 1;
+const_assert!(nodeheader_align; mem::align_of::<CachePadded<()>>() >= (1 << TAG_BITS));
 
 impl<V> NodeBox<V> {
     #[inline]
     fn new_inner<T>(tag: usize, t: T) -> NodeBox<V> {
-        let ptr = Box::into_raw(Box::new((NodeHeader::default(), t)));
+        let ptr = Box::into_raw(Box::new(CachePadded::new((NodeHeader::default(), t))));
         Self {
             inner: ptr as usize | tag,
             _marker: PhantomData,
@@ -236,12 +262,12 @@ impl<V> NodeBox<V> {
 
     #[inline]
     fn new_inner_default<T: Default>(tag: usize) -> NodeBox<V> {
-        Self::new_inner(tag, T::default)
+        Self::new_inner(tag, T::default())
     }
 
     #[inline]
     unsafe fn drop_inner<T>(ptr: usize) {
-        drop(Box::from_raw(ptr as *mut (NodeHeader, T)));
+        drop(Box::from_raw(ptr as *mut CachePadded<(NodeHeader, T)>));
     }
 
     pub fn new4() -> NodeBox<V> {
@@ -274,31 +300,45 @@ impl<V> NodeBox<V> {
         I: Iterator<Item = u8> + DoubleEndedIterator,
         F: FnOnce() -> V,
     {
-        let mut node = NodeBox::newv(f());
-        let result = node.deref_mut().unwrap().1.right().unwrap() as *const V;
-        for chunk in key.rev().chunks(NodeHeader::MAX_LENGTH).into_iter() {
-            let mut parent = NodeBox::new4();
+        let mut node = Self::newv(f());
+        let (header, result) = node.deref_mut().unwrap();
+        let result = result.right().unwrap() as *const V;
+
+        let key = key.collect::<Vec<_>>();
+        let mut chunks = key.rchunks(NodeHeader::MAX_LENGTH);
+        let first_chunk = chunks.next().unwrap();
+        header.set_key(first_chunk);
+
+        for chunk in chunks {
+            let mut parent = Self::new4();
             let (parent_header, parent_base) = parent.deref_mut().unwrap();
             let parent_base = parent_base.left().unwrap();
 
-            let mut key = chunk.collect::<Vec<_>>();
-            key.reverse();
-            parent_header.set_key(&key);
+            parent_header.set_key(chunk);
             parent_base
-                .insert(*unsafe { key.get_unchecked(0) }, node)
+                .insert(*unsafe { chunk.get_unchecked(0) }, node)
                 .map_err(|_| ())
                 .unwrap();
 
             node = parent;
         }
+
         (node, result)
     }
 
-    pub fn null() -> NodeBox<V> {
+    pub fn enlarge(self) -> Self {
+        unimplemented!("NodeBox::enlarge()")
+    }
+
+    pub fn null() -> Self {
         Self {
             inner: 0,
             _marker: PhantomData,
         }
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.inner == 0
     }
 }
 
@@ -334,23 +374,23 @@ impl<V> NodeBox<V> {
         Some(unsafe {
             match tag {
                 0 => {
-                    let node = &*(ptr as *const (NodeHeader, NodeBase4<V>));
+                    let node = &*(ptr as *const CachePadded<(NodeHeader, NodeBase4<V>)>);
                     (&node.0, Either::Left(&node.1))
                 }
                 1 => {
-                    let node = &*(ptr as *const (NodeHeader, NodeBase16<V>));
+                    let node = &*(ptr as *const CachePadded<(NodeHeader, NodeBase16<V>)>);
                     (&node.0, Either::Left(&node.1))
                 }
                 2 => {
-                    let node = &*(ptr as *const (NodeHeader, NodeBase48<V>));
+                    let node = &*(ptr as *const CachePadded<(NodeHeader, NodeBase48<V>)>);
                     (&node.0, Either::Left(&node.1))
                 }
                 3 => {
-                    let node = &*(ptr as *const (NodeHeader, NodeBase256<V>));
+                    let node = &*(ptr as *const CachePadded<(NodeHeader, NodeBase256<V>)>);
                     (&node.0, Either::Left(&node.1))
                 }
                 4 => {
-                    let node = &*(ptr as *const (NodeHeader, NodeBaseV<V>));
+                    let node = &*(ptr as *const CachePadded<(NodeHeader, NodeBaseV<V>)>);
                     (&node.0, Either::Right(&node.1))
                 }
                 _ => unreachable!(),
@@ -365,30 +405,33 @@ impl<V> NodeBox<V> {
         }
 
         let tag = self.inner & TAG_MASK;
-        Some(unsafe {
-            match tag {
-                0 => {
-                    let node = &mut *(ptr as *mut (NodeHeader, NodeBase4<V>));
-                    (&mut node.0, Either::Left(&mut node.1))
-                }
-                1 => {
-                    let node = &mut *(ptr as *mut (NodeHeader, NodeBase16<V>));
-                    (&mut node.0, Either::Left(&mut node.1))
-                }
-                2 => {
-                    let node = &mut *(ptr as *mut (NodeHeader, NodeBase48<V>));
-                    (&mut node.0, Either::Left(&mut node.1))
-                }
-                3 => {
-                    let node = &mut *(ptr as *mut (NodeHeader, NodeBase256<V>));
-                    (&mut node.0, Either::Left(&mut node.1))
-                }
-                4 => {
-                    let node = &mut *(ptr as *mut (NodeHeader, NodeBaseV<V>));
-                    (&mut node.0, Either::Right(&mut node.1))
-                }
-                _ => unreachable!(),
+        Some(match tag {
+            0 => {
+                let node: &mut (_, _) =
+                    unsafe { &mut *(ptr as *mut CachePadded<(NodeHeader, NodeBase4<V>)>) };
+                (&mut node.0, Either::Left(&mut node.1))
             }
+            1 => {
+                let node: &mut (_, _) =
+                    unsafe { &mut *(ptr as *mut CachePadded<(NodeHeader, NodeBase16<V>)>) };
+                (&mut node.0, Either::Left(&mut node.1))
+            }
+            2 => {
+                let node: &mut (_, _) =
+                    unsafe { &mut *(ptr as *mut CachePadded<(NodeHeader, NodeBase48<V>)>) };
+                (&mut node.0, Either::Left(&mut node.1))
+            }
+            3 => {
+                let node: &mut (_, _) =
+                    unsafe { &mut *(ptr as *mut CachePadded<(NodeHeader, NodeBase256<V>)>) };
+                (&mut node.0, Either::Left(&mut node.1))
+            }
+            4 => {
+                let node: &mut (_, _) =
+                    unsafe { &mut *(ptr as *mut CachePadded<(NodeHeader, NodeBaseV<V>)>) };
+                (&mut node.0, Either::Right(&mut node.1))
+            }
+            _ => unreachable!(),
         })
     }
 }
@@ -760,7 +803,7 @@ impl<V> Default for NodeBase256<V> {
 mod tests {
     #[test]
     fn smoke() {
-        // TODO
+        // TODO: write a proper test for nodes
         assert_eq!(2 + 2, 4);
     }
 }

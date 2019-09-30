@@ -1,5 +1,5 @@
-use core::fmt::Debug;
 use core::iter::Peekable;
+use core::ptr;
 
 use crate::map::*;
 use crate::node::*;
@@ -13,13 +13,16 @@ pub struct Art<V> {
 #[derive(Debug)]
 struct Cursor<'a, V> {
     depth: usize,
-    parent: &'a mut NodeBox<V>,
+    parent: Option<&'a mut NodeBox<V>>,
     child: &'a mut NodeBox<V>,
     index: u8,
     length: u8,
 }
 
 /// Entry API for Art.
+///
+/// See https://doc.rust-lang.org/std/collections/hash_map/enum.Entry.html for more details of the
+/// entry API.
 #[derive(Debug)]
 pub struct Entry<'a, V, I: Iterator<Item = u8> + DoubleEndedIterator> {
     cursor: Cursor<'a, V>,
@@ -27,21 +30,30 @@ pub struct Entry<'a, V, I: Iterator<Item = u8> + DoubleEndedIterator> {
 }
 
 impl<'a, V, I: 'a + Iterator<Item = u8> + DoubleEndedIterator> Entry<'a, V, I> {
-    /// TODO
+    /// Inserts the generated value if the entry is vacant.
+    ///
+    /// Returns `Ok(v)` if inserted, where `v` is a mutable reference to the inserted value;
+    /// `Err((v, f))` if not inserted, where `v` is a mutable reference to the existing value and
+    /// `f` is the given value generator.
     #[inline]
-    pub fn or_insert_with<F>(self, f: F) -> Result<&'a mut V, (&'a mut V, F)>
+    pub fn or_insert_with<F>(mut self, f: F) -> Result<&'a mut V, (&'a mut V, F)>
     where
         F: FnOnce() -> V,
     {
         unimplemented!()
     }
 
-    /// TODO
+    /// Inserts the given value if the entry is vacant.
+    ///
+    /// Returns `Ok(v)` if inserted, where `v` is a mutable reference to the inserted value;
+    /// `Err((v, f))` if not inserted, where `v` is a mutable reference to the existing value and
+    /// `f` is the given value generator.
     pub fn or_insert(self, default: V) -> Result<&'a mut V, (&'a mut V, V)> {
         self.or_insert_with(|| default).map_err(|(v, f)| (v, f()))
     }
 
-    /// TODO
+    /// Provides in-place mutable access to an occupied entry before any potential inserts into the
+    /// map.
     pub fn and_modify<F>(mut self, f: F) -> Self
     where
         F: FnOnce(&mut V),
@@ -53,19 +65,22 @@ impl<'a, V, I: 'a + Iterator<Item = u8> + DoubleEndedIterator> Entry<'a, V, I> {
         self
     }
 
-    /// TODO
+    /// Deletes the value at the entry.
+    ///
+    /// Returns `Ok(v)` if the entry contains a value, `v`; `Err(())` if the entry does not contain
+    /// a value.
     pub fn delete(mut self) -> Result<V, ()> {
         unimplemented!()
     }
 
-    /// TODO
+    /// Lookups the entry's value.
     pub fn lookup(&mut self) -> Option<&mut V> {
         if self.key.peek().is_some() {
             return None;
         }
 
         let (header, base) = self.cursor.child.deref_mut().unwrap();
-        assert_eq!(self.cursor.length, header.length);
+        assert_eq!(self.cursor.length, header.length());
         base.right()
     }
 }
@@ -92,7 +107,7 @@ impl<V> Art<V> {
         Self::default()
     }
 
-    fn cursor<'a, I>(&'a mut self, key: &mut I) -> Cursor<'a, V>
+    fn cursor<'a, I>(&'a mut self, key: &mut Peekable<I>) -> Cursor<'a, V>
     where
         I: 'a + Iterator<Item = u8>,
     {
@@ -100,15 +115,13 @@ impl<V> Art<V> {
     }
 
     /// Creates an entry.
-    pub fn entry<'a, I>(&'a mut self, mut key: I) -> Entry<'a, V, I>
+    pub fn entry<'a, I>(&'a mut self, key: I) -> Entry<'a, V, I>
     where
         I: 'a + Iterator<Item = u8> + DoubleEndedIterator,
     {
+        let mut key = key.peekable();
         let cursor = self.cursor(&mut key);
-        Entry {
-            cursor,
-            key: key.peekable(),
-        }
+        Entry { cursor, key }
     }
 }
 
