@@ -5,6 +5,8 @@ use crate::map::*;
 use crate::node::*;
 
 /// Adaptive radix tree.
+///
+/// IMPORTANT: you should not change this type.
 #[derive(Debug)]
 pub struct Art<V> {
     root: NodeBox<V>,
@@ -79,27 +81,25 @@ impl<'a, V, I: 'a + Iterator<Item = u8> + DoubleEndedIterator> Entry<'a, V, I> {
             return None;
         }
 
-        let (header, base) = self.cursor.child.deref_mut().unwrap();
+        let (header, body) = self.cursor.child.deref_mut().unwrap();
         assert_eq!(self.cursor.length, header.length());
-        base.right()
+        body.right()
     }
 }
 
 impl<V> Default for Art<V> {
     fn default() -> Self {
         Self {
-            root: NodeBox::new256(),
+            root: NodeBox::newi(NodeHeader::default(), vec![], 256),
         }
     }
 }
 
 impl<V> Art<V> {
-    const UTF8_SENTINEL: u8 = 0xffu8;
-
     /// Encodes a given string into an array of `u8`. Appending a sentinel value (0xff) to make sure
     /// a string is not a prefix of another.
     fn encode_key<'a>(key: &'a str) -> impl 'a + Iterator<Item = u8> + DoubleEndedIterator {
-        key.bytes().chain(vec![Self::UTF8_SENTINEL].into_iter())
+        key.bytes().chain(vec![KEY_ENDMARK].into_iter())
     }
 
     /// Creates an adaptive radix tree.

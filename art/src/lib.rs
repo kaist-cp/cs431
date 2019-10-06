@@ -11,6 +11,7 @@ extern crate crossbeam_epoch;
 extern crate crossbeam_utils;
 extern crate either;
 extern crate lock;
+extern crate rand;
 
 #[macro_use]
 mod utils;
