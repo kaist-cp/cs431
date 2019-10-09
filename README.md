@@ -97,6 +97,11 @@ This course aims to help such students to:
 
 The exams will evaluate your theoretical understanding of shared mutable states.
 
+### Attendance (?%)
+
+You should submit a token to the [Course Management](https://gg.kaist.ac.kr) website for each
+session.  You should submit a token within **12 hours from the beginning of a sessions**.
+
 ### Honor code
 
 Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZYuKwZ9).
