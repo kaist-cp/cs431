@@ -306,14 +306,14 @@ impl<V> NodeBodyI<V> for NodeBody48<V> {
 
     fn extract_children(&mut self) -> Vec<(u8, NodeBox<V>)> {
         let mut result = vec![];
-        for i in self.indexes.iter_mut() {
-            if *i != KEY_INVALID {
+        for (i, j) in self.indexes.iter_mut().enumerate() {
+            if *j != KEY_INVALID {
                 let child = mem::replace(
-                    unsafe { self.children.get_unchecked_mut(usize::from(*i)) },
+                    unsafe { self.children.get_unchecked_mut(usize::from(*j)) },
                     NodeBox::null(),
                 );
-                result.push((*i, child));
-                *i = KEY_INVALID;
+                result.push((i as u8, child));
+                *j = KEY_INVALID;
             }
         }
         result

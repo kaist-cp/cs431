@@ -76,7 +76,7 @@ fn stress() {
     let mut art = Art::new();
     let mut hashmap = HashMap::<String, usize>::new();
 
-    const OPS: usize = 4096;
+    const OPS: usize = 4096 * 4096;
 
     for i in 0..OPS {
         let op = ops.choose(&mut rng).unwrap();
