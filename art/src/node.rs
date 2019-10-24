@@ -322,9 +322,12 @@ impl<V> NodeBodyI<V> for NodeBody48<V> {
 
 impl<V> NodeBodyI<V> for NodeBody256<V> {
     fn lookup(&self, key: u8) -> Option<(u8, &NodeBox<V>)> {
-        Some((key, unsafe {
-            self.children.get_unchecked(usize::from(key))
-        }))
+        let node = unsafe { self.children.get_unchecked(usize::from(key)) };
+        if node.is_null() {
+            None
+        } else {
+            Some((key, node))
+        }
     }
 
     fn update(&mut self, key: u8, node: NodeBox<V>) -> Result<(u8, NodeBox<V>), NodeBox<V>> {
