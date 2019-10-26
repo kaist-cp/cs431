@@ -476,6 +476,22 @@ impl<V> NodeBox<V> {
     pub fn is_null(&self) -> bool {
         self.inner == 0
     }
+
+    /// Unboxes `self` and returns its containing value.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it does not contain `NodeBodyV`.
+    pub fn into_value(self) -> V {
+        let ptr = self.inner & !TAG_MASK;
+        assert_eq!(self.inner & TAG_MASK, 4);
+
+        let node = unsafe { Box::from_raw(ptr as *mut CachePadded<(NodeHeader, NodeBodyV<V>)>) };
+        mem::forget(self);
+
+        let (_, body) = CachePadded::into_inner(*node);
+        ManuallyDrop::into_inner(body.inner)
+    }
 }
 
 impl<V> Into<(NodeHeader, Vec<(u8, NodeBox<V>)>)> for NodeBox<V> {
