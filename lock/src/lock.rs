@@ -24,8 +24,8 @@ pub struct Lock<L: RawLock, T> {
     data: UnsafeCell<T>,
 }
 
-unsafe impl<'s, L: RawLock, T: Send> Send for Lock<L, T> {}
-unsafe impl<'s, L: RawLock, T: Send> Sync for Lock<L, T> {}
+unsafe impl<L: RawLock, T: Send> Send for Lock<L, T> {}
+unsafe impl<L: RawLock, T: Send> Sync for Lock<L, T> {}
 
 impl<L: RawLock, T> Lock<L, T> {
     pub fn new(data: T) -> Self {

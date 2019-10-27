@@ -4,6 +4,7 @@ mod clhlock;
 mod lock;
 mod mcslock;
 mod mcsparkinglock;
+pub mod seqlock;
 mod spinlock;
 mod ticketlock;
 
