@@ -22,7 +22,12 @@ impl RawSeqLock {
             if seq & 1 == 0
                 && self
                     .seq
-                    .compare_exchange(seq, seq.wrapping_add(1), Ordering::Acquire, Ordering::Relaxed)
+                    .compare_exchange(
+                        seq,
+                        seq.wrapping_add(1),
+                        Ordering::Acquire,
+                        Ordering::Relaxed,
+                    )
                     .is_ok()
             {
                 fence(Ordering::Release);
@@ -67,11 +72,19 @@ pub struct WriteGuard<'s, T> {
     seq: usize,
 }
 
+pub struct ReadGuard<'s, T> {
+    lock: &'s SeqLock<T>,
+    seq: usize,
+}
+
 unsafe impl<T: Send> Send for SeqLock<T> {}
 unsafe impl<T: Send> Sync for SeqLock<T> {}
 
 unsafe impl<'s, T> Send for WriteGuard<'s, T> {}
 unsafe impl<'s, T: Send + Sync> Sync for WriteGuard<'s, T> {}
+
+unsafe impl<'s, T> Send for ReadGuard<'s, T> {}
+unsafe impl<'s, T: Send + Sync> Sync for ReadGuard<'s, T> {}
 
 impl<T> SeqLock<T> {
     pub const fn new(data: T) -> Self {
@@ -89,14 +102,22 @@ impl<T> SeqLock<T> {
     /// # Safety
     ///
     /// All reads from the underlying data should be atomic.
+    pub unsafe fn read_lock(&self) -> ReadGuard<T> {
+        let seq = self.lock.read_lock();
+        ReadGuard { lock: self, seq }
+    }
+
+    /// # Safety
+    ///
+    /// All reads from the underlying data should be atomic.
     pub unsafe fn read<F, R>(&self, f: F) -> Option<R>
     where
         F: FnOnce(&T) -> R,
     {
-        let seq = self.lock.read_lock();
-        let result = f(&self.data);
+        let guard = self.read_lock();
+        let result = f(&guard);
 
-        if self.lock.read_unlock(seq) {
+        if guard.validate() {
             Some(result)
         } else {
             None
@@ -115,5 +136,19 @@ impl<'s, T> Deref for WriteGuard<'s, T> {
 impl<'s, T> Drop for WriteGuard<'s, T> {
     fn drop(&mut self) {
         self.lock.lock.write_unlock(self.seq);
+    }
+}
+
+impl<'s, T> Deref for ReadGuard<'s, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.lock.data
+    }
+}
+
+impl<'s, T> ReadGuard<'s, T> {
+    pub fn validate(&self) -> bool {
+        self.lock.lock.read_unlock(self.seq)
     }
 }
