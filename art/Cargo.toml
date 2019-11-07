@@ -9,6 +9,7 @@ itertools = "0.8"
 static_assertions = "0.3"
 crossbeam-epoch = "0.7"
 crossbeam-utils = "0.6"
+arr_macro = "0.1.3"
 either = "1.5"
 lock = { git = "https://github.com/kaist-cp/cs492-concur" }
 rand = "0.7"
