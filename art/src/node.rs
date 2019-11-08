@@ -6,10 +6,9 @@ use core::ops::{Deref, DerefMut};
 use crossbeam_utils::CachePadded;
 use either::Either;
 
-//use macro
+use arr_macro::arr;
 use itertools::izip;
 use static_assertions::const_assert;
-use arr_macro::arr;
 
 /// The sentinel value for index.
 pub const KEY_ENDMARK: u8 = 0xffu8;
@@ -618,7 +617,7 @@ impl<V> Default for NodeBody4<V> {
     fn default() -> Self {
         Self {
             keys: [KEY_INVALID; 4],
-            children: arr![NodeBox::null();4],
+            children: arr![NodeBox::null(); 4],
         }
     }
 }
@@ -636,7 +635,7 @@ impl<V> Default for NodeBody48<V> {
     fn default() -> Self {
         Self {
             indexes: [KEY_INVALID; 256],
-            children: arr![NodeBox::null();48],
+            children: arr![NodeBox::null(); 48],
         }
     }
 }
@@ -644,7 +643,7 @@ impl<V> Default for NodeBody48<V> {
 impl<V> Default for NodeBody256<V> {
     fn default() -> Self {
         Self {
-            children: arr![NodeBox::null();256],
+            children: arr![NodeBox::null(); 256],
         }
     }
 }
