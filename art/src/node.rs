@@ -626,7 +626,7 @@ impl<V> Default for NodeBody16<V> {
     fn default() -> Self {
         Self {
             keys: [KEY_INVALID; 16],
-            children: arr![NodeBox::null();16],
+            children: arr![NodeBox::null(); 16],
         }
     }
 }
