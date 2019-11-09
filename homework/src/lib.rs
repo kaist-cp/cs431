@@ -6,8 +6,9 @@
 #[macro_use]
 mod utils;
 mod art;
+mod bst;
 mod map;
-mod node;
 
 pub use art::{Art, Entry};
+pub use bst::Bst;
 pub use map::{ConcurrentMap, SequentialMap};

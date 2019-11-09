@@ -1,8 +1,10 @@
 use core::iter::Peekable;
 use core::ptr;
 
+mod node;
+
 use crate::map::*;
-use crate::node::*;
+use node::*;
 
 /// Adaptive radix tree.
 ///
@@ -125,7 +127,7 @@ impl<V> Art<V> {
     }
 }
 
-impl<V> SequentialMap<V> for Art<V> {
+impl<V> SequentialMap<str, V> for Art<V> {
     fn insert<'a>(&'a mut self, key: &'a str, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
         let key = Self::encode_key(key);
         self.entry(key).or_insert(value)

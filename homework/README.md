@@ -1,4 +1,4 @@
-# Adaptive radix tree (ART)
+# Homework 1: adaptive radix tree (ART)
 
 Implement the data structure described in the following paper: Leis *et. al.* [The Adaptive Radix
 Tree: ARTful Indexing for Main-Memory Databases](https://db.in.tum.de/~leis/papers/ART.pdf).  ICDE
@@ -30,11 +30,14 @@ Synchronization](https://db.in.tum.de/~leis/papers/artsync.pdf).  DaMoN 2016. --
   a change in the issue tracker. Submission method is TBA.
 
 
-## Recommendations
+# Homework 2: binary search with with optimistic lock coupling
+
+TBA
+
+
+## General recommendations
 
 - Read the paper and the skeleton code carefully.  I'll ask questions on those in the exams.
-
-- Homework 2: concurrent adaptive radix tree will be based on this homework.
 
 - Read [the Rust book](https://doc.rust-lang.org/book/), especially the ["getting started"
   section](https://doc.rust-lang.org/book/ch01-00-getting-started.html) for learning how to build

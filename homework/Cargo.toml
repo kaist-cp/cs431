@@ -1,5 +1,5 @@
 [package]
-name = "cs492-concur-art"
+name = "cs492-concur-homework"
 version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
 edition = "2018"
