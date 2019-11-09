@@ -1,8 +1,10 @@
+use core::mem;
 use core::ops::Deref;
 use core::sync::atomic::{fence, AtomicUsize, Ordering};
 
 use crossbeam_utils::Backoff;
 
+#[derive(Debug)]
 pub struct RawSeqLock {
     seq: AtomicUsize,
 }
@@ -42,7 +44,7 @@ impl RawSeqLock {
         self.seq.store(seq.wrapping_add(2), Ordering::Release);
     }
 
-    pub fn read_lock(&self) -> usize {
+    pub fn read_begin(&self) -> usize {
         let backoff = Backoff::new();
 
         loop {
@@ -55,23 +57,26 @@ impl RawSeqLock {
         }
     }
 
-    pub fn read_unlock(&self, seq: usize) -> bool {
+    pub fn read_validate(&self, seq: usize) -> bool {
         fence(Ordering::Acquire);
 
         seq == self.seq.load(Ordering::Relaxed)
     }
 }
 
+#[derive(Debug)]
 pub struct SeqLock<T> {
     lock: RawSeqLock,
     data: T,
 }
 
+#[derive(Debug)]
 pub struct WriteGuard<'s, T> {
     lock: &'s SeqLock<T>,
     seq: usize,
 }
 
+#[derive(Debug)]
 pub struct ReadGuard<'s, T> {
     lock: &'s SeqLock<T>,
     seq: usize,
@@ -94,6 +99,10 @@ impl<T> SeqLock<T> {
         }
     }
 
+    pub fn get_mut(&mut self) -> &mut T {
+        &mut self.data
+    }
+
     pub fn write_lock(&self) -> WriteGuard<T> {
         let seq = self.lock.write_lock();
         WriteGuard { lock: self, seq }
@@ -103,7 +112,7 @@ impl<T> SeqLock<T> {
     ///
     /// All reads from the underlying data should be atomic.
     pub unsafe fn read_lock(&self) -> ReadGuard<T> {
-        let seq = self.lock.read_lock();
+        let seq = self.lock.read_begin();
         ReadGuard { lock: self, seq }
     }
 
@@ -117,7 +126,7 @@ impl<T> SeqLock<T> {
         let guard = self.read_lock();
         let result = f(&guard);
 
-        if guard.validate() {
+        if guard.finish() {
             Some(result)
         } else {
             None
@@ -149,6 +158,24 @@ impl<'s, T> Deref for ReadGuard<'s, T> {
 
 impl<'s, T> ReadGuard<'s, T> {
     pub fn validate(&self) -> bool {
-        self.lock.lock.read_unlock(self.seq)
+        self.lock.lock.read_validate(self.seq)
+    }
+
+    pub fn restart(&mut self) {
+        self.seq = self.lock.lock.read_begin();
+    }
+
+    pub fn finish(self) -> bool {
+        let result = self.lock.lock.read_validate(self.seq);
+        mem::forget(self);
+        result
+    }
+}
+
+impl<'s, T> Drop for ReadGuard<'s, T> {
+    fn drop(&mut self) {
+        // HACK(@jeehoonkang): we really need linear type here:
+        // https://github.com/rust-lang/rfcs/issues/814
+        panic!("seqlock::ReadGuard should never drop: use Self::finish() instead");
     }
 }
