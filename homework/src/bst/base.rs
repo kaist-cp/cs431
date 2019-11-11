@@ -91,7 +91,7 @@ impl<K: Ord, V> NodeInner<K, V> {
     pub fn child(&self, dir: Dir) -> &Atomic<Node<K, V>> {
         match dir {
             Dir::L => &self.left,
-            Dir::R => &self.left,
+            Dir::R => &self.right,
         }
     }
 }
