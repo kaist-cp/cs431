@@ -35,7 +35,7 @@ Synchronization](https://db.in.tum.de/~leis/papers/artsync.pdf).  DaMoN 2016. --
 TBA
 
 
-## General recommendations
+# General recommendations
 
 - Read the paper and the skeleton code carefully.  I'll ask questions on those in the exams.
 

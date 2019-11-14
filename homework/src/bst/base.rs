@@ -1,7 +1,7 @@
 use core::mem::ManuallyDrop;
-use core::sync::atomic::Ordering;
 use core::ptr;
-use crossbeam_epoch::{Atomic, Shared, Guard};
+use core::sync::atomic::Ordering;
+use crossbeam_epoch::{Atomic, Guard, Shared};
 use lock::seqlock::{ReadGuard, SeqLock};
 
 /// Atomic type with atomic read/write.
@@ -91,7 +91,7 @@ impl<K: Ord, V> NodeInner<K, V> {
     pub fn child(&self, dir: Dir) -> &Atomic<Node<K, V>> {
         match dir {
             Dir::L => &self.left,
-            Dir::R => &self.left,
+            Dir::R => &self.right,
         }
     }
 }
