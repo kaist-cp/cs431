@@ -66,8 +66,8 @@ impl RawSeqLock {
     /// # Safety
     ///
     /// `seq` must be even.
-    pub unsafe fn upgrade(&self, seq: usize) -> Result<usize, ()> {
-        let res = self
+    pub unsafe fn upgrade(&self, seq: usize) -> Result<(), ()> {
+        if self
             .seq
             .compare_exchange(
                 seq,
@@ -75,10 +75,13 @@ impl RawSeqLock {
                 Ordering::Acquire,
                 Ordering::Relaxed,
             )
-            .map_err(|_| ())?;
+            .is_err()
+        {
+            return Err(());
+        }
 
         fence(Ordering::Release);
-        Ok(res)
+        Ok(())
     }
 }
 
@@ -190,15 +193,16 @@ impl<'s, T> ReadGuard<'s, T> {
     }
 
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
-        let seq = unsafe { self.lock.lock.upgrade(self.seq)? };
-
-        let res = WriteGuard {
-            lock: self.lock,
-            seq,
+        let result = if unsafe { self.lock.lock.upgrade(self.seq).is_ok() } {
+            Ok(WriteGuard {
+                lock: self.lock,
+                seq: self.seq,
+            })
+        } else {
+            Err(())
         };
-
         mem::forget(self);
-        Ok(res)
+        result
     }
 }
 
