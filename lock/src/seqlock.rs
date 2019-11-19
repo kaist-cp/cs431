@@ -190,10 +190,15 @@ impl<'s, T> ReadGuard<'s, T> {
     }
 
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
-        let Self { lock, seq } = self;
-        let seq = unsafe { lock.lock.upgrade(seq)? };
+        let seq = unsafe { self.lock.lock.upgrade(self.seq)? };
 
-        Ok(WriteGuard { lock, seq })
+        let res = WriteGuard {
+            lock: self.lock,
+            seq,
+        };
+
+        mem::forget(self);
+        Ok(res)
     }
 }
 
