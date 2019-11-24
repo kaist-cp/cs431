@@ -62,6 +62,27 @@ impl RawSeqLock {
 
         seq == self.seq.load(Ordering::Relaxed)
     }
+
+    /// # Safety
+    ///
+    /// `seq` must be even.
+    pub unsafe fn upgrade(&self, seq: usize) -> Result<(), ()> {
+        if self
+            .seq
+            .compare_exchange(
+                seq,
+                seq.wrapping_add(1),
+                Ordering::Acquire,
+                Ordering::Relaxed,
+            )
+            .is_err()
+        {
+            return Err(());
+        }
+
+        fence(Ordering::Release);
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -167,6 +188,19 @@ impl<'s, T> ReadGuard<'s, T> {
 
     pub fn finish(self) -> bool {
         let result = self.lock.lock.read_validate(self.seq);
+        mem::forget(self);
+        result
+    }
+
+    pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
+        let result = if unsafe { self.lock.lock.upgrade(self.seq).is_ok() } {
+            Ok(WriteGuard {
+                lock: self.lock,
+                seq: self.seq,
+            })
+        } else {
+            Err(())
+        };
         mem::forget(self);
         result
     }
