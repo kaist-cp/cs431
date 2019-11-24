@@ -35,10 +35,17 @@ impl<'g, K: Ord, V> Cursor<'g, K, V> {
         unimplemented!()
     }
 
+    /// Finds the given `key` from the current cursor (`self`).
+    ///
+    /// - Returns `Ordering::Less` or `Ordering::Greater` if the key should be inserted from the
+    ///   left or right (resp.)  child of the resulting cursor.
+    /// - Returns `Ordering::Equal` if the key was found.
     fn find(&mut self, key: &K, guard: &'g Guard) -> cmp::Ordering {
         unimplemented!()
     }
 
+    // Recursively tries to unlink `self.current` if it's vacant and at least one of children is
+    // null.
     fn cleanup(&mut self, guard: &Guard) {
         unimplemented!()
     }
@@ -49,14 +56,23 @@ where
     K: Clone,
     Option<V>: AtomicRW,
 {
+    /// Inserts the given `value` at the given `key`.
+    ///
+    /// - Returns `Ok(())` if `value` is inserted.
+    /// - Returns `Err(value)` for the given `value` if `key` is already occupied.
     fn insert<'a>(&'a self, key: &'a K, value: V, guard: &'a Guard) -> Result<(), V> {
         unimplemented!()
     }
 
+    /// Deletes the given `key`.
+    ///
+    /// - Returns `Ok(value)` if `value` was deleted from `key`.
+    /// - Returns `Err(())` if `key` was vacant.
     fn delete(&self, key: &K, guard: &Guard) -> Result<V, ()> {
         unimplemented!()
     }
 
+    /// Looks up the given `key` and calls `f` for the found `value`.
     fn lookup<'a, F, R>(&'a self, key: &'a K, guard: &'a Guard, f: F) -> R
     where
         F: FnOnce(Option<&V>) -> R,
