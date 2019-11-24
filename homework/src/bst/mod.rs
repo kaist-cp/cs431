@@ -46,6 +46,8 @@ impl<'g, K: Ord, V> Cursor<'g, K, V> {
 
     // Recursively tries to unlink `self.current` if it's vacant and at least one of children is
     // null.
+    //
+    // You should repeat cleanup until the current `self.current` is no longer cleanup-able.
     fn cleanup(&mut self, guard: &Guard) {
         unimplemented!()
     }
