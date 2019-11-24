@@ -64,11 +64,7 @@ where
         // 1 -> 2 -x-> 3 -x-> 4 -> 5 -> ∅  (search key: 4)
         let mut prev_next = self.curr;
         let found = loop {
-            let curr_node = match unsafe { self.curr.as_ref() } {
-                None => break false,
-                Some(c) => c,
-            };
-
+            let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
             let mut next = curr_node.next.load(Ordering::Acquire, guard);
 
             // - finding stage is done if cursor.curr advancement stops
@@ -84,7 +80,7 @@ where
                     }
                 }
                 (eq, 0) => {
-                    next = curr_node.next.load(Ordering::Relaxed, guard);
+                    next = curr_node.next.load(Ordering::Acquire, guard);
                     if next.tag() == 0 {
                         break eq == Equal;
                     } else {
@@ -116,7 +112,7 @@ where
                 return Ok(found);
             }
             let node_ref = unsafe { node.as_ref().unwrap() };
-            let next = node_ref.next.load(Ordering::Relaxed, guard);
+            let next = node_ref.next.load(Ordering::Acquire, guard);
             unsafe {
                 guard.defer_destroy(node);
             }
@@ -130,11 +126,7 @@ where
         loop {
             debug_assert_eq!(self.curr.tag(), 0);
 
-            let curr_node = match unsafe { self.curr.as_ref() } {
-                None => return Ok(false),
-                Some(c) => c,
-            };
-
+            let curr_node = some_or!(unsafe { self.curr.as_ref() }, return Ok(false));
             let mut next = curr_node.next.load(Ordering::Acquire, guard);
 
             if next.tag() == 0 {
@@ -161,17 +153,14 @@ where
     #[inline]
     fn find_harris_herlihy_shavit(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         Ok(loop {
-            let curr_node = match unsafe { self.curr.as_ref() } {
-                None => break false,
-                Some(c) => c,
-            };
+            let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
             match curr_node.key.cmp(key) {
                 Less => {
                     self.curr = curr_node.next.load(Ordering::Acquire, guard);
                     self.prev = &curr_node.next; // NOTE: not needed
                     continue;
                 }
-                _ => break curr_node.next.load(Ordering::Relaxed, guard).tag() == 0,
+                _ => break curr_node.next.load(Ordering::Acquire, guard).tag() == 0,
             }
         })
     }
