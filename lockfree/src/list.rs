@@ -247,7 +247,7 @@ where
             let curr_node = unsafe { cursor.curr.as_ref() }.unwrap();
             let value = unsafe { ptr::read(&curr_node.value) };
 
-            let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
+            let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
             if next.tag() == 1 {
                 continue;
             }
