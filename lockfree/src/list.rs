@@ -92,7 +92,7 @@ where
         // cleanup marked nodes between prev and curr
         if self
             .prev
-            .compare_and_set(prev_next, self.curr, Ordering::AcqRel, guard)
+            .compare_and_set(prev_next, self.curr, Ordering::Release, guard)
             .is_err()
         {
             return Err(());
@@ -132,7 +132,7 @@ where
                 next = next.with_tag(0);
                 match self
                     .prev
-                    .compare_and_set(self.curr, next, Ordering::AcqRel, guard)
+                    .compare_and_set(self.curr, next, Ordering::Release, guard)
                 {
                     Err(_) => return Err(()),
                     Ok(_) => unsafe { guard.defer_destroy(self.curr) },
@@ -225,7 +225,7 @@ where
             node.next.store(cursor.curr, Ordering::Relaxed);
             match cursor
                 .prev
-                .compare_and_set(cursor.curr, node, Ordering::AcqRel, guard)
+                .compare_and_set(cursor.curr, node, Ordering::Release, guard)
             {
                 Ok(_) => return true,
                 Err(e) => node = e.new,
@@ -254,7 +254,7 @@ where
 
             if cursor
                 .prev
-                .compare_and_set(cursor.curr, next, Ordering::AcqRel, guard)
+                .compare_and_set(cursor.curr, next, Ordering::Release, guard)
                 .is_ok()
             {
                 unsafe { guard.defer_destroy(cursor.curr) };
