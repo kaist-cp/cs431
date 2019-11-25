@@ -65,7 +65,7 @@ where
         let mut prev_next = self.curr;
         let found = loop {
             let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
-            let mut next = curr_node.next.load(Ordering::Acquire, guard);
+            let next = curr_node.next.load(Ordering::Acquire, guard);
 
             // - finding stage is done if cursor.curr advancement stops
             // - advance cursor.curr if (.next is marked) || (cursor.curr < key)
@@ -79,15 +79,8 @@ where
                         prev_next = next;
                     }
                 }
-                (eq, 0) => {
-                    next = curr_node.next.load(Ordering::Acquire, guard);
-                    if next.tag() == 0 {
-                        break eq == Equal;
-                    } else {
-                        return Err(());
-                    }
-                }
-                (_, _) => self.curr = next.with_tag(0),
+                (cmp, 0) => break cmp == Equal,
+                _ => self.curr = next.with_tag(0),
             }
         };
 
@@ -157,10 +150,12 @@ where
             match curr_node.key.cmp(key) {
                 Less => {
                     self.curr = curr_node.next.load(Ordering::Acquire, guard);
-                    self.prev = &curr_node.next; // NOTE: not needed
+                    // NOTE: unnecessary (this function is expected to be used only for `get`)
+                    self.prev = &curr_node.next;
                     continue;
                 }
-                _ => break curr_node.next.load(Ordering::Acquire, guard).tag() == 0,
+                Equal => break curr_node.next.load(Ordering::Relaxed, guard).tag() == 0,
+                Greater => break false,
             }
         })
     }
