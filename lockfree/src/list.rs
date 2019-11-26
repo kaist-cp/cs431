@@ -65,7 +65,7 @@ where
         let mut prev_next = self.curr;
         let found = loop {
             let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
-            let mut next = curr_node.next.load(Ordering::Acquire, guard);
+            let next = curr_node.next.load(Ordering::Acquire, guard);
 
             // - finding stage is done if cursor.curr advancement stops
             // - advance cursor.curr if (.next is marked) || (cursor.curr < key)
@@ -79,15 +79,8 @@ where
                         prev_next = next;
                     }
                 }
-                (eq, 0) => {
-                    next = curr_node.next.load(Ordering::Acquire, guard);
-                    if next.tag() == 0 {
-                        break eq == Equal;
-                    } else {
-                        return Err(());
-                    }
-                }
-                (_, _) => self.curr = next.with_tag(0),
+                (cmp, 0) => break cmp == Equal,
+                _ => self.curr = next.with_tag(0),
             }
         };
 
@@ -99,7 +92,7 @@ where
         // cleanup marked nodes between prev and curr
         if self
             .prev
-            .compare_and_set(prev_next, self.curr, Ordering::AcqRel, guard)
+            .compare_and_set(prev_next, self.curr, Ordering::Release, guard)
             .is_err()
         {
             return Err(());
@@ -139,7 +132,7 @@ where
                 next = next.with_tag(0);
                 match self
                     .prev
-                    .compare_and_set(self.curr, next, Ordering::AcqRel, guard)
+                    .compare_and_set(self.curr, next, Ordering::Release, guard)
                 {
                     Err(_) => return Err(()),
                     Ok(_) => unsafe { guard.defer_destroy(self.curr) },
@@ -157,10 +150,12 @@ where
             match curr_node.key.cmp(key) {
                 Less => {
                     self.curr = curr_node.next.load(Ordering::Acquire, guard);
-                    self.prev = &curr_node.next; // NOTE: not needed
+                    // NOTE: unnecessary (this function is expected to be used only for `get`)
+                    self.prev = &curr_node.next;
                     continue;
                 }
-                _ => break curr_node.next.load(Ordering::Acquire, guard).tag() == 0,
+                Equal => break curr_node.next.load(Ordering::Relaxed, guard).tag() == 0,
+                Greater => break false,
             }
         })
     }
@@ -230,7 +225,7 @@ where
             node.next.store(cursor.curr, Ordering::Relaxed);
             match cursor
                 .prev
-                .compare_and_set(cursor.curr, node, Ordering::AcqRel, guard)
+                .compare_and_set(cursor.curr, node, Ordering::Release, guard)
             {
                 Ok(_) => return true,
                 Err(e) => node = e.new,
@@ -252,14 +247,14 @@ where
             let curr_node = unsafe { cursor.curr.as_ref() }.unwrap();
             let value = unsafe { ptr::read(&curr_node.value) };
 
-            let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
+            let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
             if next.tag() == 1 {
                 continue;
             }
 
             if cursor
                 .prev
-                .compare_and_set(cursor.curr, next, Ordering::AcqRel, guard)
+                .compare_and_set(cursor.curr, next, Ordering::Release, guard)
                 .is_ok()
             {
                 unsafe { guard.defer_destroy(cursor.curr) };
