@@ -379,7 +379,7 @@ impl<V> DerefMut for NodeBodyV<V> {
 
 const TAG_BITS: usize = 3;
 const TAG_MASK: usize = (1 << TAG_BITS) - 1;
-const_assert!(nodeheader_align; mem::align_of::<CachePadded<()>>() >= (1 << TAG_BITS));
+const_assert!(mem::align_of::<CachePadded<()>>() >= (1 << TAG_BITS));
 
 impl<V> NodeBox<V> {
     #[inline]
