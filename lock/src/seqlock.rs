@@ -177,6 +177,23 @@ impl<'s, T> Deref for ReadGuard<'s, T> {
     }
 }
 
+impl<'s, T> Clone for ReadGuard<'s, T> {
+    fn clone(&self) -> Self {
+        Self {
+            lock: self.lock,
+            seq: self.seq,
+        }
+    }
+}
+
+impl<'s, T> Drop for ReadGuard<'s, T> {
+    fn drop(&mut self) {
+        // HACK(@jeehoonkang): we really need linear type here:
+        // https://github.com/rust-lang/rfcs/issues/814
+        panic!("seqlock::ReadGuard should never drop: use Self::finish() instead");
+    }
+}
+
 impl<'s, T> ReadGuard<'s, T> {
     pub fn validate(&self) -> bool {
         self.lock.lock.read_validate(self.seq)
@@ -203,13 +220,5 @@ impl<'s, T> ReadGuard<'s, T> {
         };
         mem::forget(self);
         result
-    }
-}
-
-impl<'s, T> Drop for ReadGuard<'s, T> {
-    fn drop(&mut self) {
-        // HACK(@jeehoonkang): we really need linear type here:
-        // https://github.com/rust-lang/rfcs/issues/814
-        panic!("seqlock::ReadGuard should never drop: use Self::finish() instead");
     }
 }
