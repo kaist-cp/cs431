@@ -71,16 +71,20 @@ where
             // - advance cursor.curr if (.next is marked) || (cursor.curr < key)
             // - stop cursor.curr if (not marked) && (cursor.curr >= key)
             // - advance cursor.prev if not marked
-            match (curr_node.key.cmp(key), next.tag()) {
-                (Less, tag) => {
+
+            if next.tag() != 0 {
+                self.curr = next.with_tag(0);
+                continue;
+            }
+
+            match curr_node.key.cmp(key) {
+                Less => {
                     self.curr = next.with_tag(0);
-                    if tag == 0 {
-                        self.prev = &curr_node.next;
-                        prev_next = next;
-                    }
+                    self.prev = &curr_node.next;
+                    prev_next = next;
                 }
-                (cmp, 0) => break cmp == Equal,
-                _ => self.curr = next.with_tag(0),
+                Equal => break true,
+                Greater => break false,
             }
         };
 
@@ -90,27 +94,21 @@ where
         }
 
         // cleanup marked nodes between prev and curr
-        if self
-            .prev
+        self.prev
             .compare_and_set(prev_next, self.curr, Ordering::Release, guard)
-            .is_err()
-        {
-            return Err(());
-        }
+            .map_err(|_| ())?;
 
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
         let mut node = prev_next;
-        loop {
-            if node.with_tag(0) == self.curr {
-                return Ok(found);
-            }
-            let node_ref = unsafe { node.as_ref().unwrap() };
-            let next = node_ref.next.load(Ordering::Acquire, guard);
+        while node.with_tag(0) != self.curr {
             unsafe {
+                let next = node.as_ref().unwrap().next.load(Ordering::Acquire, guard);
                 guard.defer_destroy(node);
+                node = next;
             }
-            node = next;
         }
+
+        Ok(found)
     }
 
     /// Clean up a single logically removed node in each traversal.
@@ -122,23 +120,26 @@ where
             let curr_node = some_or!(unsafe { self.curr.as_ref() }, return Ok(false));
             let mut next = curr_node.next.load(Ordering::Acquire, guard);
 
-            if next.tag() == 0 {
-                match curr_node.key.cmp(key) {
-                    Less => self.prev = &curr_node.next,
-                    Equal => return Ok(true),
-                    Greater => return Ok(false),
-                }
-            } else {
+            if next.tag() != 0 {
                 next = next.with_tag(0);
-                match self
-                    .prev
+                self.prev
                     .compare_and_set(self.curr, next, Ordering::Release, guard)
-                {
-                    Err(_) => return Err(()),
-                    Ok(_) => unsafe { guard.defer_destroy(self.curr) },
+                    .map_err(|_| ())?;
+                unsafe {
+                    guard.defer_destroy(self.curr);
                 }
+                self.curr = next;
+                continue;
             }
-            self.curr = next;
+
+            match curr_node.key.cmp(key) {
+                Less => {
+                    self.prev = &curr_node.next;
+                    self.curr = next;
+                }
+                Equal => return Ok(true),
+                Greater => return Ok(false),
+            }
         }
     }
 
