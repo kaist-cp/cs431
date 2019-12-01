@@ -1,0 +1,35 @@
+//! Elimination-backoff stack.
+
+mod base;
+mod elim;
+mod treiber_stack;
+
+pub use base::Stack;
+
+/// Elimination-backoff stack based on Treiber's stack.
+pub type ElimStack<T> = base::ElimStack<T, treiber_stack::TreiberStack<T>>;
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crossbeam_utils::thread::scope;
+
+    #[test]
+    fn push() {
+        let stack = ElimStack::default();
+
+        scope(|scope| {
+            for _ in 0..10 {
+                scope.spawn(|_| {
+                    for i in 0..10_000 {
+                        stack.push(i);
+                        assert!(stack.pop().is_some());
+                    }
+                });
+            }
+        })
+        .unwrap();
+
+        assert!(stack.pop().is_none());
+    }
+}
