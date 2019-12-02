@@ -1,11 +1,17 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 use core::ops::Deref;
-use crossbeam_epoch::{pin, Atomic, Guard, Owned};
 use std::time;
+use crossbeam_epoch::{pin, Atomic, Guard, Owned};
+use rand::{Rng, thread_rng};
 
-pub const ELIM_SIZE: usize = 8;
+pub const ELIM_SIZE: usize = 16;
 pub const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);
+
+#[inline]
+pub fn get_random_elim_index() -> usize {
+    thread_rng().gen::<usize>() % ELIM_SIZE
+}
 
 /// Concurrent stack types.
 pub trait Stack<T>: Default {

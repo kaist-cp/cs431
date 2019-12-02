@@ -5,7 +5,7 @@ use core::sync::atomic::Ordering;
 use crossbeam_epoch::{Guard, Owned, Shared};
 use std::thread;
 
-use super::base::{Stack, ELIM_DELAY, ElimStack};
+use super::base::{ElimStack, Stack, ELIM_DELAY, get_random_elim_index};
 
 impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
     type PushReq = S::PushReq;
@@ -20,6 +20,10 @@ impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
             Err(req) => req,
         };
 
+        let index = get_random_elim_index();
+        let slot_ref = unsafe { self.slots.get_unchecked(index) };
+        let slot = slot_ref.load(Ordering::Acquire, guard);
+
         unimplemented!()
     }
 
@@ -27,6 +31,10 @@ impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
         if let Ok(result) = self.inner.try_pop(guard) {
             return Ok(result);
         }
+
+        let index = get_random_elim_index();
+        let slot_ref = unsafe { self.slots.get_unchecked(index) };
+        let slot = slot_ref.load(Ordering::Acquire, guard);
 
         unimplemented!()
     }
