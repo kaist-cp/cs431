@@ -3,7 +3,8 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time & Place: Mon & Wed 09:00am-10:15am, Rm 2111, Bldg E3-1
+- TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
+- Time & Place: Tue & Thu 10:30am-11:45am, Rm 1101, Bldg E3-1 (for 2020 Fall)
 - Website: https://github.com/kaist-cp/cs492-concur
 - Announcements: in [issue
   tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
@@ -56,7 +57,11 @@ This course aims to help such students to:
 ### Textbook
 
 - [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
-- Classical papers and libraries (TBA)
+- Classical papers and libraries
+    + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language &
+      architecture semantics for shared-memory concurrency
+    + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library in
+      [Rust](https://www.rust-lang.org/)
 
 
 ### Tools
@@ -89,9 +94,8 @@ This course aims to help such students to:
 
 ### Homework & project (60%)
 
-- Reading assignment, both paper and code
-- Programming assignment
-- System design, implementation, and evaluation project
+- Reading assignment (both paper and code)
+- Programming assignment (including design, implementation, evaluation)
 
 ### Midterm and final exams (40%)
 
@@ -117,17 +121,10 @@ Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZ
   repository so that new announcements will automatically be delivered to you email address.
 
 - Ask your questions via email **only if** they are either confidential or personal.  Otherwise, ask
-  administrative questions in [this repository's issue
-  tracker](https://github.com/kaist-cp/cs492-concur/issues) and technical questions in [the
-  helpdesk](https://github.com/kaist-cp/helpdesk).  Any questions failing to do so
-  (e.g. email questions on course materials) will not be answered.
+  questions in [this repository's issue tracker](https://github.com/kaist-cp/cs492-concur/issues).
+  Any questions failing to do so (e.g. email questions on course materials) will not be answered.
 
 - Emails to the instructor or TAs should begin with "CS492:" in the subject line, followed by a
   brief description of the purpose of your email.  The content should at least contain your name and
   student number.  Any emails failing to do so (e.g. emails without student number) will not be
   answered.
-
-- There is an **unofficial** [Mattermost
-  channel](https://cp.kaist.ac.kr/mm/signup_user_complete/?id=43ydjumq9t8xmczans9q4swajh) for
-  instant messages.  The instructor won't answer your questions here.  Discussion among students is
-  strongly encouraged.
