@@ -111,8 +111,9 @@ impl<T> Queue<T> {
             let next = h.next.load(Ordering::Acquire, guard);
             let next_ref = some_or!(unsafe { next.as_ref() }, return None);
 
-            // Moves `tail` if it's stale.
-            let tail = self.tail.load(Ordering::Acquire, guard);
+            // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then the
+            // messages for that node are already acquired.
+            let tail = self.tail.load(Ordering::Relaxed, guard);
             if tail == head {
                 let _ = self
                     .tail
