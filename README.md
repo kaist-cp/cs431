@@ -4,7 +4,7 @@
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
 - TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-- Time & Place: Tue & Thu 10:30am-11:45am, Rm 1101, Bldg E3-1 (for 2020 Fall)
+- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Virtual](https://meet.google.com/zqd-qmgd-sga)
 - Website: https://github.com/kaist-cp/cs492-concur
 - Announcements: in [issue
   tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
@@ -103,12 +103,12 @@ The exams will evaluate your theoretical understanding of shared mutable states.
 
 ### Attendance (?%)
 
-You should submit a token to the [Course Management](https://gg.kaist.ac.kr) website for each
-session.  You should submit a token within **12 hours from the beginning of a sessions**.
+You should submit a token to the [Course Management](https://gg.kaist.ac.kr/course/6) website for
+each session.  You should submit a token within **12 hours from the beginning of a sessions**.
 
 ### Honor code
 
-Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZYuKwZ9).
+[Please sign KAIST School of Computing Honor Code here](https://gg.kaist.ac.kr/quiz/17/).
 
 
 
@@ -121,10 +121,14 @@ Please sign [KAIST School of Computing Honor Code](https://forms.gle/1WrK3YyWhJZ
   repository so that new announcements will automatically be delivered to you email address.
 
 - Ask your questions via email **only if** they are either confidential or personal.  Otherwise, ask
-  questions in [this repository's issue tracker](https://github.com/kaist-cp/cs492-concur/issues).
-  Any questions failing to do so (e.g. email questions on course materials) will not be answered.
+   questions in [this repository's issue tracker](https://github.com/kaist-cp/cs492-concur/issues).
+   Any questions failing to do so (e.g. email questions on course materials) will not be answered.
 
-- Emails to the instructor or TAs should begin with "CS492:" in the subject line, followed by a
+    + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
+      question is the first step to reach an answer. Second, you can benefit from questions and
+      answers of other students.
+
+- Emails to the instructor or TAs should begin with "CS492C:" in the subject line, followed by a
   brief description of the purpose of your email.  The content should at least contain your name and
   student number.  Any emails failing to do so (e.g. emails without student number) will not be
   answered.
