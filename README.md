@@ -4,10 +4,24 @@
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
 - TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Virtual](https://meet.google.com/zqd-qmgd-sga)
+- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)
 - Website: https://github.com/kaist-cp/cs492-concur
 - Announcements: in [issue
   tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+
+
+
+### Online sessions
+
+Due to COVID-19, we're going to conduct online sessions for this semester.
+
+- For non-realtime sessions, videos will be uploaded to a [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
+
+    + You're required to watch the video, and based on the contents, to solve pop quizzes that will
+      be posted at gg.kaist.ac.kr. The details are announced in [an
+      issue](https://github.com/kaist-cp/cs492-concur/issues/42).
+
+- For realtime sessions, we'll meet in a [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga).
 
 
 
@@ -66,11 +80,83 @@ This course aims to help such students to:
 
 ### Tools
 
-- We will use [Rust](https://www.rust-lang.org/) as the language of implementation, because its
-  ownership type system greatly simplifies the reasoning of shared mutable states without incurring
-  significant runtime overheads.
+Make sure you're capable of using the following development tools:
 
-- You should host all your implementation in [GitHub](https://github.com).
+- [Git](https://git-scm.com/): for downloading the homework skeleton and version-controlling your
+  development. If you're not familiar with Git, walk through [this
+  tutorial](https://www.atlassian.com/git/tutorials).
+
+    + **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
+      the [upstream](https://github.com/kaist-cp/cs492-concur) and push there. Please the following
+      steps:
+
+        * Directly clone the upstream without forking it.
+
+          ```bash
+          $ git clone --origin upstream https://github.com/kaist-cp/cs492-concur.git
+          $ cd cs492-concur
+          $ git remote -v
+          upstream	https://github.com/kaist-cp/cs492-concur.git (fetch)
+          upstream	https://github.com/kaist-cp/cs492-concur.git (push)
+          ```
+
+        * To get updates from the upstream, fetch and merge `upstream/master`.
+
+          ```bash
+          $ git fetch upstream
+          $ git merge upstream/master
+          ```
+
+    + If you want to manage your development in a Git server, please create your own private
+      repository.
+
+        * You may upgrade your GitHub account to "PRO", which is free of charge.  Refer to the
+          [documentation](https://education.github.com/students)
+
+        * Set up your repository as a remote.
+
+          ```bash
+          $ git remote add origin git@github.com:<github-id>/cs492-concur.git
+          $ git remote -v
+          origin	 git@github.com:<github-id>/cs492-concur.git (fetch)
+          origin	 git@github.com:<github-id>/cs492-concur.git (push)
+          upstream https://github.com/kaist-cp/cs492-concur.git (fetch)
+          upstream https://github.com/kaist-cp/cs492-concur.git (push)
+          ```
+
+        * Push to your repository.
+
+          ```bash
+          $ git push -u origin master
+          ```
+
+- [Rust](https://www.rust-lang.org/): as the language of homework implementation. We chose Rust
+  because its ownership type system greatly simplifies the development of large-scale system
+  software.
+
+  We recommend you to read [this page](https://github.com/kaist-cp/helpdesk/#specialty) that
+  describes how to study Rust.
+
+- [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If
+  you prefer other editors, you're good to go.
+      
+- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p14000`, e.g., `ssh
+  s20071163@cp-service.kaist.ac.kr -p14000`. See [this
+  issue](https://github.com/kaist-cp/cs492-concur/issues/42) for more detail.
+
+    + Add the following lines in your `~/.ssh/config`:
+    
+      ```
+      Host cs492-concur
+        Hostname cp-service.kaist.ac.kr
+        Port 14000
+        User s<student-id>
+      ```
+      
+      Then you can connect to the server by `ssh cs492-concur`.
+
+    + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
+
 
 
 ## Prerequisites
@@ -80,6 +166,7 @@ This course aims to help such students to:
     + Mathematics (freshman calculus, MAS101 & MAS102): proposition statement and proof
     + Data structures (CS206): linked list, stack, queue
     + Systems programming (CS230): memory layout, cache, lock
+    + Programming languages (CS320): lambda calculus, interpreter
 
   Without a proper understanding of these topics, you will likely struggle in this course.
 
