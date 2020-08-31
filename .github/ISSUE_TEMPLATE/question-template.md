@@ -1,7 +1,7 @@
 ---
 name: Question template
 about: Ask questions in this format.
-title: "[Question] (summarize your question as clearly as possible)"
+title: "[Question] (SUMMARIZE YOUR QUESTION AS CLEARLY AS POSSIBLE)"
 labels: question
 assignees: tomtomjhj
 
@@ -20,3 +20,7 @@ When you're asking a question, please make sure:
     + [ ] Your problem is reproducible in the provided server.  Please describe how others can reproduce your problem.
     + [ ] You paste code, if any, in text with [syntax hightlight](https://docs.github.com/en/github/writing-on-github/creating-and-highlighting-code-blocks).  No images.
     + [ ] You paste code, if any, that is minimized as much as possible.  Your code should be immediately relevant to your question.
+
+--
+
+(YOUR QUESTION HERE)
