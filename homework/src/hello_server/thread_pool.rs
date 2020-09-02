@@ -24,7 +24,6 @@ impl Drop for Worker {
     }
 }
 
-
 /// Internal data structure for tracking the current job status. This is shared by the worker
 /// closures via `Arc` so that the workers can report to the pool that it started/finished a job.
 #[derive(Debug, Default)]
