@@ -8,6 +8,7 @@ mod utils;
 mod art;
 mod bst;
 mod elim_stack;
+pub mod hello_server;
 mod map;
 
 pub use art::{Art, Entry};
