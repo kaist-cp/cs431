@@ -15,13 +15,15 @@
 
 Due to COVID-19, we're going to conduct online sessions for this semester.
 
-- For non-realtime sessions, videos will be uploaded to a [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
+- For non-live sessions, videos will be uploaded to a [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
 
     + You're required to watch the video, and based on the contents, to solve pop quizzes that will
       be posted at gg.kaist.ac.kr. The details are announced in [an
       issue](https://github.com/kaist-cp/cs492-concur/issues/42).
 
-- For realtime sessions, we'll meet in a [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga).
+    + Turn on English subtitle at YouTube, if necessary.
+
+- For live sessions, we'll meet in a [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga).
 
 
 
