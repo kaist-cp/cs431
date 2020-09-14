@@ -8,6 +8,9 @@ use std::sync::Arc;
 const ADDR: &str = "localhost:7878";
 
 fn main() -> io::Result<()> {
+    // Use a browser that doesn't cache too eagerly so that request is always sent. For example,
+    // Firefox works well.  If you want to test using command line only, use curl. If you want to
+    // run it on the lab server, you may need to change the port number to something else.
     println!("Browse [http://{}]\n", ADDR);
 
     // The thread pool.
