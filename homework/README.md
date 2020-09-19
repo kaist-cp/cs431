@@ -16,15 +16,27 @@
     + [Manual for debugging rust code in
       CLion](https://www.jetbrains.com/help/clion/rust-support.html)
 
-- The following commands will help you in debugging your code:
-    + Testing with address sanitizer enabled:
-      ```
-      RUSTFLAGS="-Z sanitizer=address" cargo +nightly test TEST_NAME --target x86_64-unknown-linux-gnu
-      ```
-
 - Use rustfmt and clippy:
 
   ```
   cargo fmt
   cargo clippy
   ```
+
+## Using LLVM Sanitizers
+
+We are going to use the LLVM sanitizers for grading.
+Sanitizers are dynamic analysis tools that detects buggy behaviors during runtime. For example,
+[AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html) detects memory bugs like use-after-free and
+[ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html) detects data races.
+
+You can run the tests with sanitizers using following commands:
+```
+RUSTFLAGS="-Z sanitizer=address" cargo +nightly test TEST_NAME --target x86_64-unknown-linux-gnu
+TSAN_OPTIONS="suppressions=suppress_tsan.txt" RUST_TEST_THREADS=1 RUSTFLAGS="-Z sanitizer=thread" cargo +nightly test TEST_NAME --target x86_64-unknown-linux-gnu
+```
+(`suppressions=suppress_tsan.txt` is for suppressing some false positive from ThreadSanitizer.)
+
+While (safe) Rust's type system guarantees memory safety and absence of data race,
+this guarantee relies on the correctness of the libraries implemented with unsafe features.
+Therefore tools like sanitizers are still essential when we use unsafe Rust.
