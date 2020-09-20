@@ -50,7 +50,7 @@ fn main() -> io::Result<()> {
 
         // For each incoming connection...
         for (id, stream) in listener.incoming().enumerate() {
-            // create a new worker thread.
+            // send a job to the thread pool.
             let report_sender = report_sender.clone();
             let handler = handler.clone();
             listener_pool.execute(move || {
