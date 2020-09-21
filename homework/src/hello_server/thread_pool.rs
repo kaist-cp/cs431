@@ -17,8 +17,8 @@ struct Worker {
 }
 
 impl Drop for Worker {
-    /// When dropped, the thread should be `join`ed.  If the worker panics, then this function should
-    /// panic too.  NOTE that the thread is detached if not `join`ed explicitly.
+    /// When dropped, the thread's `JoinHandle` must be `join`ed.  If the worker panics, then this
+    /// function should panic too.  NOTE: that the thread is detached if not `join`ed explicitly.
     fn drop(&mut self) {
         todo!()
     }
@@ -76,14 +76,16 @@ impl ThreadPool {
         todo!()
     }
 
-    /// Block the current thread until all jobs in the pool have been executed.
+    /// Block the current thread until all jobs in the pool have been executed.  NOTE: This method
+    /// has nothing to do with `JoinHandle::join`.
     pub fn join(&self) {
         todo!()
     }
 }
 
 impl Drop for ThreadPool {
-    /// When dropped, all worker threads must be properly `join`ed.
+    /// When dropped, all worker threads' `JoinHandle` must be `join`ed. If the thread panicked,
+    /// then this function should panic too.
     fn drop(&mut self) {
         todo!()
     }
@@ -150,7 +152,8 @@ mod test {
         assert_eq!(counter.load(Ordering::Relaxed), NUM_JOBS);
     }
 
-    /// This indirectly tests if the worker threads are joined when the pool is dropped.
+    /// This indirectly tests if the worker threads' `JoinHandle`s are joined when the pool is
+    /// dropped.
     #[test]
     #[should_panic]
     fn thread_pool_drop_propagate_panic() {
