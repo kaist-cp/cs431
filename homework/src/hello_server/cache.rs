@@ -33,6 +33,7 @@ mod test {
     use crossbeam_channel::bounded;
     use crossbeam_utils::thread::scope;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Barrier;
     use std::time::Duration;
 
     const NUM_THREADS: usize = 8;
@@ -53,11 +54,13 @@ mod test {
     fn cache_no_duplicate_concurrent() {
         for _ in 0..8 {
             let cache = Cache::default();
+            let barrier = Barrier::new(NUM_THREADS);
             // Count the number of times the computation is run.
             let num_compute = AtomicUsize::new(0);
             scope(|s| {
                 for _ in 0..NUM_THREADS {
                     s.spawn(|_| {
+                        barrier.wait();
                         for key in 0..NUM_KEYS {
                             cache.get_or_insert_with(key, |k| {
                                 num_compute.fetch_add(1, Ordering::Relaxed);
