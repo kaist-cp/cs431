@@ -45,7 +45,7 @@ export -f cargo_tsan
 # Uses global variable TESTS
 run_tests_with() {
     local CARGO=$1; shift
-    $CARGO build $@ 2>/dev/null
+    $CARGO test --no-run $@ 2>/dev/null
 
     local FAILED=0
     for TEST in "${TESTS[@]}"; do
