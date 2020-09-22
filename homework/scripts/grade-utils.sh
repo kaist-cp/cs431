@@ -5,7 +5,7 @@
 # * TESTS: array of test names
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 
-rustup toolchain install nightly
+rustup toolchain update stable nightly
 
 echo_err() {
     echo -e "\033[0;31m\033[1m$@\033[0m" 1>&2
