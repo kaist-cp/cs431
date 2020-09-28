@@ -486,6 +486,7 @@ impl<V> NodeBox<V> {
     /// # Panics
     ///
     /// Panics if it does not contain `NodeBodyV`.
+    #[allow(dead_code)]
     pub fn into_value(self) -> V {
         let ptr = self.inner & !TAG_MASK;
         assert_eq!(self.inner & TAG_MASK, 4);

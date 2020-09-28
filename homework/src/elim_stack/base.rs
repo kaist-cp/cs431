@@ -1,9 +1,9 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 use core::ops::Deref;
-use std::time;
 use crossbeam_epoch::{pin, Atomic, Guard, Owned};
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
+use std::time;
 
 pub const ELIM_SIZE: usize = 16;
 pub const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);

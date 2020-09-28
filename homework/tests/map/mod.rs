@@ -127,11 +127,11 @@ impl<K: ?Sized, V, M: Default + ConcurrentMap<K, V>> Default for Sequentialize<K
 impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize<K, V, M> {
     fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
         unsafe {
-            #[allow(invalid_value)]
+            let hack = &value as *const _ as *mut V;
             self.inner
                 .insert(key, value, unprotected())
-                .map(|_| mem::uninitialized())
-                .map_err(|v| (mem::uninitialized(), v))
+                .map(|_| &mut *hack)
+                .map_err(|v| (&mut *hack, v))
         }
     }
 

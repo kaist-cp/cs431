@@ -1,6 +1,6 @@
 use cs492_concur_homework::{Art, SequentialMap};
 
-mod map_test;
+pub mod map;
 
 #[test]
 fn art_smoke() {
@@ -49,5 +49,5 @@ fn art_regression_delete_after_enlarge() {
 
 #[test]
 fn art_stress() {
-    map_test::stress_sequential::<str, Art<usize>>();
+    map::stress_sequential::<str, Art<usize>>();
 }
