@@ -34,9 +34,9 @@ for RUNNER in "${RUNNERS[@]}"; do
     if [ "$t1_failed" = false ]; then
         echo "    Testing cache.rs..."
         TESTS=(
-            hello_server::cache::test::cache_no_block_disjoint
-            hello_server::cache::test::cache_no_duplicate_concurrent
-            hello_server::cache::test::cache_no_duplicate_sequential
+            "--lib hello_server::cache::test::cache_no_block_disjoint"
+            "--lib hello_server::cache::test::cache_no_duplicate_concurrent"
+            "--lib hello_server::cache::test::cache_no_duplicate_sequential"
         )
         if [ $(run_tests) -ne 0 ]; then
             t1_failed=true
@@ -46,7 +46,7 @@ for RUNNER in "${RUNNERS[@]}"; do
     if [ "$t2_failed" = false ]; then
         echo "    Testing tcp.rs..."
         TESTS=(
-            hello_server::tcp::test::cancellable_listener_cancel
+            "--lib hello_server::tcp::test::cancellable_listener_cancel"
         )
         if [ $(run_tests) -ne 0 ]; then
             t2_failed=true
@@ -56,10 +56,10 @@ for RUNNER in "${RUNNERS[@]}"; do
     if [ "$t3_failed" = false ]; then
         echo "    Testing thread_pool.rs..."
         TESTS=(
-            hello_server::thread_pool::test::thread_pool_drop_block
-            hello_server::thread_pool::test::thread_pool_drop_propagate_panic
-            hello_server::thread_pool::test::thread_pool_join_block
-            hello_server::thread_pool::test::thread_pool_parallel
+            "--lib hello_server::thread_pool::test::thread_pool_drop_block"
+            "--lib hello_server::thread_pool::test::thread_pool_drop_propagate_panic"
+            "--lib hello_server::thread_pool::test::thread_pool_join_block"
+            "--lib hello_server::thread_pool::test::thread_pool_parallel"
         )
         if [ $(run_tests) -ne 0 ]; then
             t3_failed=true
