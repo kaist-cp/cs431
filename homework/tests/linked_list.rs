@@ -296,3 +296,38 @@ fn test_drop_clear() {
     drop(ring);
     assert_eq!(unsafe { DROPS }, 4);
 }
+
+#[test]
+fn test_prepend() {
+    let mut list1 = LinkedList::default();
+    let mut list2 = list_from(&[1, 2]);
+
+    list1.prepend(&mut list2);
+    assert_eq!(list1, list_from(&[1, 2]));
+    assert!(list2.is_empty());
+
+    list1.prepend(&mut list2);
+    assert_eq!(list1, list_from(&[1, 2]));
+    assert!(list2.is_empty());
+
+    let mut list3 = list_from(&[3, 4]);
+    list3.prepend(&mut list1);
+    assert_eq!(list3, list_from(&[1, 2, 3, 4]));
+    assert!(list1.is_empty());
+}
+
+#[test]
+fn test_insert_next() {
+    let mut list = list_from(&[1, 4]);
+
+    let mut it = list.iter_mut();
+    it.insert_next(0);
+    assert_eq!(it.next().unwrap(), &1);
+    it.insert_next(2);
+    it.insert_next(3);
+    assert_eq!(it.next().unwrap(), &4);
+    it.insert_next(5);
+    assert_eq!(it.next(), None);
+
+    assert_eq!(list.into_iter().collect::<Vec<_>>(), [0, 1, 2, 3, 4, 5]);
+}
