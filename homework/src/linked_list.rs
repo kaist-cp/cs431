@@ -235,7 +235,35 @@ impl<T> LinkedList<T> {
         }
     }
 
-    /// Moves all elements from `other` to the begin of the list.
+    /// Moves all elements from `other` to the beginning of the list.
+    ///
+    /// This reuses all the nodes from `other` and moves them into `self`. After
+    /// this operation, `other` becomes empty.
+    ///
+    /// This operation should compute in `O(1)` time and `O(1)` memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cs492_concur_homework::LinkedList;
+    ///
+    /// let mut list1 = LinkedList::new();
+    /// list1.push_back('a');
+    /// list1.push_back('b');
+    ///
+    /// let mut list2 = LinkedList::new();
+    /// list2.push_back('c');
+    ///
+    /// list2.prepend(&mut list1);
+    ///
+    /// let mut iter = list2.iter();
+    /// assert_eq!(iter.next(), Some(&'a'));
+    /// assert_eq!(iter.next(), Some(&'b'));
+    /// assert_eq!(iter.next(), Some(&'c'));
+    /// assert!(iter.next().is_none());
+    ///
+    /// assert!(list1.is_empty());
+    /// ```
     pub fn prepend(&mut self, other: &mut Self) {
         todo!()
     }
@@ -630,13 +658,14 @@ impl<T> IterMut<'_, T> {
     /// ```
     /// use cs492_concur_homework::LinkedList;
     ///
-    /// let mut list: LinkedList<_> = vec![1, 3, 4].into_iter().collect();
+    /// let mut list: LinkedList<_> = vec![1, 4].into_iter().collect();
     ///
     /// {
     ///     let mut it = list.iter_mut();
     ///     assert_eq!(it.next().unwrap(), &1);
-    ///     // insert `2` after `1`
+    ///     // insert `2` and `3` after `1`
     ///     it.insert_next(2);
+    ///     it.insert_next(3);
     /// }
     /// {
     ///     let vec: Vec<_> = list.into_iter().collect();
