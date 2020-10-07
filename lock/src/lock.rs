@@ -3,7 +3,7 @@ use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
 
-pub trait RawLock: Default {
+pub trait RawLock: Default + Send + Sync {
     type Token: Clone;
 
     fn lock(&self) -> Self::Token;
@@ -84,8 +84,8 @@ pub struct LockGuard<'s, L: RawLock, T> {
     _marker: PhantomData<*const ()>, // !Send + !Sync
 }
 
-unsafe impl<'s, L: RawLock, T> Send for LockGuard<'s, L, T> {}
-unsafe impl<'s, L: RawLock, T: Send + Sync> Sync for LockGuard<'s, L, T> {}
+unsafe impl<'s, L: RawLock, T: Send> Send for LockGuard<'s, L, T> {}
+unsafe impl<'s, L: RawLock, T: Sync> Sync for LockGuard<'s, L, T> {}
 
 impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
     pub fn raw(&mut self) -> usize {
