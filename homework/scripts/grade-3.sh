@@ -7,20 +7,20 @@ IFS=$'\n\t'
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
 
+SCORE=0
+
+# 1. Basic arc functionality
 RUNNERS=(
     "cargo"
     "cargo --release"
     "cargo_asan"
     "cargo_asan --release"
 )
-
 TESTS=(
     "--doc arc"
     "--test arc"
 )
-
 arc_basic_failed=false
-# Executes test for each runner.
 for RUNNER in "${RUNNERS[@]}"; do
     echo "Running with $RUNNER..."
     if [ $(run_tests) -ne 0 ]; then
@@ -29,13 +29,19 @@ for RUNNER in "${RUNNERS[@]}"; do
     fi
 done
 
-SCORE=0
-
-# Scores for basic arc functionality
 if [ "$arc_basic_failed" = false ]; then
     SCORE=$((SCORE + 25))
 fi
 
+# 2. Correctness
+RUNNER="cargo --features check-loom"
+TESTS=("--test arc")
+echo "Running with $RUNNER..."
+if [ $(run_tests) -eq 0 ]; then
+    SCORE=$((SCORE + 25))
+fi
+
+# 3. SeqCst is not allowed.
 grep -n --color=always "SeqCst" $BASEDIR/../src/arc.rs
 if [ $? -eq 0 ]; then
     echo "You used SeqCst!"
