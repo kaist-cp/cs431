@@ -112,6 +112,14 @@ mod basic {
     }
 
     #[test]
+    fn test_try_unwrap_drop_once() {
+        let mut canary = AtomicUsize::new(0);
+        let x = Arc::new(Canary(&mut canary as *mut AtomicUsize));
+        drop(Arc::try_unwrap(x));
+        assert!(canary.load(Relaxed) == 1);
+    }
+
+    #[test]
     fn test_stress() {
         let count = Arc::new(AtomicUsize::new(0));
         let handles = (0..8)
@@ -156,6 +164,7 @@ mod correctness {
             }
         })
     }
+
     #[test]
     /// value:=123 → count:=1 → get_mut success
     fn get_mut_sync() {
@@ -167,7 +176,26 @@ mod correctness {
                     value.store(123, Relaxed);
                 });
             }
-            Arc::get_mut(&mut value).map(|val| assert_eq!(val.load(Relaxed), 123));
+            if let Some(val) = Arc::get_mut(&mut value) {
+                assert_eq!(val.load(Relaxed), 123);
+            }
+        })
+    }
+
+    #[test]
+    /// value:=123 → count:=1 → try_unwrap success
+    fn try_unwrap_sync() {
+        model(|| {
+            let value = Arc::new(AtomicUsize::new(0));
+            {
+                let value = value.clone();
+                thread::spawn(move || {
+                    value.store(123, Relaxed);
+                });
+            }
+            if let Ok(val) = Arc::try_unwrap(value) {
+                assert_eq!(val.load(Relaxed), 123);
+            }
         })
     }
 
