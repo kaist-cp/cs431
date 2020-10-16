@@ -4,7 +4,7 @@
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
 - TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-    + Office Hour: Friday 13:30-16:30 [(Google Meet)](https://meet.google.com/zqd-qmgd-sga).
+    + Office Hour: Friday 13:30-16:30 [(Google Meet)](https://meet.google.com/ftr-epmw-pmv).
       See [below](#communication) for the office hour policy.
 - Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)
 - Website: https://github.com/kaist-cp/cs492-concur
