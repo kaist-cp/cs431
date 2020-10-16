@@ -1,5 +1,21 @@
 mod mock;
 
+use mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+
+/// Used for testing if `T` of `Arc<T>` is dropped exactly once.
+struct Canary(*const AtomicUsize);
+
+unsafe impl Send for Canary {}
+unsafe impl Sync for Canary {}
+
+impl Drop for Canary {
+    fn drop(&mut self) {
+        unsafe {
+            (*self.0).fetch_add(1, Relaxed);
+        }
+    }
+}
+
 #[cfg(not(feature = "check-loom"))]
 mod basic {
     use cs492_concur_homework::Arc;
@@ -7,16 +23,7 @@ mod basic {
     use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
     use super::mock::sync::mpsc::channel;
     use super::mock::thread;
-
-    struct Canary(*mut AtomicUsize);
-
-    impl Drop for Canary {
-        fn drop(&mut self) {
-            unsafe {
-                (*self.0).fetch_add(1, Relaxed);
-            }
-        }
-    }
+    use super::Canary;
 
     #[test]
     fn manually_share_arc() {
@@ -84,8 +91,8 @@ mod basic {
 
     #[test]
     fn drop_arc() {
-        let mut canary = AtomicUsize::new(0);
-        let x = Arc::new(Canary(&mut canary as *mut AtomicUsize));
+        let canary = AtomicUsize::new(0);
+        let x = Arc::new(Canary(&canary as *const AtomicUsize));
         let y = x.clone();
         drop(x);
         drop(y);
@@ -113,8 +120,8 @@ mod basic {
 
     #[test]
     fn test_try_unwrap_drop_once() {
-        let mut canary = AtomicUsize::new(0);
-        let x = Arc::new(Canary(&mut canary as *mut AtomicUsize));
+        let canary = AtomicUsize::new(0);
+        let x = Arc::new(Canary(&canary as *const AtomicUsize));
         drop(Arc::try_unwrap(x));
         assert!(canary.load(Relaxed) == 1);
     }
@@ -143,6 +150,7 @@ mod correctness {
     use super::mock::model;
     use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
     use super::mock::thread;
+    use super::Canary;
     use cs492_concur_homework::Arc;
 
     #[test]
@@ -217,6 +225,24 @@ mod correctness {
                 arc1.0.fetch_add(1, Relaxed);
             });
             arc2.0.fetch_add(1, Relaxed);
+        })
+    }
+
+    #[test]
+    /// Resistence against arbitrary interleaving of instructions in `clone` and `drop`.
+    fn clone_drop_atomic() {
+        model(|| {
+            let canary = AtomicUsize::new(0);
+            let arc1 = Arc::new(Canary(&canary as *const AtomicUsize));
+            let arc2 = arc1.clone();
+            let handle = thread::spawn(move || {
+                drop(arc1.clone());
+                drop(arc1);
+            });
+            drop(arc2.clone());
+            drop(arc2);
+            handle.join().unwrap();
+            assert_eq!(canary.load(Relaxed), 1);
         })
     }
 }
