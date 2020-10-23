@@ -8,7 +8,7 @@ extern crate crossbeam_utils;
 
 #[macro_use]
 mod utils;
-mod list;
+pub mod list;
 mod queue;
 mod stack;
 

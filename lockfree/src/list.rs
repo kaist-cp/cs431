@@ -1,8 +1,11 @@
+//! Lock-free singly linked list.
+
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
 
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::sync::atomic::Ordering;
 
+/// Linked list node.
 #[derive(Debug)]
 pub struct Node<K, V> {
     /// Mark: tag(), Tag: not needed
@@ -40,6 +43,7 @@ impl<K, V> Drop for List<K, V> {
     }
 }
 
+/// Linked list cursor.
 #[derive(Debug)]
 pub struct Cursor<'g, K, V> {
     prev: &'g Atomic<Node<K, V>>,
@@ -56,6 +60,7 @@ impl<'g, K, V> Clone for Cursor<'g, K, V> {
 }
 
 impl<K, V> Node<K, V> {
+    /// Creates a new node.
     pub fn new(key: K, value: V) -> Self {
         Self {
             next: Atomic::null(),
@@ -64,6 +69,7 @@ impl<K, V> Node<K, V> {
         }
     }
 
+    /// Extracts the inner value.
     pub fn into_value(self) -> V {
         self.value
     }
@@ -73,6 +79,11 @@ impl<'g, K, V> Cursor<'g, K, V>
 where
     K: Ord,
 {
+    /// Creates a cursor from raw pointers.
+    ///
+    /// # Safety
+    ///
+    /// TODO
     pub unsafe fn from_raw(prev: *const Atomic<Node<K, V>>, curr: *const Node<K, V>) -> Self {
         Self {
             prev: &*prev,
@@ -186,11 +197,13 @@ where
         })
     }
 
+    /// Lookups the value.
     #[inline]
-    pub fn get(&self) -> Option<&V> {
+    pub fn lookup(&self) -> Option<&V> {
         unsafe { self.curr.as_ref().map(|n| &n.value) }
     }
 
+    /// Inserts a value.
     #[inline]
     pub fn insert(
         &mut self,
@@ -210,8 +223,9 @@ where
         }
     }
 
+    /// Deletes the current node.
     #[inline]
-    pub fn remove(self, guard: &'g Guard) -> Result<&'g V, ()> {
+    pub fn delete(self, guard: &'g Guard) -> Result<&'g V, ()> {
         let curr_node = unsafe { self.curr.as_ref() }.unwrap();
 
         let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
@@ -266,7 +280,7 @@ where
     }
 
     #[inline]
-    fn get<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<&'g V>
+    fn lookup<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<&'g V>
     where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
@@ -299,7 +313,7 @@ where
     }
 
     #[inline]
-    fn remove<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<&'g V>
+    fn delete<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<&'g V>
     where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
@@ -309,7 +323,7 @@ where
                 return None;
             }
 
-            match cursor.remove(guard) {
+            match cursor.delete(guard) {
                 Err(()) => continue,
                 Ok(value) => return Some(value),
             }
@@ -317,8 +331,8 @@ where
     }
 
     /// Omitted
-    pub fn harris_get<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.get(key, Cursor::find_harris, guard)
+    pub fn harris_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.lookup(key, Cursor::find_harris, guard)
     }
 
     /// Omitted
@@ -327,13 +341,13 @@ where
     }
 
     /// Omitted
-    pub fn harris_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.remove(key, Cursor::find_harris, guard)
+    pub fn harris_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.delete(key, Cursor::find_harris, guard)
     }
 
     /// Omitted
-    pub fn harris_michael_get<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.get(key, Cursor::find_harris_michael, guard)
+    pub fn harris_michael_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.lookup(key, Cursor::find_harris_michael, guard)
     }
 
     /// Omitted
@@ -342,13 +356,13 @@ where
     }
 
     /// Omitted
-    pub fn harris_michael_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.remove(key, Cursor::find_harris_michael, guard)
+    pub fn harris_michael_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.delete(key, Cursor::find_harris_michael, guard)
     }
 
     /// Omitted
-    pub fn harris_herlihy_shavit_get<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.get(key, Cursor::find_harris_herlihy_shavit, guard)
+    pub fn harris_herlihy_shavit_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.lookup(key, Cursor::find_harris_herlihy_shavit, guard)
     }
 
     /// Omitted
@@ -357,7 +371,7 @@ where
     }
 
     /// Omitted
-    pub fn harris_herlihy_shavit_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.remove(key, Cursor::find_harris_michael, guard)
+    pub fn harris_herlihy_shavit_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
+        self.delete(key, Cursor::find_harris_michael, guard)
     }
 }
