@@ -21,3 +21,8 @@ fn bst_stress() {
 fn bst_stress_concurrent() {
     map::stress_concurrent::<String, Bst<String, usize>>();
 }
+
+#[test]
+fn bst_log_concurrent() {
+    map::log_concurrent::<String, Bst<String, usize>>();
+}

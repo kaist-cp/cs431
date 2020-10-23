@@ -74,7 +74,10 @@ pub trait NodeBodyI<V> {
     /// Returns `Some((i, n))` if `n` is the child of `key` at the internal index `i`.
     fn lookup_mut(&mut self, key: u8) -> Option<(u8, &mut NodeBox<V>)> {
         self.lookup(key)
-            .map(|(i, n)| (i, unsafe { &mut *(n as *const _ as *mut NodeBox<V>) }))
+            .map(|(i, n)| (i, unsafe {
+                #[allow(clippy::cast_ref_to_mut)]
+                &mut *(n as *const _ as *mut NodeBox<V>)
+            }))
     }
 
     /// Updates the child of `key` with `node`.
@@ -537,6 +540,7 @@ impl<V> NodeBox<V> {
     /// `header` and `b` is the given box's header and body. The `b` is either `Left(body)`, if it's
     /// an internal node and `body` is its body, or `Right(value)`, if it's a leaf node and `value`
     /// is a reference to the leaf node's value.
+    #[allow(clippy::type_complexity)]
     pub fn deref(&self) -> Option<(&NodeHeader, Either<&dyn NodeBodyI<V>, &V>)> {
         let ptr = self.inner & !TAG_MASK;
         if ptr == 0 {
@@ -574,6 +578,7 @@ impl<V> NodeBox<V> {
     /// Dereferences the given `NodeBox` mutably.
     ///
     /// See the comments for `Self::deref()`.
+    #[allow(clippy::type_complexity)]
     pub fn deref_mut(
         &mut self,
     ) -> Option<(&mut NodeHeader, Either<&mut dyn NodeBodyI<V>, &mut V>)> {

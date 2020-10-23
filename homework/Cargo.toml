@@ -19,6 +19,7 @@ itertools = "0.9.0"
 lazy_static = "1.4.0"
 # TODO: use relative path so that students don't need to manually update
 lock = { git = "https://github.com/kaist-cp/cs492-concur" }
+lockfree = { git = "https://github.com/kaist-cp/cs492-concur" }
 loom = { version = "0.3.6", optional = true }
 rand = "0.7.3"
 regex = "1.4.1"
