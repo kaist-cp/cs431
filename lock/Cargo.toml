@@ -5,4 +5,4 @@ authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
 edition = "2018"
 
 [dependencies]
-crossbeam-utils = "0.6"
+crossbeam-utils = "0.8.0"
