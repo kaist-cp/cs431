@@ -1,16 +1,14 @@
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
+use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
 
 use std::cmp::Ordering::{Equal, Greater, Less};
-use std::mem::ManuallyDrop;
-use std::ptr;
 use std::sync::atomic::Ordering;
 
 #[derive(Debug)]
-struct Node<K, V> {
+pub struct Node<K, V> {
     /// Mark: tag(), Tag: not needed
     next: Atomic<Node<K, V>>,
     key: K,
-    value: ManuallyDrop<V>,
+    value: V,
 }
 
 /// Sorted singly linked list.
@@ -32,13 +30,9 @@ impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
         unsafe {
             let mut curr = self.head.load(Ordering::Relaxed, unprotected());
-
             while !curr.is_null() {
                 let curr_ref = curr.deref_mut();
                 let next = curr_ref.next.load(Ordering::Relaxed, unprotected());
-                if next.tag() == 0 {
-                    ManuallyDrop::drop(&mut curr_ref.value);
-                }
                 drop(curr.into_owned());
                 curr = next;
             }
@@ -46,18 +40,49 @@ impl<K, V> Drop for List<K, V> {
     }
 }
 
-struct Cursor<'g, K, V> {
+#[derive(Debug)]
+pub struct Cursor<'g, K, V> {
     prev: &'g Atomic<Node<K, V>>,
     curr: Shared<'g, Node<K, V>>,
+}
+
+impl<'g, K, V> Clone for Cursor<'g, K, V> {
+    fn clone(&self) -> Self {
+        Self {
+            prev: self.prev,
+            curr: self.curr,
+        }
+    }
+}
+
+impl<K, V> Node<K, V> {
+    pub const fn new(key: K, value: V) -> Self {
+        Self {
+            next: Atomic::null(),
+            key,
+            value,
+        }
+    }
+
+    pub fn into_value(self) -> V {
+        self.value
+    }
 }
 
 impl<'g, K, V> Cursor<'g, K, V>
 where
     K: Ord,
 {
+    pub unsafe fn from_raw(prev: *const Atomic<Node<K, V>>, curr: *const Node<K, V>) -> Self {
+        Self {
+            prev: &*prev,
+            curr: Shared::from_usize(curr as usize),
+        }
+    }
+
     /// Clean up a chain of logically removed nodes in each traversal.
     #[inline]
-    fn find_harris(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
+    pub fn find_harris(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         // Finding phase
         // - cursor.curr: first unmarked node w/ key >= search key (4)
         // - cursor.prev: the ref of .next in previous unmarked node (1 -> 2)
@@ -113,7 +138,7 @@ where
 
     /// Clean up a single logically removed node in each traversal.
     #[inline]
-    fn find_harris_michael(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
+    pub fn find_harris_michael(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         loop {
             debug_assert_eq!(self.curr.tag(), 0);
 
@@ -145,7 +170,7 @@ where
 
     /// Gotta go fast. Doesn't fail.
     #[inline]
-    fn find_harris_herlihy_shavit(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
+    pub fn find_harris_herlihy_shavit(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         Ok(loop {
             let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
             match curr_node.key.cmp(key) {
@@ -160,6 +185,50 @@ where
             }
         })
     }
+
+    #[inline]
+    pub fn get(&self) -> Option<&V> {
+        unsafe { self.curr.as_ref().map(|n| &n.value) }
+    }
+
+    #[inline]
+    pub fn insert(
+        &mut self,
+        node: Owned<Node<K, V>>,
+        guard: &'g Guard,
+    ) -> Result<(), Owned<Node<K, V>>> {
+        node.next.store(self.curr, Ordering::Relaxed);
+        match self
+            .prev
+            .compare_and_set(self.curr, node, Ordering::Release, guard)
+        {
+            Ok(node) => {
+                self.curr = node;
+                Ok(())
+            }
+            Err(e) => Err(e.new),
+        }
+    }
+
+    #[inline]
+    pub fn remove(self, guard: &'g Guard) -> Result<&'g V, ()> {
+        let curr_node = unsafe { self.curr.as_ref() }.unwrap();
+
+        let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
+        if next.tag() == 1 {
+            return Err(());
+        }
+
+        if self
+            .prev
+            .compare_and_set(self.curr, next, Ordering::Release, guard)
+            .is_ok()
+        {
+            unsafe { guard.defer_destroy(self.curr) };
+        }
+
+        Ok(&curr_node.value)
+    }
 }
 
 impl<K, V> List<K, V>
@@ -173,6 +242,15 @@ where
         }
     }
 
+    /// Creates the head cursor.
+    #[inline]
+    pub fn head<'g>(&'g self, guard: &'g Guard) -> Cursor<'g, K, V> {
+        Cursor {
+            prev: &self.head,
+            curr: self.head.load(Ordering::Acquire, guard),
+        }
+    }
+
     /// Finds a key using the given find strategy.
     #[inline]
     fn find<'g, F>(&'g self, key: &K, find: &F, guard: &'g Guard) -> (bool, Cursor<'g, K, V>)
@@ -180,10 +258,7 @@ where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
         loop {
-            let mut cursor = Cursor {
-                prev: &self.head,
-                curr: self.head.load(Ordering::Acquire, guard),
-            };
+            let mut cursor = self.head(guard);
             if let Ok(r) = find(&mut cursor, key, guard) {
                 return (r, cursor);
             }
@@ -197,7 +272,7 @@ where
     {
         let (found, cursor) = self.find(key, &find, guard);
         if found {
-            unsafe { cursor.curr.as_ref().map(|n| &*n.value) }
+            unsafe { cursor.curr.as_ref().map(|n| &n.value) }
         } else {
             None
         }
@@ -208,34 +283,23 @@ where
     where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
-        let mut node = Owned::new(Node {
-            key,
-            value: ManuallyDrop::new(value),
-            next: Atomic::null(),
-        });
-
+        let mut node = Owned::new(Node::new(key, value));
         loop {
-            let (found, cursor) = self.find(&node.key, &find, guard);
+            let (found, mut cursor) = self.find(&node.key, &find, guard);
             if found {
-                unsafe {
-                    ManuallyDrop::drop(&mut node.value);
-                }
+                drop(node.into_box().into_value());
                 return false;
             }
 
-            node.next.store(cursor.curr, Ordering::Relaxed);
-            match cursor
-                .prev
-                .compare_and_set(cursor.curr, node, Ordering::Release, guard)
-            {
-                Ok(_) => return true,
-                Err(e) => node = e.new,
+            match cursor.insert(node, guard) {
+                Err(n) => node = n,
+                Ok(()) => return true,
             }
         }
     }
 
     #[inline]
-    fn remove<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<V>
+    fn remove<'g, F>(&'g self, key: &K, find: F, guard: &'g Guard) -> Option<&'g V>
     where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
@@ -245,23 +309,10 @@ where
                 return None;
             }
 
-            let curr_node = unsafe { cursor.curr.as_ref() }.unwrap();
-            let value = unsafe { ptr::read(&curr_node.value) };
-
-            let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
-            if next.tag() == 1 {
-                continue;
+            match cursor.remove(guard) {
+                Err(()) => continue,
+                Ok(value) => return Some(value),
             }
-
-            if cursor
-                .prev
-                .compare_and_set(cursor.curr, next, Ordering::Release, guard)
-                .is_ok()
-            {
-                unsafe { guard.defer_destroy(cursor.curr) };
-            }
-
-            return Some(ManuallyDrop::into_inner(value));
         }
     }
 
@@ -276,7 +327,7 @@ where
     }
 
     /// Omitted
-    pub fn harris_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<V> {
+    pub fn harris_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.remove(key, Cursor::find_harris, guard)
     }
 
@@ -291,7 +342,7 @@ where
     }
 
     /// Omitted
-    pub fn harris_michael_remove(&self, key: &K, guard: &Guard) -> Option<V> {
+    pub fn harris_michael_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.remove(key, Cursor::find_harris_michael, guard)
     }
 
@@ -306,7 +357,7 @@ where
     }
 
     /// Omitted
-    pub fn harris_herlihy_shavit_remove(&self, key: &K, guard: &Guard) -> Option<V> {
+    pub fn harris_herlihy_shavit_remove<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.remove(key, Cursor::find_harris_michael, guard)
     }
 }
