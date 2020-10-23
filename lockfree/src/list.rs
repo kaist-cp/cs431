@@ -56,7 +56,7 @@ impl<'g, K, V> Clone for Cursor<'g, K, V> {
 }
 
 impl<K, V> Node<K, V> {
-    pub const fn new(key: K, value: V) -> Self {
+    pub fn new(key: K, value: V) -> Self {
         Self {
             next: Atomic::null(),
             key,
