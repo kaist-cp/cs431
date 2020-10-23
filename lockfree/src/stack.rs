@@ -18,12 +18,18 @@ struct Node<T> {
     next: Atomic<Node<T>>,
 }
 
+impl<T> Default for Stack<T> {
+    fn default() -> Self {
+        Self {
+            head: Atomic::null(),
+        }
+    }
+}
+
 impl<T> Stack<T> {
     /// Creates a new, empty stack.
     pub fn new() -> Stack<T> {
-        Stack {
-            head: Atomic::null(),
-        }
+        Self::default()
     }
 
     /// Pushes a value on top of the stack.

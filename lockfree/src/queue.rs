@@ -39,10 +39,9 @@ struct Node<T> {
 unsafe impl<T: Send> Sync for Queue<T> {}
 unsafe impl<T: Send> Send for Queue<T> {}
 
-impl<T> Queue<T> {
-    /// Create a new, empty queue.
-    pub fn new() -> Queue<T> {
-        let q = Queue {
+impl<T> Default for Queue<T> {
+    fn default() -> Self {
+        let q = Self {
             head: CachePadded::new(Atomic::null()),
             tail: CachePadded::new(Atomic::null()),
         };
@@ -60,6 +59,13 @@ impl<T> Queue<T> {
             q.tail.store(sentinel, Ordering::Relaxed);
             q
         }
+    }
+}
+
+impl<T> Queue<T> {
+    /// Create a new, empty queue.
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Adds `t` to the back of the queue, possibly waking up threads blocked on `pop`.
@@ -139,7 +145,7 @@ impl<T> Drop for Queue<T> {
         unsafe {
             let guard = unprotected();
 
-            while let Some(_) = self.try_pop(guard) {}
+            while self.try_pop(guard).is_some() {}
 
             // Destroy the remaining sentinel node.
             let sentinel = self.head.load(Ordering::Relaxed, guard);
