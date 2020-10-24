@@ -91,6 +91,11 @@ where
         }
     }
 
+    /// Returns the current node.
+    pub fn curr(&self) -> Shared<'_, Node<K, V>> {
+        self.curr
+    }
+
     /// Clean up a chain of logically removed nodes in each traversal.
     #[inline]
     pub fn find_harris(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
