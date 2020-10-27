@@ -73,11 +73,12 @@ pub trait NodeBodyI<V> {
     ///
     /// Returns `Some((i, n))` if `n` is the child of `key` at the internal index `i`.
     fn lookup_mut(&mut self, key: u8) -> Option<(u8, &mut NodeBox<V>)> {
-        self.lookup(key)
-            .map(|(i, n)| (i, unsafe {
+        self.lookup(key).map(|(i, n)| {
+            (i, unsafe {
                 #[allow(clippy::cast_ref_to_mut)]
                 &mut *(n as *const _ as *mut NodeBox<V>)
-            }))
+            })
+        })
     }
 
     /// Updates the child of `key` with `node`.
