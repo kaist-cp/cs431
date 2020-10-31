@@ -2,6 +2,10 @@ use crossbeam_utils::thread;
 use rand::distributions::Alphanumeric;
 use rand::prelude::*;
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{
+    AtomicBool,
+    Ordering::{Acquire, Release},
+};
 
 use cs492_concur_homework::OrderedListSet;
 
@@ -29,9 +33,8 @@ fn parallel_iter_end() {
     iter.next();
     thread::scope(|s| {
         s.spawn(|_| {
-            for i in set.iter() {
-                println!("{}", i);
-            }
+            // this shouldn't block
+            let _ = set.iter().collect::<Vec<_>>();
         });
     })
     .unwrap();
@@ -160,7 +163,7 @@ fn stress_concurrent() {
                         }
                         Ops::Remove => {
                             let value = generate_random_string(&mut rng);
-                            println!("{:?}", set.remove(&value));
+                            let _ = set.remove(&value);
                         }
                     }
                 }
@@ -263,4 +266,49 @@ fn log_concurrent() {
     .unwrap();
 
     assert_logs_consistent(&logs);
+}
+
+#[test]
+fn iter_consistent() {
+    const THREADS: usize = 15;
+    const STEPS: usize = 4096 * 12;
+
+    let set = OrderedListSet::new();
+
+    // pre-fill with even numbers
+    for i in (0..100).step_by(2).rev() {
+        let _ = set.insert(i);
+    }
+    let evens = set.iter().copied().collect::<HashSet<_>>();
+
+    let done = AtomicBool::new(false);
+    thread::scope(|s| {
+        // insert or remove odd numbers
+        for _ in 0..THREADS {
+            s.spawn(|_| {
+                let mut rng = thread_rng();
+                for _ in 0..STEPS {
+                    let key = 2 * rng.gen_range(0, 50) + 1;
+                    if rng.gen() {
+                        let _ = set.insert(key);
+                    } else {
+                        let _ = set.remove(&key);
+                    }
+                }
+                done.store(true, Release);
+            });
+        }
+        // iterator consistency check
+        s.spawn(|_| {
+            while !done.load(Acquire) {
+                let snapshot = set.iter().copied().collect::<Vec<_>>();
+                // sorted
+                assert!(snapshot.windows(2).all(|k| k[0] <= k[1]));
+                // even numbers are not touched
+                let snapshot = snapshot.into_iter().collect::<HashSet<_>>();
+                assert!(evens.is_subset(&snapshot));
+            }
+        });
+    })
+    .unwrap();
 }

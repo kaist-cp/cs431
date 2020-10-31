@@ -2,9 +2,10 @@
 
 # Global variables
 # * TEMPLATE_REV: git revision of the latest homework template
-# * TESTS: array of "[TARGET] [TEST_NAME]"
-#   e.g. "--test linked_list", "--lib cache"
+# * TESTS: array of "[TARGET] [TEST_NAME] [-- <args>...]"
+#   e.g. "--test linked_list", "--lib cache", "--test list_set -- --test-thread 1"
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
+# * TIMEOUT: default 10s
 
 rustup toolchain update stable nightly
 
@@ -47,7 +48,8 @@ export -f cargo_tsan
 # usage: _run_tests_with CARGO [OPTIONS]
 # example: _run_tests_with cargo_tsan --release
 # echos number of failed tests
-# Uses global variable TESTS
+# Uses global variable TESTS, TIMEOUT
+# [OPTIONS] must not contain " -- " (cargo options only)
 _run_tests_with() {
     local CARGO=$1; shift
     $CARGO test --no-run $@ &>/dev/null \
@@ -55,8 +57,8 @@ _run_tests_with() {
 
     local FAILED=0
     for TEST in "${TESTS[@]}"; do
-        local TEST_CMD="$CARGO test $TEST $@"
-        timeout 10s bash -c "$TEST_CMD 2>/dev/null" 1>&2
+        local TEST_CMD="$CARGO test $@ $TEST"
+        timeout ${TIMEOUT:-10s} bash -c "$TEST_CMD 2>/dev/null" 1>&2
         case $? in
             0) ;;
             124) echo_err "Test timed out: $TEST_CMD"; FAILED=$((FAILED + 1));;
