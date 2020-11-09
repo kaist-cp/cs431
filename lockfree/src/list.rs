@@ -92,7 +92,7 @@ where
     }
 
     /// Returns the current node.
-    pub fn curr(&self) -> Shared<'_, Node<K, V>> {
+    pub fn curr(&self) -> Shared<'g, Node<K, V>> {
         self.curr
     }
 
@@ -204,7 +204,7 @@ where
 
     /// Lookups the value.
     #[inline]
-    pub fn lookup(&self) -> Option<&V> {
+    pub fn lookup(&self) -> Option<&'g V> {
         unsafe { self.curr.as_ref().map(|n| &n.value) }
     }
 
