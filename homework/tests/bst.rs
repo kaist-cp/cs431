@@ -14,15 +14,20 @@ fn bst_smoke() {
 
 #[test]
 fn bst_stress() {
-    map::stress_concurrent_sequential::<String, Bst<String, usize>>();
+    const STEPS: usize = 4096;
+    map::stress_concurrent_sequential::<String, Bst<String, usize>>(STEPS);
 }
 
 #[test]
 fn bst_stress_concurrent() {
-    map::stress_concurrent::<String, Bst<String, usize>>();
+    const THREADS: usize = 16;
+    const STEPS: usize = 4096;
+    map::stress_concurrent::<String, Bst<String, usize>>(THREADS, STEPS);
 }
 
 #[test]
 fn bst_log_concurrent() {
-    map::log_concurrent::<String, Bst<String, usize>>();
+    const THREADS: usize = 16;
+    const STEPS: usize = 4096 * 12;
+    map::log_concurrent::<String, Bst<String, usize>>(THREADS, STEPS);
 }

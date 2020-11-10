@@ -23,5 +23,5 @@ lockfree = { git = "https://github.com/kaist-cp/cs492-concur" }
 # lockfree = { path = "../cs492-concur/lockfree" }
 loom = { version = "0.3.6", optional = true }
 rand = "0.7.3"
-regex = "1.4.1"
+regex = "1.4.2"
 static_assertions = "1.1.0"

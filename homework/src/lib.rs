@@ -20,7 +20,7 @@ pub use arc::Arc;
 pub use art::{Art, Entry};
 pub use bst::Bst;
 pub use elim_stack::ElimStack;
-pub use hash_table::SplitOrderedList;
+pub use hash_table::{GrowableArray, SplitOrderedList};
 pub use linked_list::LinkedList;
 pub use list_set::OrderedListSet;
 pub use map::{

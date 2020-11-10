@@ -19,8 +19,18 @@ impl RandGen for String {
 }
 
 impl RandGen for usize {
+    /// pick only 16 bits, MSB=0
     fn rand_gen(rng: &mut ThreadRng) -> Self {
-        (rng.gen::<usize>() << 1) >> 1
+        const MASK: usize = 0x4444444444444444usize;
+        rng.gen::<usize>() & MASK
+    }
+}
+
+impl RandGen for u32 {
+    /// pick only 16 bits
+    fn rand_gen(rng: &mut ThreadRng) -> Self {
+        const MASK: u32 = 0x66666666u32;
+        rng.gen::<u32>() & MASK
     }
 }
 
@@ -53,13 +63,13 @@ pub trait ConcurrentMap<K: ?Sized, V> {
 /// Trait for a nonblocking key-value map.
 pub trait NonblockingMap<K: ?Sized, V> {
     /// Lookups the given key to get the reference to its value.
-    fn lookup<'a>(&'a self, key: &'a K, guard: &'a Guard) -> Option<&'a V>;
+    fn lookup<'a>(&'a self, key: &K, guard: &'a Guard) -> Option<&'a V>;
 
     /// Inserts a key-value pair.
-    fn insert<'a>(&'a self, key: &'a K, value: V, guard: &'a Guard) -> Result<(), V>;
+    fn insert(&self, key: &K, value: V, guard: &Guard) -> Result<(), V>;
 
     /// Deletes the given key and its value.
-    fn delete(&self, key: &K, guard: &Guard) -> Result<&V, ()>;
+    fn delete<'a>(&'a self, key: &K, guard: &'a Guard) -> Result<&'a V, ()>;
 }
 
 /// Converts str sequential map into string sequential map

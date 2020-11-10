@@ -49,5 +49,6 @@ fn art_regression_delete_after_enlarge() {
 
 #[test]
 fn art_stress() {
-    map::stress_sequential::<String, StrStringMap<_, Art<usize>>>();
+    const STEPS: usize = 4096;
+    map::stress_sequential::<String, StrStringMap<_, Art<usize>>>(STEPS);
 }

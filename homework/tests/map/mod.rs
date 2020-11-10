@@ -12,7 +12,9 @@ use crossbeam_utils::thread;
 pub fn stress_sequential<
     K: fmt::Debug + Clone + Eq + Hash + RandGen,
     M: Default + SequentialMap<K, usize>,
->() {
+>(
+    steps: usize,
+) {
     #[derive(Debug)]
     enum Ops {
         LookupSome,
@@ -33,9 +35,7 @@ pub fn stress_sequential<
     let mut map = M::default();
     let mut hashmap = HashMap::<K, usize>::new();
 
-    const OPS: usize = 4096;
-
-    for i in 0..OPS {
+    for i in 0..steps {
         let op = ops.choose(&mut rng).unwrap();
 
         match op {
@@ -92,20 +92,18 @@ impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize
         unsafe {
             let hack = &value as *const _ as *mut V;
             self.inner
-                .insert(key, value, unprotected())
+                .insert(key, value, &pin())
                 .map(|_| &mut *hack)
                 .map_err(|v| (&mut *hack, v))
         }
     }
 
     fn delete(&mut self, key: &K) -> Result<V, ()> {
-        self.inner.delete(key, unsafe { unprotected() })
+        self.inner.delete(key, &pin())
     }
 
     fn lookup<'a>(&'a self, key: &'a K) -> Option<&'a V> {
-        let ptr = self
-            .inner
-            .lookup(key, unsafe { unprotected() }, |r| r.map(|v| v as *const _));
+        let ptr = self.inner.lookup(key, &pin(), |r| r.map(|v| v as *const _));
         ptr.map(|v| unsafe { &*v })
     }
 }
@@ -113,8 +111,10 @@ impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize
 pub fn stress_concurrent_sequential<
     K: fmt::Debug + Clone + Eq + Hash + RandGen,
     M: Default + ConcurrentMap<K, usize>,
->() {
-    stress_sequential::<K, Sequentialize<K, usize, M>>();
+>(
+    steps: usize,
+) {
+    stress_sequential::<K, Sequentialize<K, usize, M>>(steps);
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -144,19 +144,19 @@ impl<K, V> Log<K, V> {
 pub fn stress_concurrent<
     K: fmt::Debug + Eq + Hash + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
->() {
+>(
+    threads: usize,
+    steps: usize,
+) {
     let ops = [Ops::Lookup, Ops::Insert, Ops::Delete];
-
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096;
 
     let map = M::default();
 
     thread::scope(|s| {
-        for _ in 0..THREADS {
+        for _ in 0..threads {
             s.spawn(|_| {
                 let mut rng = thread_rng();
-                for _ in 0..STEPS {
+                for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
 
                     match op {
@@ -229,21 +229,21 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
 pub fn log_concurrent<
     K: fmt::Debug + Clone + Eq + Hash + Send + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
->() {
+>(
+    threads: usize,
+    steps: usize,
+) {
     let ops = [Ops::Lookup, Ops::Insert, Ops::Delete];
-
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096 * 12;
 
     let map = M::default();
 
     let logs = thread::scope(|s| {
         let mut handles = Vec::new();
-        for _ in 0..THREADS {
+        for _ in 0..threads {
             let handle = s.spawn(|_| {
                 let mut rng = thread_rng();
                 let mut logs = Vec::new();
-                for _ in 0..STEPS {
+                for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
 
                     match op {
