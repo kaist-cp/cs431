@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use rand::prelude::*;
 
-use crossbeam_epoch::{pin, unprotected};
+use crossbeam_epoch::pin;
 use crossbeam_utils::thread;
 
 pub fn stress_sequential<
