@@ -11,6 +11,7 @@ mod art;
 mod bst;
 mod elim_stack;
 mod hash_table;
+pub mod hazard_pointer;
 pub mod hello_server;
 mod linked_list;
 mod list_set;
