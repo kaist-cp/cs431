@@ -5,7 +5,7 @@ use core::sync::atomic::Ordering;
 use crossbeam_epoch::{Guard, Owned, Shared};
 use std::thread;
 
-use super::base::{ElimStack, Stack, ELIM_DELAY, get_random_elim_index};
+use super::base::{get_random_elim_index, ElimStack, Stack, ELIM_DELAY};
 
 impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
     type PushReq = S::PushReq;

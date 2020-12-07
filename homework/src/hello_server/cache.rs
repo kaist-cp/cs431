@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex, RwLock};
 pub struct Cache<K, V> {
     // todo! This is an example cache type. Build your own cache type that satisfies the
     // specification for `get_or_insert_with`.
-    inner: Mutex<HashMap<K, V>>
+    inner: Mutex<HashMap<K, V>>,
 }
 
 impl<K: Eq + Hash + Clone, V: Clone> Cache<K, V> {
