@@ -1,7 +1,7 @@
 use core::sync::atomic::Ordering::*;
 
 use crossbeam_utils::thread::scope;
-use cs492_concur_homework::hazard_pointer::{collect, protect, retire, Atomic, Owned};
+use cs492_concur_homework::hazard_pointer::{collect, get_protected, retire, Atomic, Owned};
 
 #[test]
 fn counter() {
@@ -14,26 +14,19 @@ fn counter() {
             s.spawn(|_| {
                 for _ in 0..ITER {
                     let mut new = Owned::new(0);
-                    let mut cur = count.load(Acquire);
                     loop {
-                        let shield = protect(cur).unwrap();
-                        let cur2 = count.load(Relaxed);
-                        if !shield.validate(cur2) {
-                            cur = cur2;
-                            continue;
-                        }
-                        let value = unsafe { *shield.deref() };
+                        let cur_shield = get_protected(&count).unwrap();
+                        let value = unsafe { *cur_shield.deref() };
                         *new = value + 1;
                         let new_shared = new.into_shared();
-                        match count.compare_and_set(cur, new_shared, AcqRel, Acquire) {
-                            Ok(_) => {
-                                retire(cur);
-                                break;
-                            }
-                            Err(c) => {
-                                new = unsafe { new_shared.into_owned() };
-                                cur = c;
-                            }
+                        if count
+                            .compare_and_set(cur_shield.shared(), new_shared, AcqRel, Acquire)
+                            .is_ok()
+                        {
+                            retire(cur_shield.shared());
+                            break;
+                        } else {
+                            new = unsafe { new_shared.into_owned() };
                         }
                     }
                 }
@@ -45,7 +38,6 @@ fn counter() {
     // exclusive access
     assert_eq!(unsafe { *cur.deref() }, THREADS * ITER);
     retire(cur);
-    collect();
 }
 
 // NOTE: more tests will be added soon™

@@ -4,27 +4,17 @@
 //!
 //! ```
 //! use std::sync::atomic::Ordering;
-//! use cs492_concur_homework::hazard_pointer::{protect, retire, collect, Atomic, Shared};
+//! use cs492_concur_homework::hazard_pointer::{get_protected, retire, collect, Atomic, Shared};
 //!
 //! let atomic = Atomic::new(1);
-//! let mut shared = atomic.load(Ordering::Acquire);
-//! let shield = loop {
-//!     let shield = protect(shared).unwrap();
-//!     let shared2 = atomic.load(Ordering::Relaxed);
-//!     // validate if `atomic` still points to the pointer that I protected.
-//!     if shield.validate(shared2) {
-//!         break shield;
-//!     }
-//!     shared = shared2;
-//! };
-//! // protection of `shared` is established
+//! let shield = get_protected(&atomic).unwrap();
 //! assert_eq!(unsafe { *shield.deref() }, 1);
 //!
 //! // unlink the block and retire
 //! atomic.store(Shared::null(), Ordering::Relaxed);
 //! retire(shield.shared());
 //!
-//! // manually trigger reclamation
+//! // manually trigger reclamation (not necessary)
 //! collect();
 //! ```
 //!
@@ -57,6 +47,12 @@ thread_local! {
 /// Returns `None` if the current thread's hazard array is fully occupied. The returned shield must
 /// be validated before using.
 pub fn protect<T>(pointer: Shared<T>) -> Option<Shield<'static, T>> {
+    todo!()
+}
+
+/// Returns a validated shield. Returns `None` if the current thread's hazard array is fully
+/// occupied.
+pub fn get_protected<T>(atomic: &Atomic<T>) -> Option<Shield<'static, T>> {
     todo!()
 }
 
