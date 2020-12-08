@@ -7,7 +7,6 @@ IFS=$'\n\t'
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
 
-TIMEOUT=3m
 export RUST_TEST_THREADS=1
 
 
@@ -28,6 +27,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test growable_array stress_concurrent"
             "--test growable_array log_concurrent"
         )
+        TIMEOUT=10s
         if [ $(run_tests) -ne 0 ]; then
             growable_array_basic_failed=true
         fi
@@ -41,6 +41,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test split_ordered_list stress_concurrent"
             "--test split_ordered_list log_concurrent"
         )
+        TIMEOUT=45s
         if [ $(run_tests) -ne 0 ]; then
             split_ordered_list_basic_failed=true
         fi
@@ -64,6 +65,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test growable_array stress_concurrent"
             "--test growable_array log_concurrent"
         )
+        TIMEOUT=30s
         if [ $(run_tests) -ne 0 ]; then
             growable_array_asan_failed=true
         fi
@@ -77,6 +79,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test split_ordered_list stress_concurrent"
             "--test split_ordered_list log_concurrent"
         )
+        TIMEOUT=3m
         if [ $(run_tests) -ne 0 ]; then
             split_ordered_list_asan_failed=true
         fi
@@ -96,6 +99,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test growable_array stress_concurrent"
             "--test growable_array log_concurrent"
         )
+        TIMEOUT=20s
         if [ $(run_tests) -ne 0 ]; then
             growable_array_tsan_failed=true
         fi
@@ -107,6 +111,7 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test split_ordered_list stress_concurrent"
             "--test split_ordered_list log_concurrent"
         )
+        TIMEOUT=4m
         if [ $(run_tests) -ne 0 ]; then
             split_ordered_list_tsan_failed=true
         fi
