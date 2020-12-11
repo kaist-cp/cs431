@@ -8,7 +8,7 @@ use super::hazard::Hazards;
 pub struct Retirees<'s> {
     hazards: &'s Hazards,
     /// The first element of the pair is the machine representation of a pointer without tag and
-    /// the second is the function pointer to `free::<T>` where `T` is the type of the object. 
+    /// the second is the function pointer to `free::<T>` where `T` is the type of the object.
     inner: Vec<(usize, unsafe fn(usize))>,
 }
 

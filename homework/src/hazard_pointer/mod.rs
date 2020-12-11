@@ -19,7 +19,6 @@
 //! ```
 //!
 use core::cell::RefCell;
-use lazy_static::lazy_static;
 use std::sync::atomic::{fence, Ordering};
 use std::thread;
 
@@ -33,10 +32,8 @@ use hazard::Hazards;
 pub use hazard::Shield;
 use retire::Retirees;
 
-lazy_static! {
-    /// Global set of all hazard pointers.
-    static ref HAZARDS: Hazards = Hazards::new();
-}
+/// Global set of all hazard pointers.
+static HAZARDS: Hazards = Hazards::new();
 
 thread_local! {
     /// Thread-local list of retired pointers. The first element of the pair is the machine
