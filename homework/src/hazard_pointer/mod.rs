@@ -47,8 +47,17 @@
 //! either `T1's fence → T2's fence` or `T2's fence → T1's fence` holds.
 //! Therefore, `T1-1 → T2-2` or `T2-1 → T1-2`.
 use core::cell::RefCell;
-use std::sync::atomic::{fence, Ordering};
 use std::thread;
+
+#[cfg(not(feature = "check-loom"))]
+use core::sync::atomic::{fence, Ordering};
+#[cfg(feature = "check-loom")]
+use loom::sync::atomic::{fence, Ordering};
+
+#[cfg(feature = "check-loom")]
+use loom::thread_local;
+#[cfg(not(feature = "check-loom"))]
+use std::thread_local;
 
 mod align;
 mod atomic;
@@ -60,8 +69,15 @@ use hazard::Hazards;
 pub use hazard::Shield;
 use retire::Retirees;
 
+#[cfg(not(feature = "check-loom"))]
 /// Global set of all hazard pointers.
 static HAZARDS: Hazards = Hazards::new();
+
+#[cfg(feature = "check-loom")]
+loom::lazy_static! {
+    /// Global set of all hazard pointers.
+    pub static ref HAZARDS: Hazards = Hazards::new();
+}
 
 thread_local! {
     /// Thread-local list of retired pointers. The first element of the pair is the machine

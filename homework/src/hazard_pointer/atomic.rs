@@ -1,7 +1,11 @@
 use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
+
+#[cfg(not(feature = "check-loom"))]
 use core::sync::atomic::{AtomicUsize, Ordering};
+#[cfg(feature = "check-loom")]
+use loom::sync::atomic::{AtomicUsize, Ordering};
 
 use super::align;
 
@@ -68,6 +72,7 @@ impl<T> Owned<T> {
     /// unused bits of the pointer to `T`.
     pub fn with_tag(self, tag: usize) -> Self {
         let (data, _) = align::decompose_tag::<T>(self.data);
+        mem::forget(self);
         Self {
             data: align::compose_tag::<T>(data, tag),
             _marker: PhantomData,
@@ -100,13 +105,15 @@ impl<T> Deref for Owned<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.data as *const T) }
+        let (data, _) = align::decompose_tag::<T>(self.data);
+        unsafe { &*(data as *const T) }
     }
 }
 
 impl<T> DerefMut for Owned<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(self.data as *mut T) }
+        let (data, _) = align::decompose_tag::<T>(self.data);
+        unsafe { &mut *(data as *mut T) }
     }
 }
 
@@ -242,6 +249,7 @@ impl<T> Shared<T> {
     /// The pointer should be valid and the pointee should not be concurrently accessed by the
     /// other threads.
     pub unsafe fn deref(&self) -> &T {
-        &*(self.data as *const T)
+        let (data, _) = align::decompose_tag::<T>(self.data);
+        &*(data as *const T)
     }
 }

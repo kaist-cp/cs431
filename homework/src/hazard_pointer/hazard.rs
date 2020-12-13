@@ -1,10 +1,15 @@
 use core::marker::PhantomData;
 use core::ptr;
-use core::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize, Ordering};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
+use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::thread::ThreadId;
+
+#[cfg(not(feature = "check-loom"))]
+use core::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize, Ordering};
+#[cfg(feature = "check-loom")]
+use loom::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize, Ordering};
 
 use super::align;
 use super::atomic::Shared;
@@ -80,7 +85,6 @@ impl Iterator for LocalHazardsIter<'_> {
 }
 
 /// Represents the ownership of a hazard pointer slot.
-#[derive(Debug)]
 pub struct Shield<'s, T> {
     data: usize, // preserves the tag of original `Shared`
     hazards: &'s LocalHazards,
@@ -150,6 +154,18 @@ impl<'s, T> Drop for Shield<'s, T> {
     }
 }
 
+impl<'s, T> fmt::Debug for Shield<'s, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (raw, tag) = align::decompose_tag::<T>(self.data);
+        f.debug_struct("Shield")
+            .field("raw", &raw)
+            .field("tag", &tag)
+            .field("hazards", &(self.hazards as *const _))
+            .field("index", &self.index)
+            .finish()
+    }
+}
+
 /// Maps `ThreadId`s to their `Hazards`.
 ///
 /// Uses a hash table based on append-only lock-free linked list for simplicity. In practice, this
@@ -159,6 +175,7 @@ pub struct Hazards {
     heads: [AtomicPtr<Node>; Self::BUCKETS],
 }
 
+#[derive(Debug)]
 struct Node {
     next: AtomicPtr<Node>,
     tid: ThreadId,
@@ -168,6 +185,8 @@ struct Node {
 impl Hazards {
     const BUCKETS: usize = 13;
 
+    #[cfg(not(feature = "check-loom"))]
+    /// Returns the hazard array of the given thread.
     pub const fn new() -> Self {
         Self {
             heads: [
@@ -188,7 +207,27 @@ impl Hazards {
         }
     }
 
+    #[cfg(feature = "check-loom")]
     /// Returns the hazard array of the given thread.
+    pub fn new() -> Self {
+        Self {
+            heads: [
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+                AtomicPtr::new(ptr::null_mut()),
+            ],
+        }
+    }
     pub fn get(&self, tid: ThreadId) -> &LocalHazards {
         let index = {
             let mut s = DefaultHasher::new();

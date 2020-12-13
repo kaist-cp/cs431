@@ -43,6 +43,43 @@ fn counter() {
 }
 
 #[test]
+fn counter_tag() {
+    const THREADS: usize = 4;
+    const ITER: usize = 1024 * 16;
+
+    let count = Atomic::new(0usize);
+    scope(|s| {
+        for _ in 0..THREADS {
+            s.spawn(|_| {
+                for _ in 0..ITER {
+                    let mut new = Owned::new(0).with_tag(1);
+                    loop {
+                        let cur_shield = get_protected(&count).unwrap();
+                        let value = unsafe { *cur_shield.deref() };
+                        *new = value + 1;
+                        let new_shared = new.into_shared();
+                        if count
+                            .compare_and_set(cur_shield.shared(), new_shared, AcqRel, Acquire)
+                            .is_ok()
+                        {
+                            retire(cur_shield.shared());
+                            break;
+                        } else {
+                            new = unsafe { new_shared.into_owned() };
+                        }
+                    }
+                }
+            });
+        }
+    })
+    .unwrap();
+    let cur = count.load(Acquire);
+    // exclusive access
+    assert_eq!(unsafe { *cur.deref() }, THREADS * ITER);
+    retire(cur);
+}
+
+#[test]
 fn stack() {
     const THREADS: usize = 8;
     const ITER: usize = 1024 * 8;
@@ -60,6 +97,29 @@ fn stack() {
     })
     .unwrap();
     assert!(stack.pop().is_none());
+}
+
+#[test]
+fn two_stacks() {
+    const THREADS: usize = 8;
+    const ITER: usize = 1024 * 8;
+
+    let stack1 = Stack::new();
+    let stack2 = Stack::new();
+    scope(|s| {
+        for _ in 0..THREADS {
+            s.spawn(|_| {
+                for i in 0..ITER {
+                    stack1.push(i);
+                    stack1.pop();
+                    stack2.push(i);
+                    stack2.pop();
+                }
+            });
+        }
+    })
+    .unwrap();
+    assert!(stack1.pop().is_none());
 }
 
 /// Treiber's lock-free stack.
@@ -138,4 +198,70 @@ impl<T> Drop for Stack<T> {
     }
 }
 
-// NOTE: more tests will be added soon™
+mod mock;
+
+mod sync {
+    use super::mock::model;
+    use super::mock::sync::atomic::Ordering::*;
+    use super::mock::sync::Arc;
+    use super::mock::thread;
+    use cs492_concur_homework::hazard_pointer::*;
+
+    #[test]
+    fn protect_collect_sync() {
+        model(|| {
+            let atomic = Arc::new(Atomic::new(123));
+
+            let th = {
+                let atomic = atomic.clone();
+                thread::spawn(move || {
+                    let shared = atomic.load(Relaxed);
+                    if shared.is_null() {
+                        return;
+                    }
+                    let shield = protect(shared).unwrap();
+                    if shield.validate(atomic.load(Relaxed)) {
+                        // safe to deref a valid pointer via a validated shield
+                        assert_eq!(unsafe { *shield.deref() }, 123);
+                    }
+                })
+            };
+
+            // unlink, retire, and collect
+            let shared = atomic.load(Relaxed);
+            atomic.store(Shared::null(), Relaxed);
+            retire(shared);
+            collect();
+            th.join().unwrap();
+        })
+    }
+
+    #[test]
+    fn get_protected_collect_sync() {
+        model(|| {
+            let atomic = Arc::new(Atomic::null());
+
+            let th = {
+                let atomic = atomic.clone();
+                thread::spawn(move || {
+                    let shield = get_protected(&atomic).unwrap();
+                    if !shield.is_null() {
+                        // safe to deref a valid pointer via a validated shield
+                        assert_eq!(unsafe { *shield.deref() }, 123);
+                    }
+                })
+            };
+
+            // link
+            let shared = Owned::new(123).into_shared();
+            atomic.store(shared, Release);
+
+            // unlink, retire, and collect
+            atomic.store(Shared::null(), Relaxed);
+            retire(shared);
+            collect();
+
+            th.join().unwrap();
+        })
+    }
+}
