@@ -23,6 +23,7 @@ for RUNNER in "${RUNNERS[@]}"; do
         echo "Testing hazard_pointer.rs with $RUNNER..."
         TESTS=(
             "--test hazard_pointer -- --exact counter"
+            "--test hazard_pointer -- --exact counter_sleep"
             "--test hazard_pointer -- --exact counter_tag"
             "--test hazard_pointer -- --exact stack"
             "--test hazard_pointer -- --exact two_stacks"
@@ -45,6 +46,7 @@ for RUNNER in "${RUNNERS[@]}"; do
         echo "Testing hazard_pointer.rs with $RUNNER..."
         TESTS=(
             "--test hazard_pointer -- --exact counter"
+            "--test hazard_pointer -- --exact counter_sleep"
             "--test hazard_pointer -- --exact counter_tag"
             "--test hazard_pointer -- --exact stack"
             "--test hazard_pointer -- --exact two_stacks"
@@ -65,6 +67,7 @@ if [ "$basic_faild" = false ] && [ "$sync_failed" = false ]; then
     TESTS=(
         "--test hazard_pointer sync::protect_collect_sync -- --nocapture"
         "--test hazard_pointer sync::get_protected_collect_sync -- --nocapture"
+        "--test hazard_pointer sync::shield_drop_all_hazards_sync -- --nocapture"
     )
     if [ $(run_tests) -ne 0 ]; then
         sync_failed=true
