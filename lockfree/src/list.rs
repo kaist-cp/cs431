@@ -233,7 +233,7 @@ where
     pub fn delete(self, guard: &'g Guard) -> Result<&'g V, ()> {
         let curr_node = unsafe { self.curr.as_ref() }.unwrap();
 
-        let next = curr_node.next.fetch_or(1, Ordering::Relaxed, guard);
+        let next = curr_node.next.fetch_or(1, Ordering::Acquire, guard);
         if next.tag() == 1 {
             return Err(());
         }
