@@ -22,7 +22,11 @@ impl RawLock for SpinLock {
     fn lock(&self) {
         let backoff = Backoff::new();
 
-        while self.inner.compare_and_swap(false, true, Ordering::Acquire) {
+        while self
+            .inner
+            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .is_err()
+        {
             backoff.snooze();
         }
     }
@@ -34,11 +38,10 @@ impl RawLock for SpinLock {
 
 impl RawTryLock for SpinLock {
     fn try_lock(&self) -> Result<(), ()> {
-        if !self.inner.compare_and_swap(false, true, Ordering::Acquire) {
-            Ok(())
-        } else {
-            Err(())
-        }
+        self.inner
+            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .map(|_| ())
+            .map_err(|_| ())
     }
 }
 
