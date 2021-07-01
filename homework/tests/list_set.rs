@@ -7,7 +7,7 @@ use std::sync::atomic::{
     Ordering::{Acquire, Release},
 };
 
-use cs492_concur_homework::OrderedListSet;
+use cs431_homework::OrderedListSet;
 
 #[test]
 fn smoke() {
@@ -112,7 +112,10 @@ const THREADS: usize = 16;
 const STEPS: usize = 4096 * 8;
 
 fn generate_random_string(rng: &mut ThreadRng) -> String {
-    rng.sample_iter(&Alphanumeric).take(1).collect()
+    rng.sample_iter(&Alphanumeric)
+        .take(1)
+        .map(|x| x as char)
+        .collect()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -288,7 +291,7 @@ fn iter_consistent() {
             s.spawn(|_| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
-                    let key = 2 * rng.gen_range(0, 50) + 1;
+                    let key = 2 * rng.gen_range(0..50) + 1;
                     if rng.gen() {
                         let _ = set.insert(key);
                     } else {

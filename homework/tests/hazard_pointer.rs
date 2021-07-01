@@ -5,9 +5,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crossbeam_utils::thread::scope;
-use cs492_concur_homework::hazard_pointer::{
-    collect, get_protected, protect, retire, Atomic, Owned,
-};
+use cs431_homework::hazard_pointer::{collect, get_protected, protect, retire, Atomic, Owned};
 
 #[test]
 fn counter() {
@@ -257,7 +255,7 @@ mod sync {
     use super::mock::sync::atomic::{AtomicUsize, Ordering::*};
     use super::mock::sync::Arc;
     use super::mock::thread;
-    use cs492_concur_homework::hazard_pointer::*;
+    use cs431_homework::hazard_pointer::*;
 
     #[test]
     fn protect_collect_sync() {

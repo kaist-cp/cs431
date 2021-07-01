@@ -1,7 +1,7 @@
 use core::fmt;
 use core::hash::Hash;
 use core::marker::PhantomData;
-use cs492_concur_homework::{ConcurrentMap, RandGen, SequentialMap};
+use cs431_homework::{ConcurrentMap, RandGen, SequentialMap};
 use std::collections::HashMap;
 
 use rand::prelude::*;

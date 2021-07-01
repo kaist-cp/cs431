@@ -77,7 +77,7 @@ impl<T> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let mut x = Arc::new(3);
     /// *Arc::get_mut(&mut x).unwrap() = 4;
@@ -112,7 +112,7 @@ impl<T> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let mut x = Arc::new(String::new());
     /// unsafe {
@@ -138,7 +138,7 @@ impl<T> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let five = Arc::new(5);
     /// let _also_five = Arc::clone(&five);
@@ -168,7 +168,7 @@ impl<T> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let five = Arc::new(5);
     /// let same_five = Arc::clone(&five);
@@ -189,7 +189,7 @@ impl<T> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let x = Arc::new(3);
     /// assert_eq!(Arc::try_unwrap(x).unwrap(), 3);
@@ -216,7 +216,7 @@ impl<T: Clone> Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let mut data = Arc::new(5);
     ///
@@ -249,7 +249,7 @@ impl<T> Clone for Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// let five = Arc::new(5);
     ///
@@ -279,7 +279,7 @@ impl<T> Drop for Arc<T> {
     /// # Examples
     ///
     /// ```
-    /// use cs492_concur_homework::Arc;
+    /// use cs431_homework::Arc;
     ///
     /// struct Foo;
     ///

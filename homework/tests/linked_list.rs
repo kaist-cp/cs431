@@ -1,4 +1,4 @@
-use cs492_concur_homework::LinkedList;
+use cs431_homework::LinkedList;
 
 #[test]
 fn test_basic() {

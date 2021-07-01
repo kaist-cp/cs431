@@ -18,7 +18,7 @@ impl Drop for Canary {
 
 #[cfg(not(feature = "check-loom"))]
 mod basic {
-    use cs492_concur_homework::Arc;
+    use cs431_homework::Arc;
 
     use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
     use super::mock::sync::mpsc::channel;
@@ -151,7 +151,7 @@ mod correctness {
     use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
     use super::mock::thread;
     use super::Canary;
-    use cs492_concur_homework::Arc;
+    use cs431_homework::Arc;
 
     #[test]
     /// data:=123 → flag.count:=1 → flag.count==1 → data==123

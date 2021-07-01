@@ -54,21 +54,21 @@ impl<T> Stack<T> for TreiberStack<T> {
         req: Owned<Self::PushReq>,
         guard: &Guard,
     ) -> Result<(), Owned<Self::PushReq>> {
-        let head = self.head.load(Ordering::Relaxed, &guard);
+        let head = self.head.load(Ordering::Relaxed, guard);
         req.next.store(head, Ordering::Relaxed);
         self.head
-            .compare_and_set(head, req, Ordering::Release, &guard)
+            .compare_exchange(head, req, Ordering::Release, Ordering::Relaxed, guard)
             .map(|_| ())
             .map_err(|e| e.new)
     }
 
     fn try_pop(&self, guard: &Guard) -> Result<Option<T>, ()> {
-        let head = self.head.load(Ordering::Acquire, &guard);
+        let head = self.head.load(Ordering::Acquire, guard);
         let head_ref = some_or!(unsafe { head.as_ref() }, return Ok(None));
-        let next = head_ref.next.load(Ordering::Relaxed, &guard);
+        let next = head_ref.next.load(Ordering::Relaxed, guard);
 
         self.head
-            .compare_and_set(head, next, Ordering::Relaxed, &guard)
+            .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, guard)
             .map_err(|_| ())?;
 
         Ok(Some(unsafe {
@@ -79,7 +79,7 @@ impl<T> Stack<T> for TreiberStack<T> {
     }
 
     fn is_empty(&self, guard: &Guard) -> bool {
-        self.head.load(Ordering::Acquire, &guard).is_null()
+        self.head.load(Ordering::Acquire, guard).is_null()
     }
 }
 

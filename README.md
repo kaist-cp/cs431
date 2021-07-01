@@ -1,15 +1,15 @@
-# KAIST CS492: Design and Analysis of Concurrent Programs
+# KAIST CS431: Concurrent Programming
 
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-    + Office Hour: Friday 13:30-16:30 [(Google Meet)](https://meet.google.com/ftr-epmw-pmv).
+- TA: TBA ~~[Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)~~
+    + Office Hour: TBA ~~Friday 13:30-16:30 [(Google Meet)](https://meet.google.com/ftr-epmw-pmv)~~.
       See [below](#communication) for the office hour policy.
-- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)
-- Website: https://github.com/kaist-cp/cs492-concur
+- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), TBA ~~[Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)~~
+- Website: https://github.com/kaist-cp/cs431
 - Announcements: in [issue
-  tracker](https://github.com/kaist-cp/cs492-concur/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+  tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
 
 
 
@@ -21,11 +21,11 @@ Due to COVID-19, we're going to conduct online sessions for this semester.
 
     + You're required to watch the video, and based on the contents, to solve pop quizzes that will
       be posted at gg.kaist.ac.kr. The details are announced in [an
-      issue](https://github.com/kaist-cp/cs492-concur/issues/42).
+      issue](https://github.com/kaist-cp/cs431/issues/42).
 
     + Turn on English subtitle at YouTube, if necessary.
 
-- For live sessions, we'll meet in a [Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga).
+- For live sessions, we'll meet in a TBA ~~[Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)~~.
 
 
 
@@ -91,17 +91,17 @@ Make sure you're capable of using the following development tools:
   tutorial](https://www.atlassian.com/git/tutorials).
 
     + **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
-      the [upstream](https://github.com/kaist-cp/cs492-concur) and push there. Please the following
+      the [upstream](https://github.com/kaist-cp/cs431) and push there. Please the following
       steps:
 
         * Directly clone the upstream without forking it.
 
           ```bash
-          $ git clone --origin upstream https://github.com/kaist-cp/cs492-concur.git
-          $ cd cs492-concur
+          $ git clone --origin upstream https://github.com/kaist-cp/cs431.git
+          $ cd cs431
           $ git remote -v
-          upstream	https://github.com/kaist-cp/cs492-concur.git (fetch)
-          upstream	https://github.com/kaist-cp/cs492-concur.git (push)
+          upstream	https://github.com/kaist-cp/cs431.git (fetch)
+          upstream	https://github.com/kaist-cp/cs431.git (push)
           ```
 
         * To get updates from the upstream, fetch and merge `upstream/master`.
@@ -120,12 +120,12 @@ Make sure you're capable of using the following development tools:
         * Set up your repository as a remote.
 
           ```bash
-          $ git remote add origin git@github.com:<github-id>/cs492-concur.git
+          $ git remote add origin git@github.com:<github-id>/cs431.git
           $ git remote -v
-          origin	 git@github.com:<github-id>/cs492-concur.git (fetch)
-          origin	 git@github.com:<github-id>/cs492-concur.git (push)
-          upstream https://github.com/kaist-cp/cs492-concur.git (fetch)
-          upstream https://github.com/kaist-cp/cs492-concur.git (push)
+          origin	 git@github.com:<github-id>/cs431.git (fetch)
+          origin	 git@github.com:<github-id>/cs431.git (push)
+          upstream https://github.com/kaist-cp/cs431.git (fetch)
+          upstream https://github.com/kaist-cp/cs431.git (push)
           ```
 
         * Push to your repository.
@@ -146,18 +146,18 @@ Make sure you're capable of using the following development tools:
       
 - You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p14000`, e.g., `ssh
   s20071163@cp-service.kaist.ac.kr -p14000`. See [this
-  issue](https://github.com/kaist-cp/cs492-concur/issues/42) for more detail.
+  issue](https://github.com/kaist-cp/cs431/issues/42) for more detail.
 
     + Add the following lines in your `~/.ssh/config`:
     
       ```
-      Host cs492-concur
+      Host cs431
         Hostname cp-service.kaist.ac.kr
         Port 14000
         User s<student-id>
       ```
       
-      Then you can connect to the server by `ssh cs492-concur`.
+      Then you can connect to the server by `ssh cs431`.
 
     + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
 
@@ -169,8 +169,8 @@ Make sure you're capable of using the following development tools:
 
     + Mathematics (freshman calculus, MAS101 & MAS102): proposition statement and proof
     + Data structures (CS206): linked list, stack, queue
-    + Systems programming (CS230): memory layout, cache, lock
-    + Programming languages (CS320): lambda calculus, interpreter
+    + Systems programming (CS230) or Operating systems (CS330): memory layout, cache, lock
+    + Programming principles (CS220) or Programming languages (CS320): lambda calculus, interpreter
 
   Without a proper understanding of these topics, you will likely struggle in this course.
 
@@ -194,25 +194,25 @@ The exams will evaluate your theoretical understanding of shared mutable states.
 
 ### Attendance (?%)
 
-You should submit a token to the [Course Management](https://gg.kaist.ac.kr/course/6) website for
-each session.  You should submit a token within **12 hours from the beginning of a sessions**.
+You should submit a token to the [Course Management](https://gg.kaist.ac.kr/course/9) website for
+each session.  TBA ~~You should submit a token within **12 hours from the beginning of a sessions**~~.
 
 ### Honor code
 
-[Please sign KAIST School of Computing Honor Code here](https://gg.kaist.ac.kr/quiz/17/).
+TBA ~~[Please sign KAIST School of Computing Honor Code here](https://gg.kaist.ac.kr/quiz/17/)~~.
 
 
 
 ## Communication
 
 - Course-related announcements and information will be posted on the
-  [website](https://github.com/kaist-cp/cs492-concur) as well as on the [GitHub issue
-  tracker](https://github.com/kaist-cp/cs492-concur/issues).  You are expected to read all
+  [website](https://github.com/kaist-cp/cs431) as well as on the [GitHub issue
+  tracker](https://github.com/kaist-cp/cs431/issues).  You are expected to read all
   announcements within 24 hours of their being posted.  It is highly recommended to watch the
   repository so that new announcements will automatically be delivered to you email address.
 
 - Ask your questions via email **only if** they are either confidential or personal.  Otherwise, ask
-   questions in [this repository's issue tracker](https://github.com/kaist-cp/cs492-concur/issues).
+   questions in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
    Any questions failing to do so (e.g. email questions on course materials) will not be answered.
 
     + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
@@ -224,7 +224,7 @@ each session.  You should submit a token within **12 hours from the beginning of
   new issue and start discussion there. The agenda of the office hour will be the issues that are
   not resolved yet.
 
-- Emails to the instructor or TAs should begin with "CS492C:" in the subject line, followed by a
+- Emails to the instructor or TAs should begin with "CS431:" in the subject line, followed by a
   brief description of the purpose of your email.  The content should at least contain your name and
   student number.  Any emails failing to do so (e.g. emails without student number) will not be
   answered.

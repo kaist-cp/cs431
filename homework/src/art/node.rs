@@ -120,8 +120,10 @@ impl NodeHeader {
             return Err(());
         }
 
-        let mut header = Self::default();
-        header.length = length as u8;
+        let mut header = Self {
+            length: length as u8,
+            key: [0; NodeHeader::MAX_LENGTH],
+        };
         header.key[0..length].copy_from_slice(key);
         Ok(header)
     }

@@ -1,4 +1,4 @@
-use cs492_concur_homework::{Bst, SequentialMap};
+use cs431_homework::{Bst, SequentialMap};
 
 pub mod map;
 

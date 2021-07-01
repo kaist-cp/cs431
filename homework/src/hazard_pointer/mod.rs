@@ -4,7 +4,7 @@
 //!
 //! ```
 //! use std::sync::atomic::Ordering;
-//! use cs492_concur_homework::hazard_pointer::{get_protected, retire, collect, Atomic, Shared};
+//! use cs431_homework::hazard_pointer::{get_protected, retire, collect, Atomic, Shared};
 //!
 //! let atomic = Atomic::new(1);
 //! let shield = get_protected(&atomic).unwrap();

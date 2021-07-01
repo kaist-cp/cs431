@@ -14,7 +14,10 @@ const KEY_MAX_LENGTH: usize = 4;
 impl RandGen for String {
     fn rand_gen(rng: &mut ThreadRng) -> Self {
         let length = rng.gen::<usize>() % KEY_MAX_LENGTH;
-        rng.sample_iter(&Alphanumeric).take(length).collect()
+        rng.sample_iter(&Alphanumeric)
+            .take(length)
+            .map(|x| x as char)
+            .collect()
     }
 }
 

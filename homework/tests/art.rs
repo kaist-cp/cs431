@@ -1,4 +1,4 @@
-use cs492_concur_homework::{Art, SequentialMap, StrStringMap};
+use cs431_homework::{Art, SequentialMap, StrStringMap};
 
 pub mod map;
 

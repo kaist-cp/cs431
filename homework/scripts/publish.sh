@@ -12,4 +12,4 @@ for skel in `find . -regex '.*/[^/]*.skeleton.rs'`; do
 done
 
 echo "[copy to public repo]"
-rsync --exclude=".git" --delete --archive ./ ../cs492-concur/homework
+rsync --exclude=".git" --delete --archive ./ ../cs431/homework

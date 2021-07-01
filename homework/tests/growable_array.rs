@@ -1,7 +1,7 @@
 use core::mem::{replace, ManuallyDrop};
 use core::sync::atomic::Ordering;
 use crossbeam_epoch::{pin, unprotected, Atomic, Guard, Owned, Shared};
-use cs492_concur_homework::{GrowableArray, NonblockingConcurrentMap, NonblockingMap};
+use cs431_homework::{GrowableArray, NonblockingConcurrentMap, NonblockingMap};
 
 mod map;
 
@@ -27,7 +27,13 @@ impl<V> NonblockingMap<u32, V> for ArrayMap<V> {
             data: ManuallyDrop::new(value),
             next: Atomic::null(),
         });
-        match slot.compare_and_set(Shared::null(), node, Ordering::AcqRel, guard) {
+        match slot.compare_exchange(
+            Shared::null(),
+            node,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+            guard,
+        ) {
             Ok(n) => {
                 self.storage.push_node(unsafe { n.into_owned() });
                 Ok(())
@@ -43,7 +49,13 @@ impl<V> NonblockingMap<u32, V> for ArrayMap<V> {
         if curr.is_null() {
             return Err(());
         }
-        match slot.compare_and_set(curr, Shared::null(), Ordering::AcqRel, guard) {
+        match slot.compare_exchange(
+            curr,
+            Shared::null(),
+            Ordering::AcqRel,
+            Ordering::Acquire,
+            guard,
+        ) {
             Ok(_) => Ok(unsafe { &*curr.as_ref().unwrap().data }),
             Err(_) => Err(()), // already removed
         }
@@ -79,7 +91,7 @@ impl<T> Stack<T> {
 
             match self
                 .head
-                .compare_and_set(head, n, Ordering::Release, &guard)
+                .compare_exchange(head, n, Ordering::Release, Ordering::Relaxed, &guard)
             {
                 Ok(_) => break,
                 Err(e) => n = e.new,

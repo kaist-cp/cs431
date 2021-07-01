@@ -1,5 +1,5 @@
 use crossbeam_epoch as epoch;
-use cs492_concur_homework::{NonblockingConcurrentMap, NonblockingMap, SplitOrderedList};
+use cs431_homework::{NonblockingConcurrentMap, NonblockingMap, SplitOrderedList};
 
 pub mod map;
 
