@@ -77,7 +77,7 @@ impl RawLock for McsParkingLock {
 
             if self
                 .tail
-                .compare_exchange(node, ptr::null_mut(), Ordering::Release, Ordering::Relaxed)
+                .compare_exchange(node, ptr::null_mut(), Ordering::Relaxed, Ordering::Relaxed)
                 .is_ok()
             {
                 drop(Box::from_raw(node));
