@@ -9,10 +9,14 @@
   + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4)
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang)
     * The passcode is announced at KLMS.
-- Website: https://github.com/kaist-cp/cs431
-  + Announcements in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+- Website
+  + Course: https://github.com/kaist-cp/cs431
+  + Assignment: https://gg.kaist.ac.kr/course/9
+- Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+  + We assume you read each announcement within 24 hours.
+  + We strongly recommend you to watch the repository and use desktop/mobile Zulip client for prompt access to the announcements.
 - TA: [Kyeongmin Cho](https://cp.kaist.ac.kr/kyeongmin.cho) (head), [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-  + Office Hour: TBA. See [below](#communication) for the office hour policy.
+  + Office Hour: TBA ~~Tue & Fri 4:00pm-5:15pm~~, Online. It is not required, but if you want to come, do so by TBA ~~4:15pm~~. We will announce link of online meeting in [chat](https://cp-cs220.kaist.ac.kr/#narrow/stream/15-cs220-announcement) before every office hour. See [below](#communication) for office hour policy.
 
 
 ### Online sessions
@@ -257,7 +261,7 @@ Make sure you're capable of using the following development tools:
   announcements within 24 hours of their being posted.  It is highly recommended to watch the
   repository so that new announcements will automatically be delivered to you email address.
 
-- Ask questions on course materials and assignments in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).  
+- Ask questions on course materials and assignments in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
     + Don't send emails to the instructor or TAs for course materials and assignments.
     + Before asking a question, search it in Google and Stack Overflow.
     + Describe your question as detailed as possible. It should include following things:
