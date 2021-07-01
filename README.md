@@ -141,26 +141,30 @@ Make sure you're capable of using the following development tools:
   We recommend you to read [this page](https://github.com/kaist-cp/helpdesk/#specialty) that
   describes how to study Rust.
 
-- [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If
-  you prefer other editors, you're good to go.
-      
-- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p14000`, e.g., `ssh
-  s20071163@cp-service.kaist.ac.kr -p14000`. See [this
-  issue](https://github.com/kaist-cp/cs431/issues/42) for more detail.
+- [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
 
-    + Add the following lines in your `~/.ssh/config`:
-    
+- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p13001`, e.g., `ssh s20071163@cp-service.kaist.ac.kr -p13001`.
+
+    + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
+
+    + Your initial password is `123454321`. IMPORTANT: you should change it ASAP.
+
+    + I require you to register public SSH keys to the server. (In March, we'll expire your password so that you can log in only via SSH keys.)
+      See [this tutorial](https://serverpilot.io/docs/how-to-use-ssh-public-key-authentication/) for more information on SSH public key authentication.
+      Use `ed25519`.
+
+    + In your client, you may want to set your `~/.ssh/config` as follows for easier SSH access:
+
       ```
       Host cs431
         Hostname cp-service.kaist.ac.kr
-        Port 14000
-        User s<student-id>
+        Port 13001
+        User s20071163
       ```
-      
+
       Then you can connect to the server by `ssh cs431`.
 
     + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
-
 
 
 ## Prerequisites
