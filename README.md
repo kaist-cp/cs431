@@ -6,7 +6,7 @@
 - TA: TBA ~~[Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)~~
     + Office Hour: TBA ~~Friday 13:30-16:30 [(Google Meet)](https://meet.google.com/ftr-epmw-pmv)~~.
       See [below](#communication) for the office hour policy.
-- Time & Place: Tue & Thu 10:30am-11:45am, ~~Rm 1101, Bldg E3-1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), TBA ~~[Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)~~
+- Time & Place: Mon & Wed 10:30am-11:45am, ~~Rm 117, Bldg N1~~ [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4), TBA ~~[Google Meet chatting room](https://meet.google.com/zqd-qmgd-sga)~~
 - Website: https://github.com/kaist-cp/cs431
 - Announcements: in [issue
   tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
@@ -190,20 +190,39 @@ Make sure you're capable of using the following development tools:
 
 ### Midterm and final exams (40%)
 
-The exams will evaluate your theoretical understanding of shared mutable states.
+- Date & Time: October 20th (midterm) and December 15th (final), 09:00am-11:45am (or shorter, TBA)
+
+- Place: online
+
+    + You need to set up a separate camera that shows you, your hand, pencil and paper, and monitor, as in [this picture](https://user-images.githubusercontent.com/1201316/95432855-28d33800-098a-11eb-9b18-b515c34bb2e9.jpg).
+      If you cannot do so, you will not be able to take this course.
+
 
 ### Attendance (?%)
 
-You should submit a token to the [Course Management](https://gg.kaist.ac.kr/course/9) website for
-each session.  TBA ~~You should submit a token within **12 hours from the beginning of a sessions**~~.
+- You should solve a quiz at the [Course Management](https://gg.kaist.ac.kr/course/9) website for each session. **You should answer to the quiz by the end of the day.**
 
-### Honor code
-
-TBA ~~[Please sign KAIST School of Computing Honor Code here](https://gg.kaist.ac.kr/quiz/17/)~~.
-
+- If you miss a significant number of sessions, you'll automatically get an F.
 
 
 ## Communication
+
+### Registration
+
+- Make sure you can log in the [lab submission website](https://gg.kaist.ac.kr).
+
+    + Reset your password here: https://gg.kaist.ac.kr/accounts/password_reset/
+      The email address is your `@kaist.ac.kr` address.
+
+    + The id is your student id (e.g., 20071163).
+
+    + Log in with your email address and the new password.
+      If you cannot, please contact the head TA in the chat.
+
+    + Sign [the honor code](https://gg.kaist.ac.kr/quiz/73/) by September 10th.
+      Otherwise, you will be expelled from the class.
+
+### Rules
 
 - Course-related announcements and information will be posted on the
   [website](https://github.com/kaist-cp/cs431) as well as on the [GitHub issue
@@ -211,20 +230,40 @@ TBA ~~[Please sign KAIST School of Computing Honor Code here](https://gg.kaist.a
   announcements within 24 hours of their being posted.  It is highly recommended to watch the
   repository so that new announcements will automatically be delivered to you email address.
 
+- Ask questions on lab assignments in the dedicated streams ([example](https://cp-cs431.kaist.ac.kr/#narrow/stream/5-cs431-lab-linkedlistlab)).
+    + Don't DM to the instructor or TAs.
+    + Before asking a question, search for similar ones in Zulip and Google.
+    + Describe your question as detailed as possible. It should include following things:
+      * Environment (OS, gcc, g++ version, and any other related program information). You can just say provided server if you use it without any changes.
+      * Command(s) that you used and the result. Any logs should be formatted in code. Refer to [this](https://zulip.com/help/format-your-message-using-markdown#code).
+      * Any directory or file changes you've made. If it is solution file, just describe which part of the code is modified.
+      * Googling result. Search before asking, and share the keyword used for searching and what you've learned from it.
+    + Properly Name your question as the topic.
+    + Read [this](https://cp-git.kaist.ac.kr/cs431/cs431#communication) for more instructions.
+
+- Ask questions on lectures in the dedicated stream (e.g., https://cp-cs431.kaist.ac.kr/#narrow/stream/4-cs431-lecture).
+    + The instructions for lab assignment questions apply also to lecture questions.
+
 - Ask your questions via email **only if** they are either confidential or personal.  Otherwise, ask
-   questions in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
-   Any questions failing to do so (e.g. email questions on course materials) will not be answered.
+   questions in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).  Unless
+   otherwise specified, don't send emails to the instructor or TAs. Any questions failing to do so
+   (e.g. email questions on course materials) will not be answered.
 
     + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
       question is the first step to reach an answer. Second, you can benefit from questions and
       answers of other students.
 
 - We are NOT going to discuss *new* questions during the office hour. Before coming to the office
-  hour, please check if there is a similar question on the issue tracker.  If there isn't, file a
-  new issue and start discussion there. The agenda of the office hour will be the issues that are
-  not resolved yet.
+  hour, please check if there is a similar question on the issue tracker. If there isn't, file a new
+  issue and start discussion there. The agenda of the office hour will be the issues that are not
+  resolved yet.
 
-- Emails to the instructor or TAs should begin with "CS431:" in the subject line, followed by a
-  brief description of the purpose of your email.  The content should at least contain your name and
-  student number.  Any emails failing to do so (e.g. emails without student number) will not be
+- Emails to the instructor or the head TA should begin with "CS431:" in the subject line, followed
+  by a brief description of the purpose of your email. The content should at least contain your name
+  and student number. Any emails failing to do so (e.g. emails without student number) will not be
   answered.
+
+- Your Zoom name should be `<your student number> <your name>` (e.g., 20071163 강지훈).
+  Change your name by referring to [this](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
+
+- This course is conducted in English. But you may ask questions in Korean. Then I will translate it to English.
