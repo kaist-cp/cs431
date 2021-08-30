@@ -15,7 +15,7 @@ echo_err() {
 export -f echo_err
 
 # check_diff FILE TEST_LINES_FROM_TAIL
-# Abort if tests are modified.
+# Abort if "--lib" tests are modified.
 # Uses global variable TEMPLATE_REV.
 check_diff() {
     local FILE=$1

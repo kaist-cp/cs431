@@ -7,12 +7,6 @@ IFS=$'\n\t'
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
 
-# Checks if the submission didn't alter the test cases.
-TEMPLATE_REV=HEAD
-check_diff ./src/hello_server/cache.rs 79
-check_diff ./src/hello_server/tcp.rs 41
-check_diff ./src/hello_server/thread_pool.rs 72
-
 RUNNERS=(
     "cargo"
     "cargo --release"
@@ -33,7 +27,7 @@ for RUNNER in "${RUNNERS[@]}"; do
 
     if [ "$t1_failed" = false ]; then
         echo "    Testing cache.rs..."
-        TESTS=("--lib hello_server::cache")
+        TESTS=("--test cache")
         if [ $(run_tests) -ne 0 ]; then
             t1_failed=true
         fi
@@ -41,7 +35,7 @@ for RUNNER in "${RUNNERS[@]}"; do
 
     if [ "$t2_failed" = false ]; then
         echo "    Testing tcp.rs..."
-        TESTS=("--lib hello_server::tcp")
+        TESTS=("--test tcp")
         if [ $(run_tests) -ne 0 ]; then
             t2_failed=true
         fi
@@ -49,7 +43,7 @@ for RUNNER in "${RUNNERS[@]}"; do
 
     if [ "$t3_failed" = false ]; then
         echo "    Testing thread_pool.rs..."
-        TESTS=("--lib hello_server::thread_pool")
+        TESTS=("--test thread_pool")
         if [ $(run_tests) -ne 0 ]; then
             t3_failed=true
         fi
