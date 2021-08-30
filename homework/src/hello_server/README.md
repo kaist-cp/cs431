@@ -36,10 +36,17 @@ Specifically, make sure that you understand following topics.
     * Each worker thread automatically breaks out of the loop if the channel is disconnected.
 3. We `join()` each thread in the destructor of `Worker`, not in the destructor of `ThreadPool`. Since `ThreadPool` has field `workers: Vec<Worker>`, the worker destructor will be called when the pool is dropped. Note that the channel should be disconnected before `join()`ning the worker threads. (Otherwise, `join` will block.) This means that the `Sender` should be dropped before `Vec<Worker>`. You can specify the drop order in many ways. In this homework, we use `ThreadPool::job_sender` of type `Option<Sender<Job>>`, content of which can be `take()`n and `drop()`ped explicitly in `<ThreadPool as Drop>::drop`.
 
-### Tips for implementing each extension
+### Tips
 * Cache: Start with `Mutex<HashMap<K, V>>`. To fully implement the specification, you will need a more complicated type. The simplest solution makes use of all the things imported in `cache.rs`.
 * Interrupt handler: just follow the comments.
 * Thread pool: Ignore `ThreadPoolInner` first (it's used for `ThreadPool::join`), and implement the changes discussed above.
+* If you have questions, try looking up the [issue tracker](https://github.com/kaist-cp/cs431/issues).
+  There are many Q&A's from the previous iterations of this course and they are labeled by the topic.
+  For example, ["homework - cache" label](https://github.com/kaist-cp/cs431/issues?q=label%3A%22homework+-+cache%22+) lists the questions about `cache.rs`.
+  Here are some Q&A's you may find useful for this homework:
+    * https://github.com/kaist-cp/cs431/issues/339
+    * https://github.com/kaist-cp/cs431/issues/85#issuecomment-696888546
+    * https://github.com/kaist-cp/cs431/issues/81
 
 ### Testing
 We'll only test the libraries.
