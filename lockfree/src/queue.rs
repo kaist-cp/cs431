@@ -86,22 +86,36 @@ impl<T> Queue<T> {
 
             // If `tail` is not the actual tail, try to "help" by moving the tail pointer forward.
             if !next.is_null() {
-                let _ = self
-                    .tail
-                    .compare_and_set(tail, next, Ordering::Release, guard);
+                let _ = self.tail.compare_exchange(
+                    tail,
+                    next,
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                    guard,
+                );
                 continue;
             }
 
             // looks like the actual tail; attempt to link at `tail.next`.
             if tail_ref
                 .next
-                .compare_and_set(Shared::null(), new, Ordering::Release, guard)
+                .compare_exchange(
+                    Shared::null(),
+                    new,
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                    guard,
+                )
                 .is_ok()
             {
                 // try to move the tail pointer forward.
-                let _ = self
-                    .tail
-                    .compare_and_set(tail, new, Ordering::Release, guard);
+                let _ = self.tail.compare_exchange(
+                    tail,
+                    new,
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                    guard,
+                );
                 break;
             }
         }
@@ -121,14 +135,18 @@ impl<T> Queue<T> {
             // messages for that node are already acquired.
             let tail = self.tail.load(Ordering::Relaxed, guard);
             if tail == head {
-                let _ = self
-                    .tail
-                    .compare_and_set(tail, next, Ordering::Release, guard);
+                let _ = self.tail.compare_exchange(
+                    tail,
+                    next,
+                    Ordering::Release,
+                    Ordering::Relaxed,
+                    guard,
+                );
             }
 
             if self
                 .head
-                .compare_and_set(head, next, Ordering::Release, guard)
+                .compare_exchange(head, next, Ordering::Release, Ordering::Relaxed, guard)
                 .is_ok()
             {
                 unsafe {

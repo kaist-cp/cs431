@@ -136,7 +136,13 @@ where
 
         // cleanup marked nodes between prev and curr
         self.prev
-            .compare_and_set(prev_next, self.curr, Ordering::Release, guard)
+            .compare_exchange(
+                prev_next,
+                self.curr,
+                Ordering::Release,
+                Ordering::Relaxed,
+                guard,
+            )
             .map_err(|_| ())?;
 
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
@@ -164,7 +170,7 @@ where
             if next.tag() != 0 {
                 next = next.with_tag(0);
                 self.prev
-                    .compare_and_set(self.curr, next, Ordering::Release, guard)
+                    .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
                     .map_err(|_| ())?;
                 unsafe {
                     guard.defer_destroy(self.curr);
@@ -216,10 +222,13 @@ where
         guard: &'g Guard,
     ) -> Result<(), Owned<Node<K, V>>> {
         node.next.store(self.curr, Ordering::Relaxed);
-        match self
-            .prev
-            .compare_and_set(self.curr, node, Ordering::Release, guard)
-        {
+        match self.prev.compare_exchange(
+            self.curr,
+            node,
+            Ordering::Release,
+            Ordering::Relaxed,
+            guard,
+        ) {
             Ok(node) => {
                 self.curr = node;
                 Ok(())
@@ -240,7 +249,7 @@ where
 
         if self
             .prev
-            .compare_and_set(self.curr, next, Ordering::Release, guard)
+            .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
             .is_ok()
         {
             unsafe { guard.defer_destroy(self.curr) };

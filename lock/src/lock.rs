@@ -60,10 +60,16 @@ impl<L: RawTryLock, T> Lock<L, T> {
 }
 
 impl<L: RawLock, T> Lock<L, T> {
+    /// # Safety
+    ///
+    /// The underlying lock should be actually acquired.
     pub unsafe fn unlock_unchecked(&self, token: L::Token) {
         self.lock.unlock(token);
     }
 
+    /// # Safety
+    ///
+    /// The underlying lock should be actually acquired.
     pub unsafe fn get_unchecked(&self) -> &T {
         &*self.data.get()
     }
@@ -72,6 +78,9 @@ impl<L: RawLock, T> Lock<L, T> {
         unsafe { &mut *self.data.get() }
     }
 
+    /// # Safety
+    ///
+    /// The underlying lock should be actually acquired.
     #[allow(clippy::mut_from_ref)]
     pub unsafe fn get_mut_unchecked(&self) -> &mut T {
         &mut *self.data.get()
@@ -120,6 +129,9 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
         ret
     }
 
+    /// # Safety
+    ///
+    /// The given arguments should be the data of a forgotten lock guard.
     pub unsafe fn from_raw(data: usize, token: L::Token) -> Self {
         Self {
             lock: &*(data as *const _),

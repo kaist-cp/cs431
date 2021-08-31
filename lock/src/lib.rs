@@ -1,3 +1,5 @@
+#![allow(clippy::result_unit_err)]
+
 extern crate crossbeam_utils;
 
 mod clhlock;

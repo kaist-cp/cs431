@@ -47,7 +47,7 @@ impl<T> Stack<T> {
 
             match self
                 .head
-                .compare_and_set(head, n, Ordering::Release, &guard)
+                .compare_exchange(head, n, Ordering::Release, Ordering::Relaxed, &guard)
             {
                 Ok(_) => break,
                 Err(e) => n = e.new,
@@ -69,7 +69,7 @@ impl<T> Stack<T> {
 
                     if self
                         .head
-                        .compare_and_set(head, next, Ordering::Relaxed, &guard)
+                        .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, &guard)
                         .is_ok()
                     {
                         unsafe {

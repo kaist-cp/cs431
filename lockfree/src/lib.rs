@@ -2,6 +2,7 @@
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
+#![allow(clippy::result_unit_err)]
 
 extern crate crossbeam_epoch;
 extern crate crossbeam_utils;
