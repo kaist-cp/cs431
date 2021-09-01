@@ -247,7 +247,7 @@ Make sure you're capable of using the following development tools:
 
     + The id is your student id (e.g., 20071163).
 
-    + Log in with your email address and the new password.
+    + Log in with your student id and the new password.
       If you cannot, please contact the head TA in the chat.
 
     + Sign [the honor code](https://gg.kaist.ac.kr/quiz/73/) by September 10th.
