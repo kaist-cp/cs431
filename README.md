@@ -30,6 +30,8 @@ Due to COVID-19, we're going to conduct online sessions for this semester.
     + Turn on English subtitle at YouTube, if necessary.
 
 - For live sessions, we'll meet at the [Zoom room](https://kaist.zoom.us/my/jeehoon.kang).
+- You can download the recording for the first session here: https://klms.kaist.ac.kr/mod/courseboard/article.php?id=576413&bid=72724&bwid=249744
+- The later lectures have almost the same content as previous semesters, so please watch YouTube videos instead.
 
 
 
