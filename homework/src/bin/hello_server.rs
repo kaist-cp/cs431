@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
     // - Workers (once for each incoming connection): a worker handles an incoming connection and
     //   sends a corresponding report to the reporter.
     //
-    // - A reporter: it aggregates the reports the reports from the workers and processes the
+    // - A reporter: it aggregates the reports from the workers and processes the
     //   statistics.  When it ends, it sends the statistics to the main thread.
     let pool = Arc::new(ThreadPool::new(7));
 
