@@ -7,6 +7,8 @@ IFS=$'\n\t'
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
 
+run_linters || exit 1
+
 SCORE=0
 
 # 1. Basic arc functionality

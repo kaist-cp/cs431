@@ -33,7 +33,7 @@ Sanitizers are dynamic analysis tools that detects buggy behaviors during runtim
 You can run the tests with sanitizers using following commands:
 ```bash
 source scripts/grade-utils.sh
-# This make some time because of `rustup toolchain update stable nightly` in the script.
+# This may take some time because of `rustup toolchain update stable nightly` in the script.
 # If you have run that already, please feel free to comment that line out.
 
 cargo_asan SUBCOMMAND

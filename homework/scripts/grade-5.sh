@@ -7,6 +7,8 @@ IFS=$'\n\t'
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
 
+run_linters || exit 1
+
 export RUST_TEST_THREADS=1
 
 

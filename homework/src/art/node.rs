@@ -505,12 +505,12 @@ impl<V> NodeBox<V> {
     }
 }
 
-impl<V> Into<(NodeHeader, Vec<(u8, NodeBox<V>)>)> for NodeBox<V> {
-    fn into(mut self) -> (NodeHeader, Vec<(u8, NodeBox<V>)>) {
-        let (header, base) = self.deref_mut().unwrap();
+impl<V> From<NodeBox<V>> for (NodeHeader, Vec<(u8, NodeBox<V>)>) {
+    fn from(mut node: NodeBox<V>) -> Self {
+        let (header, base) = node.deref_mut().unwrap();
         let header = header.clone();
         let base = base.left().unwrap().extract_children();
-        drop(self);
+        drop(node);
         (header, base)
     }
 }

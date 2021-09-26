@@ -11,17 +11,17 @@ check-loom = ["loom"]
 arr_macro = "0.1.3"
 cfg-if = "1.0.0"
 crossbeam-channel = "0.5.1"
-crossbeam-epoch = "0.9.4"
-crossbeam-utils = "0.8.4"
-ctrlc = "3.1.9"
+crossbeam-epoch = "0.9.5"
+crossbeam-utils = "0.8.5"
+ctrlc = "3.2.0"
 either = "1.6.1"
-itertools = "0.10.0"
+itertools = "0.10.1"
 lazy_static = "1.4.0"
 lock = { git = "https://github.com/kaist-cp/cs431" }
 lockfree = { git = "https://github.com/kaist-cp/cs431" }
 # lock = { path = "../cs431/lock" }
 # lockfree = { path = "../cs431/lockfree" }
 loom = { git = "https://github.com/tomtomjhj/loom", branch = "fence", optional = true }
-rand = "0.8.3"
+rand = "0.8.4"
 regex = "1.5.4"
 static_assertions = "1.1.0"

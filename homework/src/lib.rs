@@ -2,6 +2,7 @@
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
+#![allow(clippy::result_unit_err)]
 
 #[macro_use]
 mod utils;

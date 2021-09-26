@@ -2,7 +2,7 @@
 
 ## Expected outcome
 
-- Execute `cargo run hello_server`. A web server should run. If it doesn't, try changing the port used in [`hello_server.rs:6`](../bin/hello_server.rs).
+- Execute `cargo run hello_server`. A web server should run. If it doesn't, try changing the port used in [`hello_server.rs:6`](../src/bin/hello_server.rs).
 - Run `curl http://localhost:7878/alice`. It should wait for a few seconds, and return a web page.
 - Run `curl http://localhost:7878/alice` again. It should instantly return a web page.
 - Run `curl http://localhost:7878/bob`. It should wait for a few seconds, and return a web page.
@@ -10,8 +10,23 @@
 
 ## Organization
 
-- `../bin/hello_server.rs`: the web server.
-- `./*.rs`: the server components. You should fill out `todo!()` in those files.
+- `../src/bin/hello_server.rs`: the web server.
+- `../src/hello_server/*.rs`: the server components. You should fill out `todo!()` in those files.
+
+## Grading
+The grader runs `./script/grade-1.sh` in the `homework` directory.
+This script runs the tests with with various options.
+
+There will be no partial scores for each module.
+That is, you will get the score for a module only if your implementation passes **all** tests for that module.
+
+## Submission
+```bash
+cd cs492-concur/homework
+./scripts/submit.sh
+ls ./target/hw1.zip
+```
+Submit `hw1.zip` to gg.
 
 ## Guide
 
@@ -59,10 +74,3 @@ We will use those tests for grading, too. We may add some more tests for grading
 
 Also try running tests with the [LLVM sanitizers](https://github.com/kaist-cp/cs431/tree/master/homework#using-llvm-sanitizers) enabled.
 They are not that useful for HW1 but they will be very helpful for upcoming homework assignments.
-
-### Grading
-The grader runs `./script/grade-1.sh` in the `homework` directory.
-This script runs the tests with with various options.
-
-There will be no partial scores for each module.
-That is, you will get the score for a module only if your implementation passes **all** tests for that module.
