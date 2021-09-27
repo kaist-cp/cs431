@@ -16,7 +16,7 @@
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository and use desktop/mobile Zulip client for prompt access to the announcements.
 - TA: [Kyeongmin Cho](https://cp.kaist.ac.kr/kyeongmin.cho) (head), [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-  + Office Hour: TBA ~~Tue & Fri 4:00pm-5:15pm~~, Online. It is not required, but if you want to come, do so by TBA ~~4:15pm~~. We will announce link of online meeting in [chat](https://cp-cs220.kaist.ac.kr/#narrow/stream/15-cs220-announcement) before every office hour. See [below](#communication) for office hour policy.
+  + Office Hour: Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy.
 
 
 ### Online sessions
