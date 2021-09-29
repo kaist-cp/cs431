@@ -100,7 +100,7 @@ impl<V> Default for Art<V> {
 impl<V> Art<V> {
     /// Encodes a given string into an array of `u8`. Appending a sentinel value (0xff) to make sure
     /// a string is not a prefix of another.
-    fn encode_key<'a>(key: &'a str) -> impl 'a + Iterator<Item = u8> + DoubleEndedIterator {
+    fn encode_key(key: &'_ str) -> impl '_ + Iterator<Item = u8> + DoubleEndedIterator {
         key.bytes().chain(vec![KEY_ENDMARK].into_iter())
     }
 
@@ -141,6 +141,7 @@ impl<V> SequentialMap<str, V> for Art<V> {
     fn lookup<'a>(&'a self, key: &'a str) -> Option<&'a V> {
         let key = Self::encode_key(key);
         unsafe {
+            #[allow(clippy::cast_ref_to_mut)]
             (*(self as *const _ as *mut Self))
                 .entry(key)
                 .lookup()
