@@ -21,7 +21,7 @@ lock = { git = "https://github.com/kaist-cp/cs431" }
 lockfree = { git = "https://github.com/kaist-cp/cs431" }
 # lock = { path = "../cs431/lock" }
 # lockfree = { path = "../cs431/lockfree" }
-loom = { git = "https://github.com/tomtomjhj/loom", branch = "fence", optional = true }
+loom = { version = "0.5.2", optional = true }
 rand = "0.8.4"
 regex = "1.5.4"
 static_assertions = "1.1.0"

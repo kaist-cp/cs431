@@ -9,9 +9,9 @@ use std::ops::Deref;
 use std::ptr::NonNull;
 
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{AtomicUsize, Ordering};
+use loom::sync::atomic::{fence, AtomicUsize, Ordering};
 #[cfg(not(feature = "check-loom"))]
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{fence, AtomicUsize, Ordering};
 
 const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 
