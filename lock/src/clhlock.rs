@@ -36,7 +36,7 @@ impl RawLock for ClhLock {
 
     fn lock(&self) -> Self::Token {
         let node = Box::into_raw(Box::new(CachePadded::new(Node::new(true))));
-        let prev = self.tail.swap(node, Ordering::Relaxed);
+        let prev = self.tail.swap(node, Ordering::AcqRel);
         let backoff = Backoff::new();
 
         while unsafe { (*prev).locked.load(Ordering::Acquire) } {

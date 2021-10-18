@@ -39,7 +39,7 @@ impl RawLock for McsLock {
 
     fn lock(&self) -> Self::Token {
         let node = Box::into_raw(Box::new(CachePadded::new(Node::new())));
-        let prev = self.tail.swap(node, Ordering::Relaxed);
+        let prev = self.tail.swap(node, Ordering::AcqRel);
 
         if prev.is_null() {
             return Token(node);
@@ -70,7 +70,7 @@ impl RawLock for McsLock {
 
             if self
                 .tail
-                .compare_exchange(node, ptr::null_mut(), Ordering::Relaxed, Ordering::Relaxed)
+                .compare_exchange(node, ptr::null_mut(), Ordering::Release, Ordering::Relaxed)
                 .is_ok()
             {
                 drop(Box::from_raw(node));
