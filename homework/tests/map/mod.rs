@@ -117,6 +117,89 @@ pub fn stress_concurrent_sequential<
     stress_sequential::<K, Sequentialize<K, usize, M>>(steps);
 }
 
+pub fn lookup_concurrent<
+    K: fmt::Debug + Eq + Hash + RandGen + Send + Sync,
+    M: Default + Sync + ConcurrentMap<K, usize>,
+>(
+    threads: usize,
+    steps: usize,
+) {
+    #[derive(Debug)]
+    enum Ops {
+        LookupSome,
+        LookupNone,
+    }
+
+    let ops = [Ops::LookupSome, Ops::LookupNone];
+
+    let mut rng = thread_rng();
+    let map = M::default();
+    let mut hashmap = HashMap::<K, usize>::new();
+
+    for _ in 0..steps {
+        let key = K::rand_gen(&mut rng);
+        let value = rng.gen::<usize>();
+        let _ = map.insert(&key, value, &pin());
+        hashmap.entry(key).or_insert(value);
+    }
+
+    thread::scope(|s| {
+        for _ in 0..threads {
+            s.spawn(|_| {
+                let mut rng = thread_rng();
+                for _ in 0..steps {
+                    let op = ops.choose(&mut rng).unwrap();
+
+                    match op {
+                        Ops::LookupSome => {
+                            if let Some(key) = hashmap.keys().choose(&mut rng) {
+                                assert_eq!(
+                                    map.lookup(key, &pin(), |r| r.map(|v| *v)),
+                                    hashmap.get(key).map(|v| *v)
+                                );
+                            }
+                        }
+                        Ops::LookupNone => {
+                            let key = K::rand_gen(&mut rng);
+                            assert_eq!(
+                                map.lookup(&key, &pin(), |r| r.map(|v| *v)),
+                                hashmap.get(&key).map(|v| *v)
+                            );
+                        }
+                    }
+                }
+            });
+        }
+    })
+    .unwrap();
+}
+
+pub fn insert_concurrent<
+    K: fmt::Debug + Eq + Hash + RandGen,
+    M: Default + Sync + ConcurrentMap<K, usize>,
+>(
+    threads: usize,
+    steps: usize,
+) {
+    let map = M::default();
+
+    thread::scope(|s| {
+        for _ in 0..threads {
+            s.spawn(|_| {
+                let mut rng = thread_rng();
+                for _ in 0..steps {
+                    let key = K::rand_gen(&mut rng);
+                    let value = rng.gen::<usize>();
+                    if map.insert(&key, value, &pin()).is_ok() {
+                        assert_eq!(map.lookup(&key, &pin(), |r| *r.unwrap()), value);
+                    }
+                }
+            });
+        }
+    })
+    .unwrap();
+}
+
 #[derive(Debug, Clone, Copy)]
 enum Ops {
     Lookup,

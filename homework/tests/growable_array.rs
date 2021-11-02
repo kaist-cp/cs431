@@ -145,9 +145,23 @@ fn stress_sequential() {
 }
 
 #[test]
+fn lookup_concurrent() {
+    const THREADS: usize = 4;
+    const STEPS: usize = 4096;
+    map::lookup_concurrent::<u32, NonblockingConcurrentMap<_, _, ArrayMap<usize>>>(THREADS, STEPS);
+}
+
+#[test]
+fn insert_concurrent() {
+    const THREADS: usize = 8;
+    const STEPS: usize = 4096 * 4;
+    map::insert_concurrent::<u32, NonblockingConcurrentMap<_, _, ArrayMap<usize>>>(THREADS, STEPS);
+}
+
+#[test]
 fn stress_concurrent() {
     const THREADS: usize = 16;
-    const STEPS: usize = 4096;
+    const STEPS: usize = 4096 * 512;
     map::stress_concurrent::<u32, NonblockingConcurrentMap<_, _, ArrayMap<usize>>>(THREADS, STEPS);
 }
 

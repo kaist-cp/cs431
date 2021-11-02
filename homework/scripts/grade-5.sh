@@ -11,132 +11,55 @@ run_linters || exit 1
 
 export RUST_TEST_THREADS=1
 
-
-# 1. Basic tests (30 each)
-growable_array_basic_failed=false
-split_ordered_list_basic_failed=false
+TEST_NAMES=(
+    "stress_sequential"
+    "lookup_concurrent"
+    "insert_concurrent"
+    "stress_concurrent"
+    "log_concurrent"
+)
 RUNNERS=(
     "cargo"
     "cargo --release"
-)
-echo "1. Running basic tests..."
-for RUNNER in "${RUNNERS[@]}"; do
-    if [ "$growable_array_basic_failed" = false ]; then
-        echo "Testing growable_array.rs with $RUNNER..."
-        TESTS=(
-            "--test growable_array smoke"
-            "--test growable_array stress_sequential"
-            "--test growable_array stress_concurrent"
-            "--test growable_array log_concurrent"
-        )
-        TIMEOUT=10s
-        if [ $(run_tests) -ne 0 ]; then
-            growable_array_basic_failed=true
-        fi
-    fi
-
-    if [ "$split_ordered_list_basic_failed" = false ]; then
-        echo "Testing split_ordered_list.rs with $RUNNER..."
-        TESTS=(
-            "--test split_ordered_list smoke"
-            "--test split_ordered_list stress_sequential"
-            "--test split_ordered_list stress_concurrent"
-            "--test split_ordered_list log_concurrent"
-        )
-        TIMEOUT=45s
-        if [ $(run_tests) -ne 0 ]; then
-            split_ordered_list_basic_failed=true
-        fi
-    fi
-done
-
-# 2. AddressSanitizer (40 each)
-growable_array_asan_failed=$growable_array_basic_failed
-split_ordered_list_asan_failed=$split_ordered_list_basic_failed
-RUNNERS=(
     "cargo_asan"
     "cargo_asan --release"
+    "cargo_tsan --release"
 )
-echo "2. Running AddressSanitizer tests..."
-for RUNNER in "${RUNNERS[@]}"; do
-    if [ "$growable_array_basic_failed" = false ] && [ "$growable_array_asan_failed" = false ]; then
-        echo "Testing growable_array.rs with $RUNNER..."
-        TESTS=(
-            "--test growable_array smoke"
-            "--test growable_array stress_sequential"
-            "--test growable_array stress_concurrent"
-            "--test growable_array log_concurrent"
-        )
-        TIMEOUT=30s
-        if [ $(run_tests) -ne 0 ]; then
-            growable_array_asan_failed=true
-        fi
-    fi
+# timeout for each (TEST_NAME, RUNNER).
+TIMEOUTS=(
+    10s 10s 10s  10s 10s
+    10s 10s 10s  10s 10s
+    10s 10s 10s  10s 10s
+    30s 10s 120s 15s 60s
+    30s 10s 120s 15s 60s
+)
+# the index of the last failed test
+growable_array_fail=${#TEST_NAMES[@]}
+split_ordered_list_fail=${#TEST_NAMES[@]}
 
-    if [ "$split_ordered_list_basic_failed" = false ] && [ "$split_ordered_list_asan_failed" = false ]; then
-        echo "Testing split_ordered_list.rs with $RUNNER..."
-        TESTS=(
-            "--test split_ordered_list smoke"
-            "--test split_ordered_list stress_sequential"
-            "--test split_ordered_list stress_concurrent"
-            "--test split_ordered_list log_concurrent"
-        )
-        TIMEOUT=3m
-        if [ $(run_tests) -ne 0 ]; then
-            split_ordered_list_asan_failed=true
+for t in "${!TEST_NAMES[@]}"; do
+    for r in "${!RUNNERS[@]}"; do
+        TEST_NAME=${TEST_NAMES[t]}
+        RUNNER=${RUNNERS[r]}
+        TIMEOUT=${TIMEOUTS[ t * ${#RUNNERS[@]} + r ]}
+        # run only if no test has failed yet
+        if [ $t -lt $growable_array_fail ]; then
+            echo "Testing growable_array $TEST_NAME with $RUNNER, timeout $TIMEOUT..."
+            TESTS=("--test growable_array $TEST_NAME")
+            if [ $(run_tests) -ne 0 ]; then
+                growable_array_fail=$t
+            fi
         fi
-    fi
+        if [ $t -lt $split_ordered_list_fail ]; then
+            echo "Testing split_ordered_list $TEST_NAME with $RUNNER, timeout $TIMEOUT..."
+            TESTS=("--test split_ordered_list $TEST_NAME")
+            if [ $(run_tests) -ne 0 ]; then
+                split_ordered_list_fail=$t
+            fi
+        fi
+    done
 done
 
-# 3. ThreadSanitizer (20 each)
-growable_array_tsan_failed=$growable_array_basic_failed
-split_ordered_list_tsan_failed=$split_ordered_list_basic_failed
-# too slow without optimization
-RUNNERS=("cargo_tsan --release")
-echo "3. Running ThreadSanitizer tests..."
-for RUNNER in "${RUNNERS[@]}"; do
-    if [ "$growable_array_basic_failed" = false ] && [ "$growable_array_tsan_failed" = false ]; then
-        echo "Testing growable_array.rs with $RUNNER..."
-        TESTS=(
-            "--test growable_array stress_concurrent"
-            "--test growable_array log_concurrent"
-        )
-        TIMEOUT=20s
-        if [ $(run_tests) -ne 0 ]; then
-            growable_array_tsan_failed=true
-        fi
-    fi
-
-    if [ "$split_ordered_list_basic_failed" = false ] && [ "$split_ordered_list_tsan_failed" = false ]; then
-        echo "Testing split_ordered_list.rs with $RUNNER..."
-        TESTS=(
-            "--test split_ordered_list stress_concurrent"
-            "--test split_ordered_list log_concurrent"
-        )
-        TIMEOUT=4m
-        if [ $(run_tests) -ne 0 ]; then
-            split_ordered_list_tsan_failed=true
-        fi
-    fi
-done
-
-SCORE=0
-if [ "$growable_array_basic_failed" = false ]; then
-    SCORE=$((SCORE + 30))
-fi
-if [ "$split_ordered_list_basic_failed" = false ]; then
-    SCORE=$((SCORE + 30))
-fi
-if [ "$growable_array_asan_failed" = false ]; then
-    SCORE=$((SCORE + 40))
-fi
-if [ "$split_ordered_list_asan_failed" = false ]; then
-    SCORE=$((SCORE + 40))
-fi
-if [ "$growable_array_tsan_failed" = false ]; then
-    SCORE=$((SCORE + 20))
-fi
-if [ "$split_ordered_list_tsan_failed" = false ]; then
-    SCORE=$((SCORE + 20))
-fi
+SCORES=( 0 10 20 30 60 90 )
+SCORE=$(( ${SCORES[growable_array_fail]} + ${SCORES[split_ordered_list_fail]} ))
 echo "Score: $SCORE / 180"

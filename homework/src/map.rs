@@ -24,7 +24,7 @@ impl RandGen for String {
 impl RandGen for usize {
     /// pick only 16 bits, MSB=0
     fn rand_gen(rng: &mut ThreadRng) -> Self {
-        const MASK: usize = 0x4444444444444444usize;
+        const MASK: usize = 0x4004004004007777usize;
         rng.gen::<usize>() & MASK
     }
 }
