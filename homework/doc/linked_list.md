@@ -3,7 +3,7 @@
 
 This homework serves as a brief tutorial for unsafe Rust with focus on the basic raw pointer operations.
 
-The [skeleton code](https://github.com/kaist-cp/cs492-concur/blob/master/homework/src/linked_list.rs) is slightly modified version of [the linked list from Rust standard library](https://doc.rust-lang.org/std/collections/struct.LinkedList.html).  We already provided implementation for several methods e.g. `push_front`.  Your job is to implement their symmetric counterparts e.g. `push_back` and some methods of `IterMut` struct (see `todo!()`s).
+The [skeleton code](https://github.com/kaist-cp/cs431/blob/main/homework/src/linked_list.rs) is slightly modified version of [the linked list from Rust standard library](https://doc.rust-lang.org/std/collections/struct.LinkedList.html).  We already provided implementation for several methods e.g. `push_front`.  Your job is to implement their symmetric counterparts e.g. `push_back` and some methods of `IterMut` struct (see `todo!()`s).
 
  You can look up its implementation from the standard library but we encourage you do it yourself so that you can build enough skill set for upcoming homeworks.  We also recommend you to play with AddressSanitizer and debugger.
 

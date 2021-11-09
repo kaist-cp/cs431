@@ -22,7 +22,7 @@ That is, you will get the score for a module only if your implementation passes 
 
 ## Submission
 ```bash
-cd cs492-concur/homework
+cd cs431/homework
 ./scripts/submit.sh
 ls ./target/hw1.zip
 ```
@@ -72,5 +72,5 @@ cargo test --test thread_pool
 ```
 We will use those tests for grading, too. We may add some more tests for grading, but if your solution passes all the given tests, it's very likely that you will get the full score.
 
-Also try running tests with the [LLVM sanitizers](https://github.com/kaist-cp/cs431/tree/master/homework#using-llvm-sanitizers) enabled.
+Also try running tests with the [LLVM sanitizers](https://github.com/kaist-cp/cs431/tree/main/homework#using-llvm-sanitizers) enabled.
 They are not that useful for HW1 but they will be very helpful for upcoming homework assignments.

@@ -36,4 +36,4 @@ It might be the case that you're not actually deallocating the heap memory block
 
 The standard method to free the heap memory block is to convert the pointer `*mut T` to `Box<T>` whose destructor runs the destructor of `T` and frees the heap memory occupied by `T`. For example, `pop_front_node` from HW2 uses `Box::from_raw` to convert the head pointer into `Box<Node<_>>` and returns that box. When this box gets dropped, the destructor of box will free the memory block of the node.
 
-For more information, see https://github.com/kaist-cp/cs492-concur/issues/125, https://doc.rust-lang.org/reference/destructors.html, and https://doc.rust-lang.org/std/boxed/index.html.
+For more information, see https://github.com/kaist-cp/cs431/issues/125, https://doc.rust-lang.org/reference/destructors.html, and https://doc.rust-lang.org/std/boxed/index.html.
