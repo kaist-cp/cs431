@@ -1,36 +1,41 @@
 use core::mem::ManuallyDrop;
 use core::ptr;
-use core::sync::atomic::Ordering::*;
 use std::thread::sleep;
 use std::time::Duration;
 
+#[cfg(not(feature = "check-loom"))]
+use core::sync::atomic::{AtomicPtr, Ordering::*};
+#[cfg(feature = "check-loom")]
+use loom::sync::atomic::{AtomicPtr, Ordering::*};
+
 use crossbeam_utils::thread::scope;
-use cs431_homework::hazard_pointer::{collect, get_protected, protect, retire, Atomic, Owned};
+use cs431_homework::hazard_pointer::{collect, retire, Shield};
 
 #[test]
 fn counter() {
     const THREADS: usize = 4;
     const ITER: usize = 1024 * 16;
 
-    let count = Atomic::new(0usize);
+    let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
             s.spawn(|_| {
                 for _ in 0..ITER {
-                    let mut new = Owned::new(0);
+                    let mut new = Box::new(0);
+                    let shield = Shield::default();
                     loop {
-                        let cur_shield = get_protected(&count).unwrap();
-                        let value = unsafe { *cur_shield.deref() };
+                        let cur_ptr = shield.protect(&count);
+                        let value = unsafe { *cur_ptr };
                         *new = value + 1;
-                        let new_shared = new.into_shared();
+                        let new_ptr = Box::leak(new);
                         if count
-                            .compare_and_set(cur_shield.shared(), new_shared, AcqRel, Acquire)
+                            .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            retire(cur_shield.shared());
+                            retire(cur_ptr as *mut usize);
                             break;
                         } else {
-                            new = unsafe { new_shared.into_owned() };
+                            new = unsafe { Box::from_raw(new_ptr) };
                         }
                     }
                 }
@@ -40,7 +45,7 @@ fn counter() {
     .unwrap();
     let cur = count.load(Acquire);
     // exclusive access
-    assert_eq!(unsafe { *cur.deref() }, THREADS * ITER);
+    assert_eq!(unsafe { *cur }, THREADS * ITER);
     retire(cur);
 }
 
@@ -50,35 +55,30 @@ fn counter_sleep() {
     const THREADS: usize = 4;
     const ITER: usize = 1024 * 16;
 
-    let count = Atomic::new(0usize);
+    let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
             s.spawn(|_| {
                 for _ in 0..ITER {
-                    let mut new = Owned::new(0);
+                    let mut new = Box::new(0);
+                    let shield = Shield::default();
                     loop {
-                        let mut shared = count.load(Relaxed);
-                        let cur_shield = loop {
+                        let mut cur_ptr = count.load(Relaxed) as *const _;
+                        while !shield.try_protect(&mut cur_ptr, &count) {
                             sleep(Duration::from_micros(1));
-                            let shield = protect(shared).unwrap();
-                            let shared2 = count.load(Relaxed);
-                            if shield.validate(shared2) {
-                                break shield;
-                            }
-                            shared = shared2;
-                        };
-                        let value = unsafe { *cur_shield.deref() };
+                        }
+                        let value = unsafe { *cur_ptr };
                         *new = value + 1;
-                        let new_shared = new.into_shared();
+                        let new_ptr = Box::leak(new);
                         if count
-                            .compare_and_set(cur_shield.shared(), new_shared, AcqRel, Acquire)
+                            .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            retire(cur_shield.shared());
+                            retire(cur_ptr as *mut usize);
                             collect();
                             break;
                         } else {
-                            new = unsafe { new_shared.into_owned() };
+                            new = unsafe { Box::from_raw(new_ptr) };
                         }
                     }
                 }
@@ -88,44 +88,7 @@ fn counter_sleep() {
     .unwrap();
     let cur = count.load(Acquire);
     // exclusive access
-    assert_eq!(unsafe { *cur.deref() }, THREADS * ITER);
-    retire(cur);
-}
-
-#[test]
-fn counter_tag() {
-    const THREADS: usize = 4;
-    const ITER: usize = 1024 * 16;
-
-    let count = Atomic::new(0usize);
-    scope(|s| {
-        for _ in 0..THREADS {
-            s.spawn(|_| {
-                for _ in 0..ITER {
-                    let mut new = Owned::new(0).with_tag(1);
-                    loop {
-                        let cur_shield = get_protected(&count).unwrap();
-                        let value = unsafe { *cur_shield.deref() };
-                        *new = value + 1;
-                        let new_shared = new.into_shared();
-                        if count
-                            .compare_and_set(cur_shield.shared(), new_shared, AcqRel, Acquire)
-                            .is_ok()
-                        {
-                            retire(cur_shield.shared());
-                            break;
-                        } else {
-                            new = unsafe { new_shared.into_owned() };
-                        }
-                    }
-                }
-            });
-        }
-    })
-    .unwrap();
-    let cur = count.load(Acquire);
-    // exclusive access
-    assert_eq!(unsafe { *cur.deref() }, THREADS * ITER);
+    assert_eq!(unsafe { *cur }, THREADS * ITER);
     retire(cur);
 }
 
@@ -176,37 +139,43 @@ fn two_stacks() {
 ///
 /// Usable with any number of producers and consumers.
 #[derive(Debug)]
-pub struct Stack<T: 'static> {
-    head: Atomic<Node<T>>,
+pub struct Stack<T> {
+    head: AtomicPtr<Node<T>>,
 }
 
 #[derive(Debug)]
 struct Node<T> {
     data: ManuallyDrop<T>,
-    next: Atomic<Node<T>>,
+    next: *const Node<T>,
 }
 
-impl<T: 'static> Stack<T> {
+unsafe impl<T: Send> Send for Node<T> {}
+unsafe impl<T: Sync> Sync for Node<T> {}
+
+impl<T> Stack<T> {
     /// Creates a new, empty stack.
     pub fn new() -> Stack<T> {
         Stack {
-            head: Atomic::null(),
+            head: AtomicPtr::new(ptr::null_mut()),
         }
     }
 
     /// Pushes a value on top of the stack.
     pub fn push(&self, t: T) {
-        let n = Owned::new(Node {
+        let new = Box::leak(Box::new(Node {
             data: ManuallyDrop::new(t),
-            next: Atomic::null(),
-        })
-        .into_shared();
+            next: ptr::null(),
+        }));
 
         loop {
             let head = self.head.load(Relaxed);
-            unsafe { n.deref() }.next.store(head, Relaxed);
+            new.next = head;
 
-            if self.head.compare_and_set(head, n, Release, Relaxed).is_ok() {
+            if self
+                .head
+                .compare_exchange(head, new, Release, Relaxed)
+                .is_ok()
+            {
                 break;
             }
         }
@@ -216,21 +185,26 @@ impl<T: 'static> Stack<T> {
     ///
     /// Returns `None` if the stack is empty.
     pub fn pop(&self) -> Option<T> {
+        let shield = Shield::default();
         loop {
-            let head_shield = get_protected(&self.head).unwrap();
-
-            let next = unsafe { head_shield.as_ref()? }.next.load(Relaxed);
+            let head_ptr = shield.protect(&self.head);
+            let head_ref = unsafe { head_ptr.as_ref()? };
 
             if self
                 .head
-                .compare_and_set(head_shield.shared(), next, Relaxed, Relaxed)
+                .compare_exchange(
+                    head_ptr as *mut _,
+                    head_ref.next as *mut _,
+                    Relaxed,
+                    Relaxed,
+                )
                 .is_ok()
             {
+                let head_ptr = head_ptr as *mut Node<T>;
                 unsafe {
-                    retire(head_shield.shared());
-                    return Some(ManuallyDrop::into_inner(ptr::read(
-                        &(*head_shield.deref()).data,
-                    )));
+                    let data = ManuallyDrop::take(&mut (*head_ptr).data);
+                    retire(head_ptr);
+                    return Some(data);
                 }
             }
         }
@@ -252,63 +226,65 @@ mod mock;
 
 mod sync {
     use super::mock::model;
-    use super::mock::sync::atomic::{AtomicUsize, Ordering::*};
+    use super::mock::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
     use super::mock::sync::Arc;
     use super::mock::thread;
+    use core::ptr;
     use cs431_homework::hazard_pointer::*;
 
     #[test]
-    fn protect_collect_sync() {
+    fn try_protect_collect_sync() {
         model(|| {
-            let atomic = Arc::new(Atomic::new(123));
+            let atomic = Arc::new(AtomicPtr::new(Box::leak(Box::new(123usize))));
 
             let th = {
                 let atomic = atomic.clone();
                 thread::spawn(move || {
-                    let shared = atomic.load(Relaxed);
-                    if shared.is_null() {
+                    let mut local = atomic.load(Relaxed) as *const usize;
+                    if local.is_null() {
                         return;
                     }
-                    let shield = protect(shared).unwrap();
-                    if shield.validate(atomic.load(Relaxed)) {
+                    let shield = Shield::default();
+                    if shield.try_protect(&mut local, &atomic) {
                         // safe to deref a valid pointer via a validated shield
-                        assert_eq!(unsafe { *shield.deref() }, 123);
+                        assert_eq!(unsafe { *local }, 123);
                     }
                 })
             };
 
             // unlink, retire, and collect
-            let shared = atomic.load(Relaxed);
-            atomic.store(Shared::null(), Relaxed);
-            retire(shared);
+            let local = atomic.load(Relaxed);
+            atomic.store(ptr::null_mut(), Relaxed);
+            retire(local);
             collect();
             th.join().unwrap();
         })
     }
 
     #[test]
-    fn get_protected_collect_sync() {
+    fn protect_collect_sync() {
         model(|| {
-            let atomic = Arc::new(Atomic::null());
+            let atomic = Arc::new(AtomicPtr::new(ptr::null_mut::<usize>()));
 
             let th = {
                 let atomic = atomic.clone();
                 thread::spawn(move || {
-                    let shield = get_protected(&atomic).unwrap();
-                    if !shield.is_null() {
+                    let shield = Shield::default();
+                    let local = shield.protect(&atomic);
+                    if !local.is_null() {
                         // safe to deref a valid pointer via a validated shield
-                        assert_eq!(unsafe { *shield.deref() }, 123);
+                        assert_eq!(unsafe { *local }, 123);
                     }
                 })
             };
 
             // link
-            let shared = Owned::new(123).into_shared();
-            atomic.store(shared, Release);
+            let local = Box::into_raw(Box::new(123));
+            atomic.store(local, Release);
 
             // unlink, retire, and collect
-            atomic.store(Shared::null(), Relaxed);
-            retire(shared);
+            atomic.store(ptr::null_mut(), Relaxed);
+            retire(local);
             collect();
 
             th.join().unwrap();
@@ -316,31 +292,30 @@ mod sync {
     }
 
     // Above tests can't detect the absence of release-acquire between `Shield::drop` and `collect`
-    // probably because loom doesn't support promise. So explicitly check release-acquire between
-    // `Shield::drop` and `all_hazards`.
+    // for an unknown reasone. So explicitly check release-acquire between `Shield::drop` and
+    // `all_hazards`.
     #[test]
     fn shield_drop_all_hazards_sync() {
         model(|| {
-            let atomic = Arc::new(Atomic::new(AtomicUsize::new(0)));
-            let shield = protect(atomic.load(Relaxed)).unwrap();
+            let atomic = Arc::new(AtomicPtr::new(Box::leak(Box::new(AtomicUsize::new(0)))));
+            let shield = Shield::default();
+            let local = shield.protect(&atomic);
 
             let th = {
                 let atomic = atomic.clone();
                 thread::spawn(move || {
-                    let shared = atomic.load(Relaxed);
-                    // shield drop happens before all_hazards
+                    let local = atomic.load(Relaxed);
                     if HAZARDS.all_hazards().is_empty() {
-                        unsafe { assert_eq!(shared.deref().load(Relaxed), 123) };
+                        unsafe { assert_eq!((*local).load(Relaxed), 123) };
                     }
                 })
             };
 
-            unsafe { shield.deref().store(123, Relaxed) };
-            let shared = shield.shared();
+            unsafe { (*local).store(123, Relaxed) };
             drop(shield);
 
             th.join().unwrap();
-            unsafe { drop(shared.into_owned()) };
+            unsafe { drop(Box::from_raw(local as *mut AtomicUsize)) };
         })
     }
 }

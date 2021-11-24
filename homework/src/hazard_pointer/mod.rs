@@ -3,16 +3,18 @@
 //! # Example
 //!
 //! ```
-//! use std::sync::atomic::Ordering;
-//! use cs431_homework::hazard_pointer::{get_protected, retire, collect, Atomic, Shared};
+//! use std::ptr;
+//! use std::sync::atomic::{AtomicPtr, Ordering};
+//! use cs431_homework::hazard_pointer::{collect, retire, Shield};
 //!
-//! let atomic = Atomic::new(1);
-//! let shield = get_protected(&atomic).unwrap();
-//! assert_eq!(unsafe { *shield.deref() }, 1);
+//! let shield = Shield::default();
+//! let atomic = AtomicPtr::new(Box::leak(Box::new(1usize)));
+//! let protected = shield.protect(&atomic);
+//! assert_eq!(unsafe { *protected }, 1);
 //!
 //! // unlink the block and retire
-//! atomic.store(Shared::null(), Ordering::Relaxed);
-//! retire(shield.shared());
+//! atomic.store(ptr::null_mut(), Ordering::Relaxed);
+//! retire(protected);
 //!
 //! // manually trigger reclamation (not necessary)
 //! collect();
@@ -37,83 +39,66 @@
 //! To show that the algorithm prevents use-after-free in sequentially consistent memory model,
 //! let's consider all possible interleavings of each step.
 //!
-//! First, if `T1-3 → T2-2`, then `b` is freed after all accesses.
+//! First, if `T1-3 → T2-2` (`T2-2` is executed after `T1-3`), then `b` is freed after all
+//! accesses.
 //!
 //! Second, in all of the remaining cases, either `T1-1 → T2-2` or `T2-1 → T1-2` holds (otherwise,
 //! there is a cycle).
 //! - If `T1-1 → T2-2`, then `b` is not freed.
 //! - If `T2-1 → T1-2`, then the validation fails, so `T1` will not deref `b`.
 //!
-//! Therefore the algorithm is safe in sequentially consistent memory model. However, this is not
-//! true in relaxed memory model (construction of counterexamples is left as an exercise). To fix
-//! this, we should synchronize the operations using ordering primitives.
+//! Therefore the algorithm is correct in sequentially consistent memory model. However, this is not
+//! true in the relaxed memory model (construction of a counterexample is left as an exercise). The
+//! problem is that in the relaxed memory model, `→` doesn't imply that the latter instruction
+//! sees the effect of the earlier instruction. To fix this, we should add some synchronization
+//! operations so that `→` implies that the effect of earlier instructions is visible to the later
+//! instructions i.e. view inclusion. Let `I1 @ T1 ⊑ I2 @ T2` denote "T1's view before executing `I1` is
+//! included in T2's view after executing I2".
 //!
-//! First, if `T2-2` saw the result of `T1-3`, then `deref b` by `T1` should happen before `free b`
-//! by `T2`. To enforce this, it suffices to add release-acquire synchronization between `T1-3` and
-//! `T2-2`.
+//! First, if `T2-2` saw the result of `T1-3`, then we want to enforce
+//! `deref b @ T1 ⊑ free b @ T2` (recall the synchronization in `Arc::drop`). To enforce this, it
+//! suffices to add release-acquire synchronization between `T1-3` and `T2-2`.
 //!
-//! For the second case, release-acquire doesn't guarantee "either `T1-1 → T2-2` or `T2-1 → T1-2`"
+//! For the second case, release-acquire doesn't guarantee "either `T1-1 ⊑ T2-2` or `T2-1 ⊑ T1-2`"
 //! because `T1-2` may not read the message of `T2-1` and `T2-2` may not read the message of `T1-2`
 //! at the same time, leading to concurrent `deref b` and `free b`. To make this work, we should
-//! use SC fence (`fence(SeqCst)`). Recall that SC fence joins the executing thread's view and the
-//! global view. So there is a total order among all SC fences and a SC fence happens-before
-//! another SC fence. If we insert a SC fence between `T1-1` and `T1-2`, and another between `T2-1`
-//! and `T2-2`, then either `T1's fence → T2's fence` or `T2's fence → T1's fence` holds.
-//! Therefore, `T1-1 → T2-2` or `T2-1 → T1-2`.
+//! use SC fence (`fence(SeqCst)`). Recall that a SC fence joins the executing thread's view and
+//! the global SC view. This means that the view of a thread after executing its SC fence is
+//! entirely included in the view of another thread after its SC fence. If we insert a SC fence
+//! between `T1-1` and `T1-2`, and another between `T2-1` and `T2-2`, then either
+//! `T1's fence ⊑ T2's fence` or `T2's fence ⊑ T1's fence` holds. Therefore, `T1-1 ⊑ T2-2` or
+//! `T2-1 ⊑ T1-2`.
 
 use core::cell::RefCell;
-use std::thread;
-
-#[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{fence, Ordering};
-#[cfg(feature = "check-loom")]
-use loom::sync::atomic::{fence, Ordering};
 
 #[cfg(feature = "check-loom")]
 use loom::thread_local;
 #[cfg(not(feature = "check-loom"))]
 use std::thread_local;
 
-mod align;
-mod atomic;
 mod hazard;
 mod retire;
 
-pub use atomic::{Atomic, Owned, Shared};
-use hazard::Hazards;
-pub use hazard::Shield;
-use retire::Retirees;
+pub use hazard::{HazardBag, Shield};
+pub use retire::RetiredSet;
 
 #[cfg(not(feature = "check-loom"))]
-/// Global set of all hazard pointers.
-pub static HAZARDS: Hazards = Hazards::new();
+/// Default global bag of all hazard pointers.
+pub static HAZARDS: HazardBag = HazardBag::new();
 
 #[cfg(feature = "check-loom")]
 loom::lazy_static! {
-    /// Global set of all hazard pointers.
-    pub static ref HAZARDS: Hazards = Hazards::new();
+    /// Default global bag of all hazard pointers.
+    pub static ref HAZARDS: HazardBag = HazardBag::new();
 }
 
 thread_local! {
-    /// Thread-local list of retired pointers. The first element of the pair is the machine
-    /// representation of the pointer and the second is the function pointer to `free::<T>`.
-    static RETIRED: RefCell<Retirees<'static>> = RefCell::new(Retirees::new(&HAZARDS));
-}
-
-/// Returns `None` if the current thread's hazard array is fully occupied. The returned shield must
-/// be validated before using.
-pub fn protect<T>(pointer: Shared<T>) -> Option<Shield<'static, T>> {
-    todo!()
-}
-
-/// Returns a validated shield. Returns `None` if the current thread's hazard array is fully
-/// occupied.
-pub fn get_protected<T>(atomic: &Atomic<T>) -> Option<Shield<'static, T>> {
-    todo!()
+    /// Default thread-local retired pointer list.
+    static RETIRED: RefCell<RetiredSet<'static>> = RefCell::new(RetiredSet::default());
 }
 
 /// Retires a pointer.
-pub fn retire<T>(pointer: Shared<T>) {
+pub fn retire<T>(pointer: *const T) {
     RETIRED.with(|r| r.borrow_mut().retire(pointer));
 }
 

@@ -1,36 +1,38 @@
+use core::marker::PhantomData;
 #[cfg(not(feature = "check-loom"))]
 use core::sync::atomic::{fence, Ordering};
 #[cfg(feature = "check-loom")]
 use loom::sync::atomic::{fence, Ordering};
 
-use super::align;
-use super::atomic::Shared;
-use super::hazard::Hazards;
+use super::{HazardBag, HAZARDS};
 
 /// Thread-local list of retired pointers.
-pub struct Retirees<'s> {
-    hazards: &'s Hazards,
-    /// The first element of the pair is the machine representation of a pointer without tag and
-    /// the second is the function pointer to `free::<T>` where `T` is the type of the object.
+#[derive(Debug)]
+pub struct RetiredSet<'s> {
+    hazards: &'s HazardBag,
+    /// The first element of the pair is the machine representation of the pointer and the second
+    /// is the function pointer to `free::<T>` where `T` is the type of the object.
     inner: Vec<(usize, unsafe fn(usize))>,
+    _marker: PhantomData<*const ()>, // !Send + !Sync
 }
 
-impl<'s> Retirees<'s> {
-    /// The max length of retired pointer list. Call `collect` if the length becomes larger than
-    /// this value.
+impl<'s> RetiredSet<'s> {
+    /// The max length of retired pointer list. `collect` is triggered when `THRESHOLD` pointers
+    /// are retired.
     const THRESHOLD: usize = 64;
 
-    pub fn new(hazards: &'s Hazards) -> Self {
+    /// Create a new retired pointer list protected by the given `HazardBag`.
+    pub fn new(hazards: &'s HazardBag) -> Self {
         Self {
             hazards,
             inner: Vec::new(),
+            _marker: PhantomData,
         }
     }
 
     /// Retire a pointer.
-    pub fn retire<T>(&mut self, pointer: Shared<T>) {
+    pub fn retire<T>(&mut self, pointer: *const T) {
         unsafe fn free<T>(data: usize) {
-            debug_assert_eq!(align::decompose_tag::<T>(data).1, 0);
             drop(Box::from_raw(data as *mut T))
         }
 
@@ -44,9 +46,15 @@ impl<'s> Retirees<'s> {
     }
 }
 
+impl Default for RetiredSet<'static> {
+    fn default() -> Self {
+        Self::new(&HAZARDS)
+    }
+}
+
 // TODO(@tomtomjhj): this triggers loom internal bug
 #[cfg(not(feature = "check-loom"))]
-impl Drop for Retirees<'_> {
+impl Drop for RetiredSet<'_> {
     fn drop(&mut self) {
         // In a production-quality implementation of hazard pointers, the remaining local retired
         // pointers will be moved to a global list of retired pointers, which are then reclaimed by
@@ -55,5 +63,33 @@ impl Drop for Retirees<'_> {
         while !self.inner.is_empty() {
             self.collect();
         }
+    }
+}
+
+#[cfg(all(test, not(feature = "check-loom")))]
+mod tests {
+    use super::{HazardBag, RetiredSet};
+    use std::cell::RefCell;
+    use std::collections::HashSet;
+    use std::rc::Rc;
+
+    // retire `THRESHOLD` pointers to trigger collection
+    #[test]
+    fn retire_threshold_collect() {
+        struct Tester(Rc<RefCell<HashSet<usize>>>, usize);
+        impl Drop for Tester {
+            fn drop(&mut self) {
+                self.0.borrow_mut().insert(self.1);
+            }
+        }
+        let hazards = HazardBag::new();
+        let mut retires = RetiredSet::new(&hazards);
+        let freed = Rc::new(RefCell::new(HashSet::new()));
+        for i in 0..RetiredSet::THRESHOLD {
+            retires.retire(Box::leak(Box::new(Tester(freed.clone(), i))));
+        }
+        let freed = Rc::try_unwrap(freed).unwrap().into_inner();
+
+        assert_eq!(freed, (0..RetiredSet::THRESHOLD).collect())
     }
 }

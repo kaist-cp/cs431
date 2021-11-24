@@ -1,345 +1,256 @@
 use core::marker::PhantomData;
-use core::ptr;
-use std::collections::hash_map::DefaultHasher;
+use core::ptr::{self, NonNull};
 use std::collections::HashSet;
 use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::thread::ThreadId;
 
 #[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize, Ordering};
+use core::sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering};
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize, Ordering};
+use loom::sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering};
 
-use super::align;
-use super::atomic::Shared;
-
-/// Per-thread array of hazard pointers.
-///
-/// Caveat: a thread may have up to 8 hazard pointers.
-#[derive(Debug)]
-pub struct LocalHazards {
-    /// Bitmap that indicates the indices of occupied slots.
-    occupied: AtomicU8,
-
-    /// Array that contains the machine representation of hazard pointers without tag.
-    elements: [AtomicUsize; 8],
-}
-
-impl Default for LocalHazards {
-    fn default() -> Self {
-        Self {
-            occupied: Default::default(),
-            elements: Default::default(),
-        }
-    }
-}
-
-impl LocalHazards {
-    /// Creates a hazard pointer array.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Allocates a slot for a hazard pointer and returns its index. Returns `None` if the array is
-    /// full.
-    ///
-    /// # Safety
-    ///
-    /// This function must be called only by the thread that owns this hazard array.
-    pub unsafe fn alloc(&self, data: usize) -> Option<usize> {
-        todo!()
-    }
-
-    /// Clears the hazard pointer at the given index.
-    ///
-    /// # Safety
-    ///
-    /// This function must be called only by the thread that owns this hazard array. The index must
-    /// have been allocated.
-    pub unsafe fn dealloc(&self, index: usize) {
-        todo!()
-    }
-
-    /// Returns an iterator of hazard pointers (with tags erased).
-    pub fn iter(&self) -> impl Iterator<Item = usize> + '_ {
-        LocalHazardsIter {
-            hazards: self,
-            occupied: self.occupied.load(Ordering::Acquire),
-        }
-    }
-}
-
-#[derive(Debug)]
-struct LocalHazardsIter<'s> {
-    hazards: &'s LocalHazards,
-    occupied: u8,
-}
-
-impl Iterator for LocalHazardsIter<'_> {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        todo!()
-    }
-}
+use super::HAZARDS;
 
 /// Represents the ownership of a hazard pointer slot.
-pub struct Shield<'s, T> {
-    data: usize, // preserves the tag of original `Shared`
-    hazards: &'s LocalHazards,
-    index: usize,
-    _marker: PhantomData<&'s T>,
+pub struct Shield<T> {
+    slot: NonNull<HazardSlot>,
+    _marker: PhantomData<*const T>, // !Send + !Sync
 }
 
-impl<'s, T> Shield<'s, T> {
-    /// Creates a new shield for hazard pointer. Returns `None` if the hazard array is fully
-    /// occupied.
-    ///
-    /// # Safety
-    ///
-    /// This function must be called only by the thread that owns this hazard array.
-    pub unsafe fn new(pointer: Shared<T>, hazards: &'s LocalHazards) -> Option<Self> {
-        todo!()
-    }
-
-    /// Returns `true` if the pointer is null.
-    pub fn is_null(&self) -> bool {
-        let (data, _) = align::decompose_tag::<T>(self.data);
-        data == 0
-    }
-
-    /// Returns the `Shared` pointer protected by this shield. The original tag is preserved.
-    pub fn shared(&self) -> Shared<T> {
-        Shared::from_usize(self.data)
-    }
-
-    /// Dereferences the shielded hazard pointer.
-    ///
-    /// # Safety
-    ///
-    /// The pointer should point to a valid object of type `T` and the protection should be
-    /// `validate`d. Invocations of this method should be properly synchronized with the other
-    /// accesses to the object in order to avoid data race.
-    pub unsafe fn deref(&self) -> &T {
-        let (data, _) = align::decompose_tag::<T>(self.data);
-        &*(data as *const T)
-    }
-
-    /// Dereferences the shielded hazard pointer is the pointer is not null.
-    ///
-    /// # Safety
-    ///
-    /// The pointer should point to a valid object of type `T` and the protection should be
-    /// `validate`d. Invocations of this method should be properly synchronized with the other
-    /// accesses to the object in order to avoid data race.
-    pub unsafe fn as_ref(&self) -> Option<&T> {
-        let (data, _) = align::decompose_tag::<T>(self.data);
-        if data == 0 {
-            None
-        } else {
-            Some(&*(data as *const T))
+impl<T> Shield<T> {
+    /// Creates a new shield for hazard pointer.
+    pub fn new(hazards: &HazardBag) -> Self {
+        let slot = hazards.acquire_slot();
+        Self {
+            slot: slot.into(),
+            _marker: PhantomData,
         }
     }
 
-    /// Check if `pointer` is protected by the shield. The tags are ignored.
-    pub fn validate(&self, pointer: Shared<T>) -> bool {
+    /// Try protecting the pointer `*pointer`.
+    /// 1. Store `*pointer` to the hazard slot.
+    /// 2. Check if `src` still points to `*pointer` (validation) and update `pointer` to the
+    ///    latest value.
+    /// 3. If validated, return true. Otherwise, clear the slot (store 0) and return false.
+    pub fn try_protect(&self, pointer: &mut *const T, src: &AtomicPtr<T>) -> bool {
         todo!()
+    }
+
+    /// Get a protected pointer from `src`.
+    pub fn protect(&self, src: &AtomicPtr<T>) -> *const T {
+        let mut pointer = src.load(Ordering::Relaxed) as *const T;
+        while !self.try_protect(&mut pointer, src) {
+            #[cfg(feature = "check-loom")]
+            loom::sync::atomic::spin_loop_hint();
+        }
+        pointer
     }
 }
 
-impl<'s, T> Drop for Shield<'s, T> {
+impl<T> Default for Shield<T> {
+    fn default() -> Self {
+        Self::new(&HAZARDS)
+    }
+}
+
+impl<T> Drop for Shield<T> {
+    /// Clear and release the ownership of the hazard slot.
     fn drop(&mut self) {
         todo!()
     }
 }
 
-impl<'s, T> fmt::Debug for Shield<'s, T> {
+impl<T> fmt::Debug for Shield<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (raw, tag) = align::decompose_tag::<T>(self.data);
         f.debug_struct("Shield")
-            .field("raw", &raw)
-            .field("tag", &tag)
-            .field("hazards", &(self.hazards as *const _))
-            .field("index", &self.index)
+            .field("slot address", &self.slot)
+            .field("slot data", unsafe { self.slot.as_ref() })
             .finish()
     }
 }
 
-/// Maps `ThreadId`s to their `Hazards`.
+/// Global bag (multiset) of hazards pointers.
+/// - `HazardBag.head` and `HazardSlot.next` form a grow-only list of all hazard slots. Slots are
+///   never removed from this list.
+/// - `HazardBag.head_available` and `HazardSlot.next_available` from an "overlay" Treiber stack of
+///   slots that are not owned by a shield. This is for efficient recycling of the slots.
 ///
-/// Uses a hash table based on append-only lock-free linked list for simplicity. In practice, this
-/// is implemented using a more useful and efficient lock-free data structure.
+/// The figure below describes the state of the hazard bag after creating slots 1-5, and then
+/// releasing slots 4 and 2.
+///
+/// ```text
+///       next  s5        s4        s3        s2        s1
+/// head  ---> +--+ ---> +--+ ---> +--+ ---> +--+ ---> +--+
+///            |--|      |--|      |--|      |--|      |--|
+///            +--+      +--+      +--+      +--+      +--+
+///                       ^                  |  ^
+///                       |  next_available  |  |
+///                       +------------------+  |
+/// head_available -----------------------------+
+/// ```
 #[derive(Debug)]
-pub struct Hazards {
-    heads: [AtomicPtr<Node>; Self::BUCKETS],
+pub struct HazardBag {
+    head: AtomicPtr<HazardSlot>,
+    head_available: AtomicPtr<HazardSlot>,
 }
 
+/// See `HazardBag`
 #[derive(Debug)]
-struct Node {
-    next: AtomicPtr<Node>,
-    tid: ThreadId,
-    hazards: LocalHazards,
+struct HazardSlot {
+    root: NonNull<HazardBag>,
+    // Machine representation of the hazard pointer.
+    hazard: AtomicUsize,
+    // Immutable pointer to the next slot in the bag.
+    next: *const HazardSlot,
+    // Pointer to the next node in the available slot stack.
+    next_available: AtomicPtr<HazardSlot>,
 }
 
-impl Hazards {
-    const BUCKETS: usize = 13;
+impl HazardSlot {
+    fn new(root: NonNull<HazardBag>) -> Self {
+        Self {
+            root,
+            hazard: AtomicUsize::new(0),
+            next: ptr::null(),
+            next_available: AtomicPtr::new(ptr::null_mut()),
+        }
+    }
+}
 
+impl HazardBag {
     #[cfg(not(feature = "check-loom"))]
-    /// Returns the hazard array of the given thread.
+    /// Creates a new global hazard set.
     pub const fn new() -> Self {
         Self {
-            heads: [
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-            ],
+            head: AtomicPtr::new(ptr::null_mut()),
+            head_available: AtomicPtr::new(ptr::null_mut()),
         }
     }
 
     #[cfg(feature = "check-loom")]
-    /// Returns the hazard array of the given thread.
+    /// Creates a new global hazard set.
     pub fn new() -> Self {
         Self {
-            heads: [
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-                AtomicPtr::new(ptr::null_mut()),
-            ],
-        }
-    }
-    pub fn get(&self, tid: ThreadId) -> &LocalHazards {
-        let index = {
-            let mut s = DefaultHasher::new();
-            tid.hash(&mut s);
-            (s.finish() as usize) % Self::BUCKETS
-        };
-
-        'start: loop {
-            let mut prev = unsafe { self.heads.get_unchecked(index) };
-            let mut cur = prev.load(Ordering::Acquire);
-            loop {
-                if cur.is_null() {
-                    let new = Box::into_raw(Box::new(Node {
-                        next: AtomicPtr::new(ptr::null_mut()),
-                        tid,
-                        hazards: LocalHazards::new(),
-                    }));
-                    if prev
-                        .compare_exchange(cur, new, Ordering::Release, Ordering::Relaxed)
-                        .is_ok()
-                    {
-                        return unsafe { &(*new).hazards };
-                    }
-                    unsafe { drop(Box::from_raw(new)) };
-                    continue 'start;
-                }
-                let cur_ref = unsafe { &*cur };
-                if cur_ref.tid == tid {
-                    return &cur_ref.hazards;
-                }
-                prev = &cur_ref.next;
-                cur = prev.load(Ordering::Acquire);
-            }
+            head: AtomicPtr::new(ptr::null_mut()),
+            head_available: AtomicPtr::new(ptr::null_mut()),
         }
     }
 
-    /// Returns all elements of `Hazards` for all threads. The tags are erased.
+    /// Acquires a slot in the hazard set, either by taking an available slot or allocating a new
+    /// slot.
+    fn acquire_slot(&self) -> &HazardSlot {
+        todo!()
+    }
+
+    /// Pops a slot from available slot stack, if any.
+    fn pop_available(&self) -> Option<&HazardSlot> {
+        todo!()
+    }
+
+    /// Push a released slot to the available slot stack.
+    ///
+    /// Safety: The slot must have been acquired from this hazard bag.
+    unsafe fn push_available(&self, slot: &HazardSlot) {
+        todo!()
+    }
+
+    /// Returns all the hazards in the set. The returned set must not contain 0.
     pub fn all_hazards(&self) -> HashSet<usize> {
-        let mut set = HashSet::new();
-
-        for b in &self.heads {
-            let mut cur = b.load(Ordering::Acquire);
-            while let Some(cur_ref) = unsafe { cur.as_ref() } {
-                set.extend(cur_ref.hazards.iter());
-                cur = cur_ref.next.load(Ordering::Acquire);
-            }
-        }
-        set
+        todo!()
     }
 }
 
-impl Drop for Hazards {
+impl Drop for HazardBag {
     fn drop(&mut self) {
-        for b in self.heads.iter() {
-            let mut cur = b.load(Ordering::Relaxed);
-            while !cur.is_null() {
-                cur = unsafe { Box::from_raw(cur).next.load(Ordering::Relaxed) };
-            }
-        }
+        todo!()
     }
 }
 
-#[cfg(test)]
+unsafe impl Send for HazardSlot {}
+unsafe impl Sync for HazardSlot {}
+
+#[cfg(all(test, not(feature = "check-loom")))]
 mod tests {
-    use super::super::atomic::Owned;
-    use super::{Hazards, LocalHazards, Shield};
+    use super::{HazardBag, Shield};
     use std::collections::HashSet;
     use std::mem;
-    use std::sync::Arc;
+    use std::ops::Range;
+    use std::sync::{atomic::AtomicPtr, Arc};
     use std::thread;
 
-    // support at least 8 hazard slots
-    #[test]
-    fn local_hazards_8() {
-        let shareds = (0..8)
-            .map(|i| Owned::new(i).into_shared())
-            .collect::<Vec<_>>();
-        let hazards = LocalHazards::new();
-        let shields = shareds
-            .iter()
-            .map(|&s| unsafe { Shield::new(s, &hazards).unwrap() })
-            .collect::<Vec<_>>();
-        let values = shields
-            .iter()
-            .map(|s| unsafe { *s.deref() })
-            .collect::<HashSet<_>>();
+    const THREADS: usize = 8;
+    const VALUES: Range<usize> = 1..1024;
 
-        assert_eq!(values, (0..8).collect());
-        assert_eq!(hazards.iter().collect::<Vec<_>>().len(), 8);
-        shareds
+    // `all_hazards` should return hazards protected by shield(s).
+    #[test]
+    fn all_hazards_protected() {
+        let hazard_bag = Arc::new(HazardBag::new());
+        let _ = (0..THREADS)
+            .map(|_| {
+                let hazard_bag = hazard_bag.clone();
+                thread::spawn(move || {
+                    for data in VALUES {
+                        let src = AtomicPtr::new(data as *mut ());
+                        let shield = Shield::new(&hazard_bag);
+                        shield.protect(&src);
+                        // leak the shield so that
+                        mem::forget(shield);
+                    }
+                })
+            })
+            .collect::<Vec<_>>()
             .into_iter()
-            .for_each(|s| unsafe { drop(s.into_owned()) });
+            .map(|th| th.join().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(hazard_bag.all_hazards(), VALUES.collect())
     }
 
+    // `all_hazards` should not return values that are no longer protected.
     #[test]
-    fn all_hazards() {
-        let global_hazards = Arc::new(Hazards::new());
-        let hazards = (0..(2 * Hazards::BUCKETS))
-            .map(|i| {
-                let global_hazards = global_hazards.clone();
+    fn all_hazards_unprotected() {
+        let hazard_bag = Arc::new(HazardBag::new());
+        let _ = (0..THREADS)
+            .map(|_| {
+                let hazard_bag = hazard_bag.clone();
                 thread::spawn(move || {
-                    let hazards = global_hazards.get(thread::current().id());
-                    let shared = Owned::new(i).into_shared();
-                    mem::forget(unsafe { Shield::new(shared, &hazards) });
-                    let data = shared.into_usize();
-                    unsafe { drop(shared.into_owned()) }
-                    data
+                    for data in VALUES {
+                        let src = AtomicPtr::new(data as *mut ());
+                        let shield = Shield::new(&hazard_bag);
+                        shield.protect(&src);
+                    }
                 })
-                .join()
-                .unwrap()
             })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .map(|th| th.join().unwrap())
+            .collect::<Vec<_>>();
+        assert!(hazard_bag.all_hazards().is_empty())
+    }
+
+    // `acquire_slot` should recycle existing slots.
+    #[test]
+    fn recycle_slots() {
+        let hazard_bag = HazardBag::new();
+        // allocate slots
+        let shields = (0..1024)
+            .map(|_| Shield::<()>::new(&hazard_bag))
+            .collect::<Vec<_>>();
+        // slot addresses
+        let old_slots = shields
+            .iter()
+            .map(|s| s.slot.as_ptr() as usize)
             .collect::<HashSet<_>>();
-        assert_eq!(hazards, global_hazards.all_hazards())
+        // release the slots
+        drop(shields);
+
+        let shields = (0..128)
+            .map(|_| Shield::<()>::new(&hazard_bag))
+            .collect::<Vec<_>>();
+        let new_slots = shields
+            .iter()
+            .map(|s| s.slot.as_ptr() as usize)
+            .collect::<HashSet<_>>();
+
+        // no new slots should've been created
+        assert!(new_slots.is_subset(&old_slots));
     }
 }
