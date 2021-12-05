@@ -95,7 +95,7 @@ fn counter_sleep() {
 #[test]
 fn stack() {
     const THREADS: usize = 8;
-    const ITER: usize = 1024 * 8;
+    const ITER: usize = 1024 * 16;
 
     let stack = Stack::new();
     scope(|s| {
@@ -115,7 +115,7 @@ fn stack() {
 #[test]
 fn two_stacks() {
     const THREADS: usize = 8;
-    const ITER: usize = 1024 * 8;
+    const ITER: usize = 1024 * 16;
 
     let stack1 = Stack::new();
     let stack2 = Stack::new();
@@ -297,7 +297,9 @@ mod sync {
     #[test]
     fn shield_drop_all_hazards_sync() {
         model(|| {
-            let atomic = Arc::new(AtomicPtr::new(Box::leak(Box::new(AtomicUsize::new(0)))));
+            let obj = Box::into_raw(Box::new(AtomicUsize::new(0)));
+            let atomic = Arc::new(AtomicPtr::new(obj));
+            let obj = obj as usize;
             let shield = Shield::default();
             let local = shield.protect(&atomic);
 
@@ -305,7 +307,7 @@ mod sync {
                 let atomic = atomic.clone();
                 thread::spawn(move || {
                     let local = atomic.load(Relaxed);
-                    if HAZARDS.all_hazards().is_empty() {
+                    if !HAZARDS.all_hazards().contains(&obj) {
                         unsafe { assert_eq!((*local).load(Relaxed), 123) };
                     }
                 })

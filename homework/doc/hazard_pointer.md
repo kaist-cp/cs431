@@ -9,15 +9,14 @@ Implement Hazard Pointers.
 3. Fill in the `todo!()`s in
    [`hazard_pointer/hazard.rs`](../src/hazard_pointer/hazard.rs) and
    [`hazard_pointer/retire.rs`](../src/hazard_pointer/retire.rs)
-   (approx 90 lines).
+   (approx 75 lines).
 
 ## Grading (100 points)
 Run `./scripts/grade-6.sh`.
 
 Grading scheme
 * tested with `cargo[_asan] [--release]`
-    * `all_hazards_{,un}protected` `hazard.rs` (10 points)
-    * `recycle_slots` in `hazard.rs` (10 points)
+    * tests in `hazard.rs` (20 points)
     * test in `retire.rs` (10 points)
     * tests in `tests/hazard_pointer.rs` (40 points)
 * tested with `cargo --features check-loom`

@@ -12,38 +12,28 @@ run_linters || exit 1
 export RUST_TEST_THREADS=1
 
 
-# 1. Basic tests (10 + 10 + 10 + 40)
+# 1. Basic tests (20 + 10 + 40)
 RUNNERS=(
     "cargo"
     "cargo --release"
     "cargo_asan"
     "cargo_asan --release"
 )
-hazard_basic_faild=false
-hazard_recycle_faild=false
+hazard_failed=false
 retire_failed=false
 integration_failed=false
 
 echo "1. Running basic tests..."
 for RUNNER in "${RUNNERS[@]}"; do
-    if [ "$hazard_basic_faild" = false ]; then
+    if [ "$hazard_failed" = false ]; then
         echo "Running basic tests in hazard.rs with $RUNNER..."
         TESTS=(
             "--lib -- --exact hazard_pointer::hazard::tests::all_hazards_protected"
             "--lib -- --exact hazard_pointer::hazard::tests::all_hazards_unprotected"
-        )
-        if [ $(run_tests) -ne 0 ]; then
-            hazard_basic_faild=true
-        fi
-    fi
-
-    if [ "$hazard_recycle_faild" = false ]; then
-        echo "Running slot recycling test in hazard.rs with $RUNNER..."
-        TESTS=(
             "--lib -- --exact hazard_pointer::hazard::tests::recycle_slots"
         )
         if [ $(run_tests) -ne 0 ]; then
-            hazard_recycle_faild=true
+            hazard_failed=true
         fi
     fi
 
@@ -87,11 +77,8 @@ if [ $(run_tests) -ne 0 ]; then
 fi
 
 SCORE=0
-if [ "$hazard_basic_faild" = false ]; then
-    SCORE=$((SCORE + 10))
-fi
-if [ "$hazard_recycle_faild" = false ]; then
-    SCORE=$((SCORE + 10))
+if [ "$hazard_failed" = false ]; then
+    SCORE=$((SCORE + 20))
 fi
 if [ "$retire_failed" = false ]; then
     SCORE=$((SCORE + 10))

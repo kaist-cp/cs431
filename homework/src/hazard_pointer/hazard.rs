@@ -4,9 +4,9 @@ use std::collections::HashSet;
 use std::fmt;
 
 #[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering};
+use core::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{fence, AtomicPtr, AtomicUsize, Ordering};
+use loom::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 
 use super::HAZARDS;
 
@@ -69,50 +69,27 @@ impl<T> fmt::Debug for Shield<T> {
 }
 
 /// Global bag (multiset) of hazards pointers.
-/// - `HazardBag.head` and `HazardSlot.next` form a grow-only list of all hazard slots. Slots are
-///   never removed from this list.
-/// - `HazardBag.head_available` and `HazardSlot.next_available` from an "overlay" Treiber stack of
-///   slots that are not owned by a shield. This is for efficient recycling of the slots.
-///
-/// The figure below describes the state of the hazard bag after creating slots 1-5, and then
-/// releasing slots 4 and 2.
-///
-/// ```text
-///       next  s5        s4        s3        s2        s1
-/// head  ---> +--+ ---> +--+ ---> +--+ ---> +--+ ---> +--+
-///            |--|      |--|      |--|      |--|      |--|
-///            +--+      +--+      +--+      +--+      +--+
-///                       ^                  |  ^
-///                       |  next_available  |  |
-///                       +------------------+  |
-/// head_available -----------------------------+
-/// ```
+/// `HazardBag.head` and `HazardSlot.next` form a grow-only list of all hazard slots. Slots are
+/// never removed from this list. Instead, it gets deactivated and recycled for other `Shield`s.
 #[derive(Debug)]
 pub struct HazardBag {
     head: AtomicPtr<HazardSlot>,
-    head_available: AtomicPtr<HazardSlot>,
 }
 
 /// See `HazardBag`
 #[derive(Debug)]
 struct HazardSlot {
-    root: NonNull<HazardBag>,
+    // Whether this slot is occupied by a `Shield`.
+    active: AtomicBool,
     // Machine representation of the hazard pointer.
     hazard: AtomicUsize,
     // Immutable pointer to the next slot in the bag.
     next: *const HazardSlot,
-    // Pointer to the next node in the available slot stack.
-    next_available: AtomicPtr<HazardSlot>,
 }
 
 impl HazardSlot {
-    fn new(root: NonNull<HazardBag>) -> Self {
-        Self {
-            root,
-            hazard: AtomicUsize::new(0),
-            next: ptr::null(),
-            next_available: AtomicPtr::new(ptr::null_mut()),
-        }
+    fn new() -> Self {
+        todo!()
     }
 }
 
@@ -122,7 +99,6 @@ impl HazardBag {
     pub const fn new() -> Self {
         Self {
             head: AtomicPtr::new(ptr::null_mut()),
-            head_available: AtomicPtr::new(ptr::null_mut()),
         }
     }
 
@@ -131,29 +107,21 @@ impl HazardBag {
     pub fn new() -> Self {
         Self {
             head: AtomicPtr::new(ptr::null_mut()),
-            head_available: AtomicPtr::new(ptr::null_mut()),
         }
     }
 
-    /// Acquires a slot in the hazard set, either by taking an available slot or allocating a new
+    /// Acquires a slot in the hazard set, either by recyling an inactive slot or allocating a new
     /// slot.
     fn acquire_slot(&self) -> &HazardSlot {
         todo!()
     }
 
-    /// Pops a slot from available slot stack, if any.
-    fn pop_available(&self) -> Option<&HazardSlot> {
+    /// Find an inactive slot and activate it.
+    fn try_acquire_inactive(&self) -> Option<&HazardSlot> {
         todo!()
     }
 
-    /// Push a released slot to the available slot stack.
-    ///
-    /// Safety: The slot must have been acquired from this hazard bag.
-    unsafe fn push_available(&self, slot: &HazardSlot) {
-        todo!()
-    }
-
-    /// Returns all the hazards in the set. The returned set must not contain 0.
+    /// Returns all the hazards in the set.
     pub fn all_hazards(&self) -> HashSet<usize> {
         todo!()
     }
@@ -201,7 +169,9 @@ mod tests {
             .into_iter()
             .map(|th| th.join().unwrap())
             .collect::<Vec<_>>();
-        assert_eq!(hazard_bag.all_hazards(), VALUES.collect())
+        let all = hazard_bag.all_hazards();
+        let values = VALUES.collect();
+        assert!(all.is_superset(&values))
     }
 
     // `all_hazards` should not return values that are no longer protected.
@@ -223,7 +193,10 @@ mod tests {
             .into_iter()
             .map(|th| th.join().unwrap())
             .collect::<Vec<_>>();
-        assert!(hazard_bag.all_hazards().is_empty())
+        let all = hazard_bag.all_hazards();
+        let values = VALUES.collect();
+        let intersection: HashSet<_> = all.intersection(&values).collect();
+        assert!(intersection.is_empty())
     }
 
     // `acquire_slot` should recycle existing slots.
