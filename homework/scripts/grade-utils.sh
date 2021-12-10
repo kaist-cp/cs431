@@ -63,13 +63,21 @@ export -f cargo_tsan
 
 # usage: _run_tests_with CARGO [OPTIONS]
 # example: _run_tests_with cargo_tsan --release
-# echos number of failed tests
-# Uses global variable TESTS, TIMEOUT
-# [OPTIONS] must not contain " -- " (cargo options only)
+# Echos number of failed tests to stdout.
+# Echos error message to stderr.
+# Uses global variable TESTS, TIMEOUT.
+# [OPTIONS] must not contain " -- " (cargo options only).
 _run_tests_with() {
     local CARGO=$1; shift
-    $CARGO test --no-run $@ &>/dev/null \
-        || (echo_err "Build failed!"; exit 1)
+    local MSGS # https://mywiki.wooledge.org/BashPitfalls#local_var.3D.24.28cmd.29
+    MSGS=$($CARGO test --no-run $@ 2>&1)
+    if [ $? -ne 0 ]; then
+        echo_err "Build failed! Error message:"
+        echo "${MSGS}" 1>&2
+        echo_err "--------------------------------------------------------------------------------"
+        echo ${#TESTS[@]} # failed all tests
+        exit 1
+    fi
 
     local FAILED=0
     for TEST in "${TESTS[@]}"; do
