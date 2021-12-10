@@ -7,9 +7,10 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-# rustup toolchain update stable nightly
 # TODO: https://github.com/rust-lang/rust/issues/91689
 export RUST_NIGHTLY=2021-12-05
+rustup toolchain update stable # nightly
+rustup install nightly-$RUST_NIGHTLY
 
 echo_err() {
     echo -e "\033[0;31m\033[1m$@\033[0m" 1>&2
