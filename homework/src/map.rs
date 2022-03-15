@@ -72,6 +72,7 @@ pub trait NonblockingMap<K: ?Sized, V> {
     fn insert(&self, key: &K, value: V, guard: &Guard) -> Result<(), V>;
 
     /// Deletes the given key and its value.
+    // NOTE: Can return `V` if since impl should not access V.
     fn delete<'a>(&'a self, key: &K, guard: &'a Guard) -> Result<&'a V, ()>;
 }
 

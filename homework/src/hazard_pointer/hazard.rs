@@ -128,6 +128,7 @@ impl HazardBag {
 }
 
 impl Drop for HazardBag {
+    /// Frees all slots.
     fn drop(&mut self) {
         todo!()
     }

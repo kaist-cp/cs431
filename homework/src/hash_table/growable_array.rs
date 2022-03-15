@@ -120,7 +120,7 @@ use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
 /// When the array is dropped, only the segments are dropped and the **elements must not be
 /// dropped/deallocated**.
 ///
-/// ```test
+/// ```text
 ///                 +---+                    +---+               +---+
 ///                 |fox|                    |owl|               |cat|
 ///                 +---+                    +---+               +---+

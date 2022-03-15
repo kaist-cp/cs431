@@ -5,14 +5,14 @@ use std::collections::HashMap;
 /// Report for each operation
 #[derive(Debug)]
 pub struct Report {
-    id: usize,
+    _id: usize,
     key: Option<String>, // None represents invalid request
 }
 
 impl Report {
     /// Creates a new report with the given id and key.
     pub fn new(id: usize, key: Option<String>) -> Self {
-        Report { id, key }
+        Report { _id: id, key }
     }
 }
 
