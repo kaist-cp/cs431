@@ -14,7 +14,7 @@
 //!
 //! // unlink the block and retire
 //! atomic.store(ptr::null_mut(), Ordering::Relaxed);
-//! retire(protected);
+//! unsafe { retire(protected); }
 //!
 //! // manually trigger reclamation (not necessary)
 //! collect();
@@ -98,7 +98,14 @@ thread_local! {
 }
 
 /// Retires a pointer.
-pub fn retire<T>(pointer: *const T) {
+///
+/// # Safety
+///
+/// * `pointer` must be removed from shared memory before calling this function.
+/// * Subsumes the safety requirements of [`Box::from_raw`].
+///
+/// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
+pub unsafe fn retire<T>(pointer: *const T) {
     RETIRED.with(|r| r.borrow_mut().retire(pointer));
 }
 

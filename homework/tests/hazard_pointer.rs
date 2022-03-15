@@ -32,7 +32,7 @@ fn counter() {
                             .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            retire(cur_ptr as *mut usize);
+                            unsafe { retire(cur_ptr as *mut usize) };
                             break;
                         } else {
                             new = unsafe { Box::from_raw(new_ptr) };
@@ -46,7 +46,7 @@ fn counter() {
     let cur = count.load(Acquire);
     // exclusive access
     assert_eq!(unsafe { *cur }, THREADS * ITER);
-    retire(cur);
+    unsafe { retire(cur) };
 }
 
 // like `counter`, but trigger interesting interleaving using `sleep` and always call `collect`.
@@ -67,6 +67,7 @@ fn counter_sleep() {
                         while !shield.try_protect(&mut cur_ptr, &count) {
                             sleep(Duration::from_micros(1));
                         }
+                        sleep(Duration::from_micros(1));
                         let value = unsafe { *cur_ptr };
                         *new = value + 1;
                         let new_ptr = Box::leak(new);
@@ -74,7 +75,7 @@ fn counter_sleep() {
                             .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            retire(cur_ptr as *mut usize);
+                            unsafe { retire(cur_ptr as *mut usize) };
                             collect();
                             break;
                         } else {
@@ -89,7 +90,7 @@ fn counter_sleep() {
     let cur = count.load(Acquire);
     // exclusive access
     assert_eq!(unsafe { *cur }, THREADS * ITER);
-    retire(cur);
+    unsafe { retire(cur) };
 }
 
 #[test]
@@ -255,7 +256,7 @@ mod sync {
             // unlink, retire, and collect
             let local = atomic.load(Relaxed);
             atomic.store(ptr::null_mut(), Relaxed);
-            retire(local);
+            unsafe { retire(local) };
             collect();
             th.join().unwrap();
         })
@@ -284,7 +285,7 @@ mod sync {
 
             // unlink, retire, and collect
             atomic.store(ptr::null_mut(), Relaxed);
-            retire(local);
+            unsafe { retire(local) };
             collect();
 
             th.join().unwrap();

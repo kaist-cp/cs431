@@ -30,8 +30,15 @@ impl<'s> RetiredSet<'s> {
         }
     }
 
-    /// Retire a pointer.
-    pub fn retire<T>(&mut self, pointer: *const T) {
+    /// Retires a pointer.
+    ///
+    /// # Safety
+    ///
+    /// * `pointer` must be removed from shared memory before calling this function.
+    /// * Subsumes the safety requirements of [`Box::from_raw`].
+    ///
+    /// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
+    pub unsafe fn retire<T>(&mut self, pointer: *const T) {
         unsafe fn free<T>(data: usize) {
             drop(Box::from_raw(data as *mut T))
         }
@@ -86,7 +93,7 @@ mod tests {
         let mut retires = RetiredSet::new(&hazards);
         let freed = Rc::new(RefCell::new(HashSet::new()));
         for i in 0..RetiredSet::THRESHOLD {
-            retires.retire(Box::leak(Box::new(Tester(freed.clone(), i))));
+            unsafe { retires.retire(Box::leak(Box::new(Tester(freed.clone(), i)))) };
         }
         let freed = Rc::try_unwrap(freed).unwrap().into_inner();
 
