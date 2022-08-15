@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 crossbeam-epoch = "0.9.5"
-crossbeam-utils = "0.8.5"
+crossbeam-utils = "0.8.7"
