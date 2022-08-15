@@ -9,7 +9,7 @@ use core::cmp;
 use core::mem::{self, ManuallyDrop};
 use core::sync::atomic::Ordering;
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
-use lock::seqlock::{ReadGuard, SeqLock};
+use cs431::lock::seqlock::{ReadGuard, SeqLock};
 
 mod base;
 

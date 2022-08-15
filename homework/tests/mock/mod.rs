@@ -1,5 +1,3 @@
-use cfg_if;
-
 #[cfg(not(feature = "check-loom"))]
 pub use std::*;
 

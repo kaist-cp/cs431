@@ -305,7 +305,6 @@ mod sync {
             let local = shield.protect(&atomic);
 
             let th = {
-                let atomic = atomic.clone();
                 thread::spawn(move || {
                     let local = atomic.load(Relaxed);
                     if !HAZARDS.all_hazards().contains(&obj) {

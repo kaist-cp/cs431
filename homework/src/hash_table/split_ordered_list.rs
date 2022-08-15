@@ -3,7 +3,7 @@
 use core::mem;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use crossbeam_epoch::{Guard, Owned};
-use lockfree::list::{Cursor, List, Node};
+use cs431::lockfree::list::{Cursor, List, Node};
 
 use super::growable_array::GrowableArray;
 use crate::map::NonblockingMap;

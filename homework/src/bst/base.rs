@@ -2,7 +2,7 @@ use core::mem::ManuallyDrop;
 use core::ptr;
 use core::sync::atomic::Ordering;
 use crossbeam_epoch::{Atomic, Guard, Shared};
-use lock::seqlock::{ReadGuard, SeqLock};
+use cs431::lock::seqlock::{ReadGuard, SeqLock};
 
 /// Atomic type with atomic read/write.
 pub trait AtomicRW {

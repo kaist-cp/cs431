@@ -58,7 +58,7 @@ pub fn stress_sequential<
                 hashmap.entry(key).or_insert(value);
             }
             Ops::DeleteSome => {
-                let key = hashmap.keys().choose(&mut rng).map(|k| k.clone());
+                let key = hashmap.keys().choose(&mut rng).cloned();
                 if let Some(key) = key {
                     println!("iteration {}: delete({:?}) (existing)", i, key);
                     assert_eq!(map.delete(&key), hashmap.remove(&key).ok_or(()));
@@ -154,16 +154,16 @@ pub fn lookup_concurrent<
                         Ops::LookupSome => {
                             if let Some(key) = hashmap.keys().choose(&mut rng) {
                                 assert_eq!(
-                                    map.lookup(key, &pin(), |r| r.map(|v| *v)),
-                                    hashmap.get(key).map(|v| *v)
+                                    map.lookup(key, &pin(), |r| r.copied()),
+                                    hashmap.get(key).copied()
                                 );
                             }
                         }
                         Ops::LookupNone => {
                             let key = K::rand_gen(&mut rng);
                             assert_eq!(
-                                map.lookup(&key, &pin(), |r| r.map(|v| *v)),
-                                hashmap.get(&key).map(|v| *v)
+                                map.lookup(&key, &pin(), |r| r.copied()),
+                                hashmap.get(&key).copied()
                             );
                         }
                     }
@@ -270,7 +270,7 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
         for l in ls {
             per_key_logs
                 .entry(l.key().clone())
-                .or_insert_with(|| Vec::new())
+                .or_insert_with(Vec::new)
                 .push(l.clone());
         }
     }
@@ -335,7 +335,7 @@ pub fn log_concurrent<
                             map.lookup(&key, &pin(), |value| {
                                 logs.push(Log::Lookup {
                                     key: key.clone(),
-                                    value: value.map(|v| *v),
+                                    value: value.copied(),
                                 });
                             });
                         }

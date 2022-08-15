@@ -12,7 +12,7 @@ struct Job(Box<dyn FnOnce() + Send + 'static>);
 
 #[derive(Debug)]
 struct Worker {
-    _id: usize,
+    id: usize,
     thread: Option<thread::JoinHandle<()>>,
 }
 
@@ -55,7 +55,7 @@ impl ThreadPoolInner {
 /// Thread pool.
 #[derive(Debug)]
 pub struct ThreadPool {
-    _workers: Vec<Worker>,
+    workers: Vec<Worker>,
     job_sender: Option<Sender<Job>>,
     pool_inner: Arc<ThreadPoolInner>,
 }

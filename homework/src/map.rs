@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 use crossbeam_epoch::Guard;
-use lock::{Lock, RawLock};
+use cs431::lock::{Lock, RawLock};
 use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
 
 /// Types that has random generator
