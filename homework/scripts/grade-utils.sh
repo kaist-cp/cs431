@@ -7,10 +7,7 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-# TODO: https://github.com/rust-lang/rust/issues/91689
-export RUST_NIGHTLY=2021-12-05
-rustup toolchain update stable # nightly
-rustup install nightly-$RUST_NIGHTLY
+rustup toolchain update stable nightly
 
 echo_err() {
     echo -e "\033[0;31m\033[1m$@\033[0m" 1>&2
@@ -48,7 +45,7 @@ cargo_asan() {
     local SUBCOMMAND=$1; shift
     RUSTFLAGS="-Z sanitizer=address" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
-        cargo +nightly-$RUST_NIGHTLY $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
+        cargo +nightly $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
 }
 export -f cargo_asan
 
@@ -58,7 +55,7 @@ cargo_tsan() {
         TSAN_OPTIONS="suppressions=suppress_tsan.txt" \
         RUSTDOCFLAGS="-Z sanitizer=thread" \
         RUST_TEST_THREADS=1 \
-        cargo +nightly-$RUST_NIGHTLY $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
+        cargo +nightly $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
 }
 export -f cargo_tsan
 
