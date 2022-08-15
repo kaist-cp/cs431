@@ -4,6 +4,8 @@ use crossbeam_utils::Backoff;
 
 use crate::lock::*;
 
+/// A spin lock.
+#[derive(Debug)]
 pub struct SpinLock {
     inner: AtomicBool,
 }
@@ -47,10 +49,11 @@ impl RawTryLock for SpinLock {
 
 #[cfg(test)]
 mod tests {
-    use crate::spinlock::SpinLock;
+    use super::super::api;
+    use super::spinlock::SpinLock;
 
     #[test]
     fn smoke() {
-        crate::lock::tests::smoke::<SpinLock>();
+        api::tests::smoke::<SpinLock>();
     }
 }

@@ -4,6 +4,8 @@ use crossbeam_utils::Backoff;
 
 use crate::lock::*;
 
+/// A ticket lock.
+#[derive(Debug)]
 pub struct TicketLock {
     curr: AtomicUsize,
     next: AtomicUsize,
@@ -39,10 +41,11 @@ impl RawLock for TicketLock {
 
 #[cfg(test)]
 mod tests {
-    use crate::ticketlock::TicketLock;
+    use super::super::api;
+    use super::ticketlock::TicketLock;
 
     #[test]
     fn smoke() {
-        crate::lock::tests::smoke::<TicketLock>();
+        api::tests::smoke::<TicketLock>();
     }
 }

@@ -1,38 +1,34 @@
-use core::marker::PhantomData;
 use core::ptr;
 use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
-use std::thread::{self, Thread};
 
-use crossbeam_utils::CachePadded;
+use crossbeam_utils::{Backoff, CachePadded};
 
 use crate::lock::*;
 
 struct Node {
-    thread: Thread,
     locked: AtomicBool,
     next: AtomicPtr<CachePadded<Node>>,
-    _marker: PhantomData<*const ()>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Token(*mut CachePadded<Node>);
 
-pub struct McsParkingLock {
+/// An MCS lock.
+#[derive(Debug)]
+pub struct McsLock {
     tail: AtomicPtr<CachePadded<Node>>,
 }
 
 impl Node {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self {
-            thread: thread::current(),
             locked: AtomicBool::new(true),
             next: AtomicPtr::new(ptr::null_mut()),
-            _marker: PhantomData,
         }
     }
 }
 
-impl Default for McsParkingLock {
+impl Default for McsLock {
     fn default() -> Self {
         Self {
             tail: AtomicPtr::new(ptr::null_mut()),
@@ -40,7 +36,7 @@ impl Default for McsParkingLock {
     }
 }
 
-impl RawLock for McsParkingLock {
+impl RawLock for McsLock {
     type Token = Token;
 
     fn lock(&self) -> Self::Token {
@@ -55,8 +51,9 @@ impl RawLock for McsParkingLock {
             (*prev).next.store(node, Ordering::Release);
         }
 
+        let backoff = Backoff::new();
         while unsafe { (*node).locked.load(Ordering::Acquire) } {
-            thread::park();
+            backoff.snooze();
         }
 
         Token(node)
@@ -69,9 +66,7 @@ impl RawLock for McsParkingLock {
             let next = (*node).next.load(Ordering::Acquire);
             if !next.is_null() {
                 drop(Box::from_raw(node));
-                let thread = (*next).thread.clone();
                 (*next).locked.store(false, Ordering::Release);
-                thread.unpark();
                 return;
             }
 
@@ -89,10 +84,11 @@ impl RawLock for McsParkingLock {
 
 #[cfg(test)]
 mod tests {
-    use crate::mcsparkinglock::McsParkingLock;
+    use super::super::api;
+    use super::McsLock;
 
     #[test]
     fn smoke() {
-        crate::lock::tests::smoke::<McsParkingLock>();
+        api::tests::smoke::<McsLock>();
     }
 }

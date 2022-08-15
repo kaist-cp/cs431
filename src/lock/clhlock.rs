@@ -8,9 +8,11 @@ struct Node {
     locked: AtomicBool,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Token(*const CachePadded<Node>);
 
+/// CLH lock.
+#[derive(Debug)]
 pub struct ClhLock {
     tail: AtomicPtr<CachePadded<Node>>,
 }
@@ -54,10 +56,11 @@ impl RawLock for ClhLock {
 
 #[cfg(test)]
 mod tests {
-    use crate::clhlock::ClhLock;
+    use super::super::api;
+    use super::ClhLock;
 
     #[test]
     fn smoke() {
-        crate::lock::tests::smoke::<ClhLock>();
+        api::tests::smoke::<ClhLock>();
     }
 }

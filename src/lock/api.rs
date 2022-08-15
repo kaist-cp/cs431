@@ -3,22 +3,31 @@ use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
 
+/// Raw lock interface.
 pub trait RawLock: Default + Send + Sync {
+    /// Raw lock's token type.
     type Token: Clone;
 
+    /// Acquires the raw lock.
     fn lock(&self) -> Self::Token;
 
+    /// Releases the raw lock.
+    ///
     /// # Safety
     ///
     /// `unlock()` should be called with the token given by the corresponding `lock()`.
     unsafe fn unlock(&self, token: Self::Token);
 }
 
+/// Raw lock interface for the try_lock API.
 pub trait RawTryLock: RawLock {
+    /// Tries to acquire the raw lock.
     fn try_lock(&self) -> Result<Self::Token, ()>;
 }
 
+/// A type-safe lock.
 #[repr(C)]
+#[derive(Debug)]
 pub struct Lock<L: RawLock, T> {
     lock: L,
     data: UnsafeCell<T>,
@@ -28,6 +37,7 @@ unsafe impl<L: RawLock, T: Send> Send for Lock<L, T> {}
 unsafe impl<L: RawLock, T: Send> Sync for Lock<L, T> {}
 
 impl<L: RawLock, T> Lock<L, T> {
+    /// Creates a new lock.
     pub fn new(data: T) -> Self {
         Self {
             lock: L::default(),
@@ -35,10 +45,12 @@ impl<L: RawLock, T> Lock<L, T> {
         }
     }
 
+    /// Destroys the lock and retrieves the lock-protected value.
     pub fn into_inner(self) -> T {
         self.data.into_inner()
     }
 
+    /// Acquires the lock and dereferences the inner value.
     pub fn lock(&self) -> LockGuard<L, T> {
         let token = self.lock.lock();
         LockGuard {
@@ -50,6 +62,7 @@ impl<L: RawLock, T> Lock<L, T> {
 }
 
 impl<L: RawTryLock, T> Lock<L, T> {
+    /// Tries to acquire the lock and dereferences the inner value.
     pub fn try_lock(&self) -> Result<LockGuard<L, T>, ()> {
         self.lock.try_lock().map(|token| LockGuard {
             lock: self,
@@ -74,6 +87,7 @@ impl<L: RawLock, T> Lock<L, T> {
         &*self.data.get()
     }
 
+    /// Dereferences the inner value.
     pub fn get_mut(&mut self) -> &mut T {
         unsafe { &mut *self.data.get() }
     }
@@ -87,6 +101,8 @@ impl<L: RawLock, T> Lock<L, T> {
     }
 }
 
+/// A guard that holds the lock and dereferences the inner value.
+#[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,
     token: L::Token,
@@ -97,6 +113,7 @@ unsafe impl<'s, L: RawLock, T: Send> Send for LockGuard<'s, L, T> {}
 unsafe impl<'s, L: RawLock, T: Sync> Sync for LockGuard<'s, L, T> {}
 
 impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
+    /// Returns the address of the referenced lock.
     pub fn raw(&mut self) -> usize {
         self.lock as *const _ as usize
     }
@@ -123,6 +140,7 @@ impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
 }
 
 impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
+    /// Transforms a lock guard to an address.
     pub fn into_raw(self) -> usize {
         let ret = self.lock as *const _ as usize;
         mem::forget(self);

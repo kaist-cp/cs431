@@ -1,21 +1,26 @@
+//! A sequence lock.
+
 use core::mem;
 use core::ops::Deref;
 use core::sync::atomic::{fence, AtomicUsize, Ordering};
 
 use crossbeam_utils::Backoff;
 
+/// A raw sequence lock.
 #[derive(Debug)]
 pub struct RawSeqLock {
     seq: AtomicUsize,
 }
 
 impl RawSeqLock {
+    /// Creates a new raw sequence lock.
     pub const fn new() -> Self {
         Self {
             seq: AtomicUsize::new(0),
         }
     }
 
+    /// Acquires a writer's lock.
     pub fn write_lock(&self) -> usize {
         let backoff = Backoff::new();
 
@@ -40,10 +45,12 @@ impl RawSeqLock {
         }
     }
 
+    /// Releases a writer's lock.
     pub fn write_unlock(&self, seq: usize) {
         self.seq.store(seq.wrapping_add(2), Ordering::Release);
     }
 
+    /// Acquires a reader's lock.
     pub fn read_begin(&self) -> usize {
         let backoff = Backoff::new();
 
@@ -57,6 +64,7 @@ impl RawSeqLock {
         }
     }
 
+    /// Releases a reader's lock and validates the read.
     pub fn read_validate(&self, seq: usize) -> bool {
         fence(Ordering::Acquire);
 
@@ -85,18 +93,21 @@ impl RawSeqLock {
     }
 }
 
+/// A sequence lock.
 #[derive(Debug)]
 pub struct SeqLock<T> {
     lock: RawSeqLock,
     data: T,
 }
 
+/// A writer's lock guard.
 #[derive(Debug)]
 pub struct WriteGuard<'s, T> {
     lock: &'s SeqLock<T>,
     seq: usize,
 }
 
+/// A reader's lock guard.
 #[derive(Debug)]
 pub struct ReadGuard<'s, T> {
     lock: &'s SeqLock<T>,
@@ -113,6 +124,7 @@ unsafe impl<'s, T> Send for ReadGuard<'s, T> {}
 unsafe impl<'s, T: Send + Sync> Sync for ReadGuard<'s, T> {}
 
 impl<T> SeqLock<T> {
+    /// Creates a new sequence lock.
     pub const fn new(data: T) -> Self {
         SeqLock {
             lock: RawSeqLock::new(),
@@ -120,10 +132,12 @@ impl<T> SeqLock<T> {
         }
     }
 
+    /// Dereferences the inner value.
     pub fn get_mut(&mut self) -> &mut T {
         &mut self.data
     }
 
+    /// Acquires a writer's lock.
     pub fn write_lock(&self) -> WriteGuard<T> {
         let seq = self.lock.write_lock();
         WriteGuard { lock: self, seq }
@@ -195,20 +209,24 @@ impl<'s, T> Drop for ReadGuard<'s, T> {
 }
 
 impl<'s, T> ReadGuard<'s, T> {
+    /// Validates the read.
     pub fn validate(&self) -> bool {
         self.lock.lock.read_validate(self.seq)
     }
 
+    /// Restarts the read critical section.
     pub fn restart(&mut self) {
         self.seq = self.lock.lock.read_begin();
     }
 
+    /// Releases the reader's lock.
     pub fn finish(self) -> bool {
         let result = self.lock.lock.read_validate(self.seq);
         mem::forget(self);
         result
     }
 
+    /// Tries to upgrade to a writer's lock.
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
         let result = if unsafe { self.lock.lock.upgrade(self.seq).is_ok() } {
             Ok(WriteGuard {
