@@ -1,5 +1,5 @@
 [package]
-name = "kaist-cs431"
+name = "cs431"
 version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
 edition = "2021"
