@@ -2,7 +2,7 @@
 name = "lock"
 version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 crossbeam-utils = "0.8.11"
