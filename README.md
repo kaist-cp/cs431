@@ -5,7 +5,7 @@
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
 - Time: Mon & Wed 13:00pm-14:15pm
 - Place
-  + Rm. 111, Bldg. N1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
+  + Rm. 102, Bldg. N1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
   + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4). Turn on English subtitle at YouTube, if necessary.
 - Websites: https://github.com/kaist-cp/cs431 , https://gg.kaist.ac.kr/course/11
