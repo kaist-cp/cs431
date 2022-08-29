@@ -145,7 +145,7 @@ Make sure you're capable of using the following development tools:
 
 - [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
 
-- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p13001`, e.g., `ssh s20071163@cp-service.kaist.ac.kr -p13001`.
+- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p13002`, e.g., `ssh s20071163@cp-service.kaist.ac.kr -p13002`.
 
     + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
 
@@ -160,7 +160,7 @@ Make sure you're capable of using the following development tools:
       ```
       Host cs431
         Hostname cp-service.kaist.ac.kr
-        Port 13001
+        Port 13002
         User s20071163
       ```
 
