@@ -3,7 +3,7 @@ name: Question
 about: Ask questions in this format.
 title: "[Question] (SUMMARIZE YOUR QUESTION AS CLEARLY AS POSSIBLE)"
 labels: question
-assignees: drzix
+assignees: Lee-Janggun
 
 ---
 
