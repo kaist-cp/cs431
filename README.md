@@ -204,7 +204,7 @@ For details, see <https://gg.kaist.ac.kr/course/11>.
 
 - Date & Time: TBA (midterm) and TBA (final), 13:00pm-15:45pm (or shorter, TBA)
 
-- Place: Rm. 111, Bldg. N1, KAIST
+- Place: Rm. 102, Bldg. N1, KAIST
 
     + If online participation is absolutely necessary, we'll use Zoom.
 
