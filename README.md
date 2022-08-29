@@ -90,22 +90,22 @@ systems. This course aims to help such students to:
 
 Make sure you're capable of using the following development tools:
 
-- [Git](https://git-scm.com/): for downloading KECC and version-controlling your development. If
-  you're not familiar with Git, walk through [this
+- [Git](https://git-scm.com/): for downloading the homework skeleton and version-controlling your
+  development. If you're not familiar with Git, walk through [this
   tutorial](https://www.atlassian.com/git/tutorials).
 
     + **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
-      the [upstream](https://github.com/kaist-cp/kecc-public) and push there. Please the following
+      the [upstream](https://github.com/kaist-cp/cs431) and push there. Please the following
       steps:
 
         * Directly clone the upstream without forking it.
 
           ```bash
-          $ git clone --origin upstream git@github.com:kaist-cp/kecc-public.git
-          $ cd kecc-public
+          $ git clone --origin upstream git@github.com:kaist-cp/cs431.git
+          $ cd cs431
           $ git remote -v
-          upstream	git@github.com:kaist-cp/kecc-public.git (fetch)
-          upstream	git@github.com:kaist-cp/kecc-public.git (push)
+          upstream	git@github.com:kaist-cp/cs431.git (fetch)
+          upstream	git@github.com:kaist-cp/cs431.git (push)
           ```
 
         * To get updates from the upstream, fetch and merge `upstream/main`.
@@ -119,18 +119,19 @@ Make sure you're capable of using the following development tools:
       repository.
 
         * You may upgrade your GitHub account to "PRO", which is free of charge.  
-          Refer to the [documentation](https://education.github.com/students)
+          Refer to the [documentation](https://education.github.com/students).
 
         * Set up your repository as a remote.
 
           ```bash
-          $ git remote add origin git@github.com:<github-id>/kecc-public.git
+          $ git remote add origin git@github.com:<github-id>/cs431.git
           $ git remote -v
-          origin	 git@github.com:<github-id>/kecc-public.git (fetch)
-          origin	 git@github.com:<github-id>/kecc-public.git (push)
-          upstream git@github.com:kaist-cp/kecc-public.git (fetch)
-          upstream git@github.com:kaist-cp/kecc-public.git (push)
+          origin	 git@github.com:<github-id>/cs431.git (fetch)
+          origin	 git@github.com:<github-id>/cs431.git (push)
+          upstream git@github.com:kaist-cp/cs431.git (fetch)
+          upstream git@github.com:kaist-cp/cs431.git (push)
           ```
+
         * Push to your repository.
 
           ```bash
