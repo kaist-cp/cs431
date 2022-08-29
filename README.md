@@ -3,35 +3,18 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time: Mon & Wed 10:30am-11:45am
+- Time: Mon & Wed 13:00pm-14:15pm
 - Place
-  + ~~Rm 117, Bldg N1~~
-  + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4)
-  + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang)
-    * The passcode is announced at KLMS.
-- Website
-  + Course: https://github.com/kaist-cp/cs431
-  + Assignment: https://gg.kaist.ac.kr/course/9
+  + Rm. 111, Bldg. N1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
+  + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
+  + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4). Turn on English subtitle at YouTube, if necessary.
+- Websites: https://github.com/kaist-cp/cs431 , https://gg.kaist.ac.kr/course/11
 - Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
   + We assume you read each announcement within 24 hours.
-  + We strongly recommend you to watch the repository and use desktop/mobile Zulip client for prompt access to the announcements.
-- TA: [Kyeongmin Cho](https://cp.kaist.ac.kr/kyeongmin.cho) (head), [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-  + Office Hour: Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy.
-
-
-### Online sessions
-
-Due to COVID-19, we're going to conduct online sessions for this semester.
-
-- For non-live sessions, videos will be uploaded to the [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
-
-    + You're required to watch the video, and based on the contents, to solve pop quizzes that will be posted at <gg.kaist.ac.kr>.
-
-    + Turn on English subtitle at YouTube, if necessary.
-
-- For live sessions, we'll meet at the [Zoom room](https://kaist.zoom.us/my/jeehoon.kang).
-- You can download the recording for the first session here: https://klms.kaist.ac.kr/mod/courseboard/article.php?id=576413&bid=72724&bwid=249744
-- The later lectures have almost the same content as previous semesters, so please watch YouTube videos instead.
+  + We strongly recommend you to watch the repository.
+- TA: [Janggun Lee](https://cp.kaist.ac.kr/janggun.lee)
+  + Office Hour: TBA. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+    <!-- Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy. -->
 
 
 
@@ -86,7 +69,7 @@ systems. This course aims to help such students to:
     + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library written in [Rust](https://www.rust-lang.org/)
 
 
-## Prerequisites
+### Prerequisites
 
 - It is **strongly recommended** that students already took courses on:
 
@@ -103,60 +86,26 @@ systems. This course aims to help such students to:
     + Programming experience in [Rust](https://www.rust-lang.org/)
 
 
-## Grading & honor code
-
-#### Cheating
-
-**IMPORTANT: PAY CLOSE ATTENTION. VERY SERIOUS.**
-
-- Cheating is including, but not limited to, the following activities:
-
-    + *Sharing*: code, document, or any products by copying, retyping, **looking at**, or supplying a file​
-    + *Describing*: verbal description of code from one person to another
-    + *Coaching*: helping your friend to write a lab, line by line​
-    + *Searching*: **the Web for solutions​**
-    + *Copying*: code from a previous course or online solution​ (you are only allowed to use code we supply)
-
-- Cheating doesn't include the following activities:
-
-    + Explaining how to use systems or tools​
-    + Helping others with high-level design issues
-
-- **Cheating will be harshly punished.**
-
-    + I will raise an issue to the Reward and Punishment Committee.
-    + Ignorance is no excuse.
-    + So don't do it and start early.
-
-- We will use sophisticated tools for detecting code plagiarism​.
-
-    + [Google "code plagiarism detector" for images](https://www.google.com/search?q=code+plagiarism+detector&tbm=isch) and see how these tools can detect "sophisticated" plagiarisms.
-      You really cannot escape my catch. Just don't try plagiarism in any form.
-
-### Programming assignments (60%)
-
-TBA
-
 ### Tools
 
 Make sure you're capable of using the following development tools:
 
-- [Git](https://git-scm.com/): for downloading the homework skeleton and version-controlling your
-  development. If you're not familiar with Git, walk through [this
+- [Git](https://git-scm.com/): for downloading KECC and version-controlling your development. If
+  you're not familiar with Git, walk through [this
   tutorial](https://www.atlassian.com/git/tutorials).
 
     + **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
-      the [upstream](https://github.com/kaist-cp/cs431) and push there. Please the following
+      the [upstream](https://github.com/kaist-cp/kecc-public) and push there. Please the following
       steps:
 
         * Directly clone the upstream without forking it.
 
           ```bash
-          $ git clone --origin upstream https://github.com/kaist-cp/cs431.git
-          $ cd cs431
+          $ git clone --origin upstream git@github.com:kaist-cp/kecc-public.git
+          $ cd kecc-public
           $ git remote -v
-          upstream	https://github.com/kaist-cp/cs431.git (fetch)
-          upstream	https://github.com/kaist-cp/cs431.git (push)
+          upstream	git@github.com:kaist-cp/kecc-public.git (fetch)
+          upstream	git@github.com:kaist-cp/kecc-public.git (push)
           ```
 
         * To get updates from the upstream, fetch and merge `upstream/main`.
@@ -169,20 +118,19 @@ Make sure you're capable of using the following development tools:
     + If you want to manage your development in a Git server, please create your own private
       repository.
 
-        * You may upgrade your GitHub account to "PRO", which is free of charge.  Refer to the
-          [documentation](https://education.github.com/students)
+        * You may upgrade your GitHub account to "PRO", which is free of charge.  
+          Refer to the [documentation](https://education.github.com/students)
 
         * Set up your repository as a remote.
 
           ```bash
-          $ git remote add origin git@github.com:<github-id>/cs431.git
+          $ git remote add origin git@github.com:<github-id>/kecc-public.git
           $ git remote -v
-          origin	 git@github.com:<github-id>/cs431.git (fetch)
-          origin	 git@github.com:<github-id>/cs431.git (push)
-          upstream https://github.com/kaist-cp/cs431.git (fetch)
-          upstream https://github.com/kaist-cp/cs431.git (push)
+          origin	 git@github.com:<github-id>/kecc-public.git (fetch)
+          origin	 git@github.com:<github-id>/kecc-public.git (push)
+          upstream git@github.com:kaist-cp/kecc-public.git (fetch)
+          upstream git@github.com:kaist-cp/kecc-public.git (push)
           ```
-
         * Push to your repository.
 
           ```bash
@@ -220,20 +168,49 @@ Make sure you're capable of using the following development tools:
 
     + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
 
+    + [NOTE: We recommend the `rust-analyzer` plugin instead of `rls`](https://github.com/rust-analyzer/rust-analyzer).
+
+    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the 
+      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps: 
+      1. Download [this file](https://github.com/vadimcn/vscode-lldb/releases/download/v1.5.0/codelldb-x86_64-linux.vsix) at the remote server.
+      1. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
+
+    + [NOTE: If you cannot connect to the remote server via VSCode with `fail to create hard link` error message](https://github.com/kaist-cp/cs420/issues/91), please follow the steps:
+      1. Close VSCode window and try to connect to the remote server via terminal(or cmd). If you encounter `Connection timed out` error message, try again after a few minutes.
+      1. Delete all the files in `~/.vscode-server/bin/`.
+
+
+## Grading & honor code
+
+### Cheating
+
+**IMPORTANT: PAY CLOSE ATTENTION. VERY SERIOUS.**
+
+- Please sign the KAIST CS Honor Code for this semester.
+  Otherwise, you may be expelled from the course.
+
+- We will use sophisticated tools for detecting code plagiarism​.
+
+    + [Google "code plagiarism detector" for images](https://www.google.com/search?q=code+plagiarism+detector&tbm=isch) and see how these tools can detect "sophisticated" plagiarisms.
+      You really cannot escape my catch. Just don't try plagiarism in any form.
+
+### Programming assignments (60%)
+
+For details, see <https://gg.kaist.ac.kr/course/11>.
+
 
 ### Midterm and final exams (40%)
 
-- Date & Time: October 20th (midterm) and December 15th (final), 09:00am-11:45am (or shorter, TBA)
+- Date & Time: TBA (midterm) and TBA (final), 13:00pm-15:45pm (or shorter, TBA)
 
-- Place: online
+- Place: Rm. 111, Bldg. N1, KAIST
 
-    + You need to set up a separate camera that shows you, your hand, pencil and paper, and monitor, as in [this picture](https://user-images.githubusercontent.com/1201316/95432855-28d33800-098a-11eb-9b18-b515c34bb2e9.jpg).
-      If you cannot do so, you will not be able to take this course.
+    + If online participation is absolutely necessary, we'll use Zoom.
 
 
 ### Attendance (?%)
 
-- You should solve a quiz at the [Course Management](https://gg.kaist.ac.kr/course/9) website for each session. **You should answer to the quiz by the end of the day.**
+- You should solve a quiz at the [Course Management](https://gg.kaist.ac.kr/course/11) website for each session. **You should answer to the quiz by the end of the day.**
 
 - If you miss a significant number of sessions, you'll automatically get an F.
 
@@ -251,9 +228,6 @@ Make sure you're capable of using the following development tools:
 
     + Log in with your student id and the new password.
       If you cannot, please contact the head TA in the chat.
-
-    + Sign [the honor code](https://gg.kaist.ac.kr/quiz/73/) by September 10th.
-      Otherwise, you will be expelled from the class.
 
 ### Rules
 
@@ -291,7 +265,8 @@ Make sure you're capable of using the following development tools:
   and student number. Any emails failing to do so (e.g. emails without student number) will not be
   answered.
 
-- Your Zoom name should be `<your student number> <your name>` (e.g., `20071163 강지훈`).
+- If you join the session remotely from Zoom (https://kaist.zoom.us/my/jeehoon.kang), 
+  your Zoom name should be `<your student number> <your name>` (e.g., `20071163 강지훈`).
   Change your name by referring to [this](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
 
 - This course is conducted in English. But you may ask questions in Korean. Then I will translate it to English.
