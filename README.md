@@ -13,7 +13,7 @@
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository.
 - TA: [Janggun Lee](https://cp.kaist.ac.kr/janggun.lee)
-  + Office Hour: TBA. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+  + Office Hour: Fri 9:00am-10:00am, [Zoom room](https://us05web.zoom.us/j/5293497056?pwd=OHFyMStoQm83UnY2dzg0ZDgwcWxjUT09) (The passcode is same as the class). It is not required, but if you want to come, do so by 9:15am. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
     <!-- Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy. -->
 
 
