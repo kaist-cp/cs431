@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use rand::prelude::*;
 
 use crossbeam_epoch::pin;
-use crossbeam_utils::thread;
+use std::thread;
 
 pub fn stress_sequential<
     K: fmt::Debug + Clone + Eq + Hash + RandGen,
@@ -145,7 +145,7 @@ pub fn lookup_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|_| {
+            s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
@@ -170,8 +170,7 @@ pub fn lookup_concurrent<
                 }
             });
         }
-    })
-    .unwrap();
+    });
 }
 
 pub fn insert_concurrent<
@@ -185,7 +184,7 @@ pub fn insert_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|_| {
+            s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let key = K::rand_gen(&mut rng);
@@ -196,8 +195,7 @@ pub fn insert_concurrent<
                 }
             });
         }
-    })
-    .unwrap();
+    });
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -237,7 +235,7 @@ pub fn stress_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|_| {
+            s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
@@ -260,8 +258,7 @@ pub fn stress_concurrent<
                 }
             });
         }
-    })
-    .unwrap();
+    });
 }
 
 fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec<Vec<Log<K, V>>>) {
@@ -275,7 +272,7 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
         }
     }
 
-    for (_, logs) in &per_key_logs {
+    for logs in per_key_logs.values() {
         let mut inserts = HashMap::<V, usize>::new();
         let mut deletes = HashMap::<V, usize>::new();
 
@@ -294,12 +291,12 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
         }
 
         for l in logs {
-            match l {
-                Log::Lookup {
-                    key: _,
-                    value: Some(v),
-                } => assert!(inserts.contains_key(v)),
-                _ => (),
+            if let Log::Lookup {
+                key: _,
+                value: Some(v),
+            } = l
+            {
+                assert!(inserts.contains_key(v))
             }
         }
 
@@ -323,7 +320,7 @@ pub fn log_concurrent<
     let logs = thread::scope(|s| {
         let mut handles = Vec::new();
         for _ in 0..threads {
-            let handle = s.spawn(|_| {
+            let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 let mut logs = Vec::new();
                 for _ in 0..steps {
@@ -370,8 +367,7 @@ pub fn log_concurrent<
             .into_iter()
             .map(|h| h.join().unwrap())
             .collect::<Vec<_>>()
-    })
-    .unwrap();
+    });
 
     assert_logs_consistent(&logs);
 }

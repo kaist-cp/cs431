@@ -1,9 +1,9 @@
 use crossbeam_channel::bounded;
-use crossbeam_utils::thread::scope;
 use cs431_homework::hello_server::CancellableTcpListener;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::thread::scope;
 use std::time::Duration;
 
 #[test]
@@ -19,20 +19,19 @@ fn cancellable_listener_cancel() {
 
     let (done_sender, done_receiver) = bounded(0);
     scope(|s| {
-        s.spawn(|_| {
+        s.spawn(|| {
             for stream in listener.incoming() {
                 let mut stream = stream.unwrap();
                 let mut buf = [0];
-                stream.read(&mut buf).unwrap();
+                let _ = stream.read(&mut buf).unwrap();
                 assert_eq!(buf[0], 123);
             }
             done_sender.send(()).unwrap();
         });
         let mut stream = TcpStream::connect(addr).unwrap();
-        stream.write(&[123]).unwrap();
+        let _ = stream.write(&[123]).unwrap();
 
         listener.cancel().unwrap();
         done_receiver.recv_timeout(Duration::from_secs(3)).unwrap();
-    })
-    .unwrap();
+    });
 }

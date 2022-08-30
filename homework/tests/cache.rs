@@ -1,8 +1,8 @@
 use crossbeam_channel::bounded;
-use crossbeam_utils::thread::scope;
 use cs431_homework::hello_server::Cache;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Barrier;
+use std::thread::scope;
 use std::time::Duration;
 
 const NUM_THREADS: usize = 8;
@@ -28,7 +28,7 @@ fn cache_no_duplicate_concurrent() {
         let num_compute = AtomicUsize::new(0);
         scope(|s| {
             for _ in 0..NUM_THREADS {
-                s.spawn(|_| {
+                s.spawn(|| {
                     barrier.wait();
                     for key in 0..NUM_KEYS {
                         cache.get_or_insert_with(key, |k| {
@@ -38,8 +38,7 @@ fn cache_no_duplicate_concurrent() {
                     }
                 });
             }
-        })
-        .unwrap();
+        });
         assert_eq!(num_compute.load(Ordering::Relaxed), NUM_KEYS);
     }
 }
@@ -51,7 +50,7 @@ fn cache_no_block_disjoint() {
     scope(|s| {
         // T1 blocks while inserting 1.
         let (t1_quit_sender, t1_quit_receiver) = bounded(0);
-        s.spawn(move |_| {
+        s.spawn(move || {
             cache.get_or_insert_with(1, |k| {
                 // block T1
                 t1_quit_receiver.recv().unwrap();
@@ -61,7 +60,7 @@ fn cache_no_block_disjoint() {
 
         // T2 must not be blocked by T1 when inserting 2.
         let (t2_done_sender, t2_done_receiver) = bounded(0);
-        s.spawn(move |_| {
+        s.spawn(move || {
             cache.get_or_insert_with(2, |k| k);
             t2_done_sender.send(()).unwrap();
         });
@@ -73,8 +72,7 @@ fn cache_no_block_disjoint() {
 
         // clean up
         t1_quit_sender.send(()).unwrap();
-    })
-    .unwrap();
+    });
 }
 
 #[test]
@@ -86,13 +84,13 @@ fn cache_no_reader_block() {
         let (t3_done_sender, t3_done_receiver) = bounded(0);
 
         // T1 blocks while inserting 1.
-        s.spawn(move |s| {
+        s.spawn(move || {
             cache.get_or_insert_with(1, |k| {
                 // T2 is blocked by T1 when reading 1
-                s.spawn(move |_| cache.get_or_insert_with(1, |_| panic!()));
+                s.spawn(move || cache.get_or_insert_with(1, |_| panic!()));
 
                 // T3 should not be blocked when inserting 3.
-                s.spawn(move |_| {
+                s.spawn(move || {
                     cache.get_or_insert_with(3, |k| k);
                     t3_done_sender.send(()).unwrap();
                 });
@@ -110,6 +108,5 @@ fn cache_no_reader_block() {
 
         // clean up
         t1_quit_sender.send(()).unwrap();
-    })
-    .unwrap();
+    });
 }

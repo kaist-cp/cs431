@@ -1,4 +1,3 @@
-use crossbeam_utils::thread;
 use rand::distributions::Alphanumeric;
 use rand::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -6,6 +5,7 @@ use std::sync::atomic::{
     AtomicBool,
     Ordering::{Acquire, Release},
 };
+use std::thread;
 
 use cs431_homework::OrderedListSet;
 
@@ -32,12 +32,11 @@ fn parallel_iter_end() {
     iter.next();
     iter.next();
     thread::scope(|s| {
-        s.spawn(|_| {
+        s.spawn(|| {
             // this shouldn't block
             let _ = set.iter().collect::<Vec<_>>();
         });
-    })
-    .unwrap();
+    });
     drop(iter);
 }
 
@@ -150,7 +149,7 @@ fn stress_concurrent() {
 
     thread::scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let op = ops.choose(&mut rng).unwrap();
@@ -172,8 +171,7 @@ fn stress_concurrent() {
                 }
             });
         }
-    })
-    .unwrap();
+    });
 }
 
 fn assert_logs_consistent(logs: &Vec<Vec<Log>>) {
@@ -200,9 +198,8 @@ fn assert_logs_consistent(logs: &Vec<Vec<Log>>) {
         }
 
         for l in logs {
-            match l {
-                Log::Contains { key, result: true } => assert!(inserts.contains_key(key)),
-                _ => (),
+            if let Log::Contains { key, result: true } = l {
+                assert!(inserts.contains_key(key))
             }
         }
 
@@ -224,7 +221,7 @@ fn log_concurrent() {
     let logs = thread::scope(|s| {
         let mut handles = Vec::new();
         for _ in 0..THREADS {
-            let handle = s.spawn(|_| {
+            let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 let mut logs = Vec::new();
                 for _ in 0..STEPS {
@@ -265,8 +262,7 @@ fn log_concurrent() {
             .into_iter()
             .map(|h| h.join().unwrap())
             .collect::<Vec<_>>()
-    })
-    .unwrap();
+    });
 
     assert_logs_consistent(&logs);
 }
@@ -288,7 +284,7 @@ fn iter_consistent() {
     thread::scope(|s| {
         // insert or remove odd numbers
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let key = 2 * rng.gen_range(0..50) + 1;
@@ -302,7 +298,7 @@ fn iter_consistent() {
             });
         }
         // iterator consistency check
-        s.spawn(|_| {
+        s.spawn(|| {
             while !done.load(Acquire) {
                 let snapshot = set.iter().copied().collect::<Vec<_>>();
                 // sorted
@@ -312,6 +308,5 @@ fn iter_consistent() {
                 assert!(evens.is_subset(&snapshot));
             }
         });
-    })
-    .unwrap();
+    });
 }
