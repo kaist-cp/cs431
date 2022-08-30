@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use rand::prelude::*;
 
 use crossbeam_epoch::pin;
-use std::thread;
+use crossbeam_utils::thread;
 
 pub fn stress_sequential<
     K: fmt::Debug + Clone + Eq + Hash + RandGen,
@@ -145,7 +145,7 @@ pub fn lookup_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            s.spawn(|_| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
@@ -170,7 +170,8 @@ pub fn lookup_concurrent<
                 }
             });
         }
-    });
+    })
+    .unwrap();
 }
 
 pub fn insert_concurrent<
@@ -184,7 +185,7 @@ pub fn insert_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            s.spawn(|_| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let key = K::rand_gen(&mut rng);
@@ -195,7 +196,8 @@ pub fn insert_concurrent<
                 }
             });
         }
-    });
+    })
+    .unwrap();
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -235,7 +237,7 @@ pub fn stress_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            s.spawn(|_| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
@@ -258,7 +260,8 @@ pub fn stress_concurrent<
                 }
             });
         }
-    });
+    })
+    .unwrap();
 }
 
 fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec<Vec<Log<K, V>>>) {
@@ -320,7 +323,7 @@ pub fn log_concurrent<
     let logs = thread::scope(|s| {
         let mut handles = Vec::new();
         for _ in 0..threads {
-            let handle = s.spawn(|| {
+            let handle = s.spawn(|_| {
                 let mut rng = thread_rng();
                 let mut logs = Vec::new();
                 for _ in 0..steps {
@@ -367,7 +370,8 @@ pub fn log_concurrent<
             .into_iter()
             .map(|h| h.join().unwrap())
             .collect::<Vec<_>>()
-    });
+    })
+    .unwrap();
 
     assert_logs_consistent(&logs);
 }

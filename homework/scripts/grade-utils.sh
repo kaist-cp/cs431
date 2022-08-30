@@ -7,7 +7,13 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-rustup toolchain update stable nightly
+# libc does not compile for 2022-04-05~17
+# Thread sanitizer bugs and reports false positive race from 2022-04-18 for hw 1,5, and timeouts for hw6 on linux.
+# In particular, the bug is reproducable using only std: https://github.com/kaist-cp/cs431/issues/607#issuecomment-1231663168
+# Apple silicon does not have the thread sanitizer bug for some reason.
+export RUST_NIGHTLY=2022-04-04
+rustup toolchain update stable # nightly
+rustup install nightly-$RUST_NIGHTLY
 
 echo_err() {
     echo -e "\033[0;31m\033[1m$@\033[0m" 1>&2
@@ -45,7 +51,7 @@ cargo_asan() {
     local SUBCOMMAND=$1; shift
     RUSTFLAGS="-Z sanitizer=address" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
-        cargo +nightly $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
+        cargo +nightly-$RUST_NIGHTLY $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
 }
 export -f cargo_asan
 
@@ -55,7 +61,7 @@ cargo_tsan() {
         TSAN_OPTIONS="suppressions=suppress_tsan.txt" \
         RUSTDOCFLAGS="-Z sanitizer=thread" \
         RUST_TEST_THREADS=1 \
-        cargo +nightly $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
+        cargo +nightly-$RUST_NIGHTLY $SUBCOMMAND --target x86_64-unknown-linux-gnu $@
 }
 export -f cargo_tsan
 

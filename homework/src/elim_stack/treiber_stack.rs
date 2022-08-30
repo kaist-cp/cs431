@@ -95,7 +95,7 @@ impl<T> Drop for TreiberStack<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::thread::scope;
+    use crossbeam_utils::thread::scope;
 
     #[test]
     fn push() {
@@ -103,14 +103,15 @@ mod test {
 
         scope(|scope| {
             for _ in 0..10 {
-                scope.spawn(|| {
+                scope.spawn(|_| {
                     for i in 0..10_000 {
                         stack.push(i);
                         assert!(stack.pop().is_some());
                     }
                 });
             }
-        });
+        })
+        .unwrap();
 
         assert!(stack.pop().is_none());
     }
