@@ -8,8 +8,8 @@ use core::sync::atomic::{AtomicPtr, Ordering::*};
 #[cfg(feature = "check-loom")]
 use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
-use crossbeam_utils::thread::scope;
 use cs431_homework::hazard_pointer::{collect, retire, Shield};
+use std::thread::scope;
 
 #[test]
 fn counter() {
@@ -19,7 +19,7 @@ fn counter() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
@@ -41,8 +41,7 @@ fn counter() {
                 }
             });
         }
-    })
-    .unwrap();
+    });
     let cur = count.load(Acquire);
     // exclusive access
     assert_eq!(unsafe { *cur }, THREADS * ITER);
@@ -58,7 +57,7 @@ fn counter_sleep() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
@@ -85,8 +84,7 @@ fn counter_sleep() {
                 }
             });
         }
-    })
-    .unwrap();
+    });
     let cur = count.load(Acquire);
     // exclusive access
     assert_eq!(unsafe { *cur }, THREADS * ITER);
@@ -101,15 +99,14 @@ fn stack() {
     let stack = Stack::new();
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 for i in 0..ITER {
                     stack.push(i);
                     stack.pop();
                 }
             });
         }
-    })
-    .unwrap();
+    });
     assert!(stack.pop().is_none());
 }
 
@@ -122,7 +119,7 @@ fn two_stacks() {
     let stack2 = Stack::new();
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|_| {
+            s.spawn(|| {
                 for i in 0..ITER {
                     stack1.push(i);
                     stack1.pop();
@@ -131,8 +128,7 @@ fn two_stacks() {
                 }
             });
         }
-    })
-    .unwrap();
+    });
     assert!(stack1.pop().is_none());
 }
 
