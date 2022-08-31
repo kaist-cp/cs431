@@ -1,4 +1,4 @@
-# Hazard pointers
+# Hazard Pointers
 Implement Hazard Pointers.
 
 1. Read [this paper](https://ieeexplore.ieee.org/document/1291819).
