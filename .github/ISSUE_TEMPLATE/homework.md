@@ -9,11 +9,9 @@ assignees: ''
 
 Implement TODO.
 
-- Read [this manual](https://github.com/kaist-cp/cs492-concur/blob/master/homework/README.md) for general advice on homework.
+- Read [this manual](https://github.com/kaist-cp/cs431/blob/main/homework/README.md) for general advice on homework.
 
-- Watch [this video](TODO) for specification.
-
-- Use [skeleton code](https://github.com/kaist-cp/cs492-concur/tree/master/homework/src/hello_server) as a starting point, and fill out `todo!()`.
+- Use [skeleton code](https://github.com/kaist-cp/cs431/tree/main/homework/src/TODO) as a starting point, and fill out `todo!()`.
     + **IMPORTANT**: don't fork this repository.  It'll be public!
 
 - Submit your code [here](https://gg.kaist.ac.kr/assignment/TODO/).
