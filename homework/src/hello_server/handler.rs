@@ -1,6 +1,6 @@
 //! Request handler with a cache.
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::bytes::Regex;
 use std::io::prelude::*;
 use std::net::TcpStream;
@@ -53,10 +53,8 @@ impl Handler {
         let mut buf = [0; 512];
         let _ = stream.read(&mut buf).unwrap();
 
-        lazy_static! {
-            static ref REQUEST_REGEX: Regex =
-                Regex::new(r"GET /(?P<key>\w+) HTTP/1.1\r\n").unwrap();
-        }
+        static REQUEST_REGEX: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r"GET /(?P<key>\w+) HTTP/1.1\r\n").unwrap());
         let key = REQUEST_REGEX
             .captures(&buf)
             .and_then(|cap| cap.name("key"))

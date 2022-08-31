@@ -87,6 +87,8 @@ pub use retire::RetiredSet;
 pub static HAZARDS: HazardBag = HazardBag::new();
 
 #[cfg(feature = "check-loom")]
+// FIXME: loom does not currently provide the equivalent of Lazy:
+// https://github.com/tokio-rs/loom/issues/263
 loom::lazy_static! {
     /// Default global bag of all hazard pointers.
     pub static ref HAZARDS: HazardBag = HazardBag::new();
