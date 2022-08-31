@@ -152,7 +152,7 @@ Make sure you're capable of using the following development tools:
 
     + Your initial password is `123454321`. IMPORTANT: you should change it ASAP.
 
-    + I require you to register public SSH keys to the server. (In March, we'll expire your password so that you can log in only via SSH keys.)
+    + I require you to register public SSH keys to the server. (In September, we'll expire your password so that you can log in only via SSH keys.)
       See [this tutorial](https://serverpilot.io/docs/how-to-use-ssh-public-key-authentication/) for more information on SSH public key authentication.
       Use `ed25519`.
 
