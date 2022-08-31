@@ -169,6 +169,8 @@ Make sure you're capable of using the following development tools:
 
     + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
 
+    + Install [rustup](https://rustup.rs) in the server to begin working on Rust!
+
     + [NOTE: We recommend the `rust-analyzer` plugin instead of `rls`](https://github.com/rust-analyzer/rust-analyzer).
 
     + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the 
