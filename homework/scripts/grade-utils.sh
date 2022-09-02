@@ -10,7 +10,7 @@
 rustup toolchain update stable nightly
 
 echo_err() {
-    echo -e "\033[0;31m\033[1m$@\033[0m" 1>&2
+    echo -e "$@" 1>&2
 }
 export -f echo_err
 
