@@ -1,12 +1,12 @@
 # Core Arc
-**Implement a simplified version of `Arc` without the support for `Weak`.**
+**Implement a simplified version of `Arc` without support for `Weak`.**
 
 In this homework, you will practice basic synchronization in the relaxed memory model by implementing a simplified version of `Arc`.  Specifically, you will use atomic operations of `AtomicUsize` and/or `fence` to synchronize the accesses to the underlying data with its deallocation.  Read the documentation in `src/arc.rs` carefully and fill in the `todo!()`s.  The total lines of code to be written is about 25.
 
 The skeleton code is heavily modified version of `Arc` from the standard library.  We don't recommend reading the original source code before finishing this homework because that version is more complex.
 
 ## Grading (50 points)
-Run `./scripts/grade-3.sh`.
+Run `./scripts/grade-arc.sh`.
 
 1. Functionality (25): First, the grader will check if your implementation passes the doc tests and the tests in `tests/arc.rs`. You can manually re-run the test with following commands:
     ```
@@ -15,11 +15,11 @@ Run `./scripts/grade-3.sh`.
     RUSTFLAGS="-Z sanitizer=address" RUSTDOCFLAGS="-Z sanitizer=address" cargo +nightly test --target x86_64-unknown-linux-gnu --test arc
     RUSTFLAGS="-Z sanitizer=address" RUSTDOCFLAGS="-Z sanitizer=address" cargo +nightly test --target x86_64-unknown-linux-gnu --doc arc
     ```
-2. Correctness (25): Then the grader runs the tests with [the Loom model checker](https://github.com/tokio-rs/loom) to check all possible executions (interleaving & reordering) in the memory model. If your code doesn't pass these tests, then you need to add more synchronization operations or fix the memory ordering of them. You can manually re-run the tests with this command.
+1. Correctness (25): Then the grader runs the tests with [the Loom model checker](https://github.com/tokio-rs/loom) to check all possible executions (interleaving & reordering) in the memory model. If your code doesn't pass these tests, then you need to add more synchronization operations or fix the memory ordering of them. You can manually re-run the tests with this command.
     ```
     cargo test --features check-loom --test arc -- --nocapture --test-threads 1
     ```
-3. Efficiency: Make sure that you don't use `SeqCst` ordering. We'll give 0 point if your solution contains `SeqCst`. We will not check if your implementation is optimal in terms of synchronization, but we encourage you to find the minimal set of synchronization operations.
+1. Efficiency: Make sure that you don't use `SeqCst` ordering. We'll give 0 point if your solution contains `SeqCst`. We will not check if your implementation is optimal in terms of synchronization, but we encourage you to find the minimal set of synchronization operations.
 
 ## Submission
 Submit `arc.rs` to gg.

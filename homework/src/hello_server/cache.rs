@@ -23,6 +23,7 @@ impl<K: Eq + Hash + Clone, V: Clone> Cache<K, V> {
     /// On the other hand, since `f` may consume a lot of resource (= money), it's desirable not to
     /// duplicate the work. That is, `f` should be run only once for each key. Specifically, even
     /// for the concurrent invocations of `get_or_insert_with(key, f)`, `f` is called only once.
+    ///
     /// Hint: the [`Entry`] API may be useful in implementing this function.
     ///
     /// [`Entry`]: https://doc.rust-lang.org/stable/std/collections/hash_map/struct.HashMap.html#method.entry

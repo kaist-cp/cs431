@@ -14,7 +14,7 @@
 - `../src/hello_server/*.rs`: the server components. You should fill out `todo!()` in those files.
 
 ## Grading
-The grader runs `./script/grade-1.sh` in the `homework` directory.
+The grader runs `./script/grade-hello_server.sh` in the `homework` directory.
 This script runs the tests with with various options.
 
 There will be no partial scores for each module.

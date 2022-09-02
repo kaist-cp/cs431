@@ -9,7 +9,7 @@ The [skeleton code](https://github.com/kaist-cp/cs431/blob/main/homework/src/lin
 
 ## Grading
 * The full score for this homework is 40 points (HW1 was 100) and total lines of code to be written is about 80.
-* You can evaluate your solution by running `./scripts/grade-2.sh` in the `homework` directory.
+* You can evaluate your solution by running `./scripts/grade-linked_list.sh` in the `homework` directory.
 
 ## Submission
 Submit `linked_list.rs` to gg.

@@ -15,12 +15,12 @@ For better performance, the list should keep the elements sorted.
 Without this, maintaining the uniqueness of each element in the set requires that all the operations traverse to the end of the list to check if the element of interest is already in the list.
 By keeping the list sorted, each operation only needs to traverse to the given key.
 
-Your job is to fill in `todo!()`s in `list_set.rs` (about 45 lines of code). As in HW2 and HW3, you will need to use some unsafe operations.
+Your job is to fill in `todo!()`s in `list_set.rs` (about 45 lines of code). As in the [Linked List homeowork](./linked_list.md), you will need to use some unsafe operations.
 
 ## Grading
 Run
 ```
-./scripts/grade-4.sh
+./scripts/grade-list_set.sh
 ```
 
 Grading scheme:

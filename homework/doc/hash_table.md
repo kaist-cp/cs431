@@ -43,7 +43,7 @@ Tests in `tests/{growable_array,hash_table}.rs` uses the map test functions defi
   This check doesn't guarantee complete correctness unlike `stress_sequential`.
 
 ## Grading (180 points)
-Run `./scripts/grade-5.sh`.
+Run `./scripts/grade-hash_table.sh`.
 
 For each module `growable_array` and `split_ordered_list`,
 the grader runs the tests with `cargo`, `cargo_asan`, and `cargo_tsan` in the following order.

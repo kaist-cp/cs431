@@ -1,4 +1,4 @@
-# Hazard Pointers
+# Hazard pointers
 Implement Hazard Pointers.
 
 1. Read [this paper](https://ieeexplore.ieee.org/document/1291819).
@@ -12,7 +12,7 @@ Implement Hazard Pointers.
    (approx 75 lines).
 
 ## Grading (100 points)
-Run `./scripts/grade-6.sh`.
+Run `./scripts/grade-hazard_pointer.sh`.
 
 Grading scheme
 * tested with `cargo[_asan] [--release]`
