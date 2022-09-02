@@ -63,9 +63,9 @@ Note:
 ```bash
 cd cs431/homework
 ./scripts/submit.sh
-ls ./target/hw5.zip
+ls ./target/hw-hash_table.zip
 ```
-Submit `hw5.zip` to gg.
+Submit `hw-hash_table.zip` to gg.
 
 
 ## FAQ

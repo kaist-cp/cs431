@@ -24,9 +24,9 @@ That is, you will get the score for a module only if your implementation passes 
 ```bash
 cd cs431/homework
 ./scripts/submit.sh
-ls ./target/hw1.zip
+ls ./target/hw-hello_server.zip
 ```
-Submit `hw1.zip` to gg.
+Submit `hw-hello_server.zip` to gg.
 
 ## Guide
 

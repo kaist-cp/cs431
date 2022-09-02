@@ -26,6 +26,6 @@ Grading scheme
 ```bash
 cd cs431/homework
 ./scripts/submit.sh
-ls ./target/hw6.zip
+ls ./target/hw-hazard_pointer.zip
 ```
-Submit `hw6.zip` to gg.
+Submit `hw-hazard_pointer.zip` to gg.
