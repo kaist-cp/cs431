@@ -143,7 +143,7 @@ impl Log {
 
 #[test]
 fn stress_concurrent() {
-    let ops = [Ops::Contains, Ops::Insert, Ops::Remove, Ops::Remove];
+    let ops = [Ops::Contains, Ops::Insert, Ops::Remove];
 
     let set = OrderedListSet::new();
 
