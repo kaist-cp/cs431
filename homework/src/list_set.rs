@@ -1,4 +1,3 @@
-#![allow(clippy::mutex_atomic)]
 use std::cmp;
 use std::ptr;
 use std::sync::{Mutex, MutexGuard};
