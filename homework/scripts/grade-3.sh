@@ -9,45 +9,46 @@ source $BASEDIR/grade-utils.sh
 
 run_linters || exit 1
 
-SCORE=0
+TIMEOUT=1m
+export RUST_TEST_THREADS=1
 
-# 1. Basic arc functionality
+# 1. Basic (10)
 RUNNERS=(
     "cargo"
     "cargo --release"
-    "cargo_asan"
-    "cargo_asan --release"
 )
 TESTS=(
-    "--doc arc"
-    "--test arc"
+    "--test list_set"
 )
-arc_basic_failed=false
+
 for RUNNER in "${RUNNERS[@]}"; do
     echo "Running with $RUNNER..."
     if [ $(run_tests) -ne 0 ]; then
-        arc_basic_failed=true
-        break
+        echo "Score: 0 / 80"
+        exit
     fi
 done
 
-if [ "$arc_basic_failed" = false ]; then
-    SCORE=$((SCORE + 25))
-fi
+# 2. Correctness (70)
+RUNNERS=(
+    "cargo_asan"
+    "cargo_asan --release"
+    "cargo_tsan"
+    "cargo_tsan --release"
+)
+TESTS=(
+    "--test list_set stress_sequential"
+    "--test list_set stress_concurrent"
+    "--test list_set log_concurrent"
+    "--test list_set iter_consistent"
+)
 
-# 2. Correctness
-RUNNER="cargo --features check-loom"
-TESTS=("--test arc")
-echo "Running with $RUNNER..."
-if [ $(run_tests) -eq 0 ]; then
-    SCORE=$((SCORE + 25))
-fi
+for RUNNER in "${RUNNERS[@]}"; do
+    echo "Running with $RUNNER..."
+    if [ $(run_tests) -ne 0 ]; then
+        echo "Score: 10 / 80"
+        exit
+    fi
+done
 
-# 3. SeqCst is not allowed.
-grep -n --color=always "SeqCst" $BASEDIR/../src/arc.rs
-if [ $? -eq 0 ]; then
-    echo "You used SeqCst!"
-    SCORE=0
-fi
-
-echo "Score: $SCORE / 50"
+echo "Score: 80 / 80"
