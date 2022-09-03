@@ -22,7 +22,7 @@
 
 ### Context
 
-I expect computers in the next 700 years will be **massively parallel**. We the humankind want to
+I expect computers in the next 70 years will be **massively parallel**. We the humankind want to
 improve the performance of computers in the era of big data. But it is becoming more and more
 challenging after the breakdown of [Dennard scaling](https://en.wikipedia.org/wiki/Dennard_scaling)
 around 2005, which means the performance of sequential computers will not be improved. Thus not only
