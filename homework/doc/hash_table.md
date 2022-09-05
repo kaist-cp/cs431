@@ -8,14 +8,14 @@
     + Chapter 13.3 of [The Art of Multiprocessor Programming](https://www.amazon.com/Art-Multiprocessor-Programming-Revised-Reprint/dp/0123973376):
       Presents the same stuff, but more readable.
       [pdf](https://dl.acm.org/doi/book/10.5555/2385452) of the book can be downloaded for free in KAIST.
-    + The [lock-free linked list](https://github.com/kaist-cp/cs431/blob/main/lockfree/src/list.rs) interface and implementation.
+    + The [lock-free linked list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) interface and implementation.
 1. Implement `GrowableArray` in [`hash_table/growable_array.rs`](../src/hash_table/growable_array.rs). (about 100 LOC)
     * You'll need to perform integer-pointer casts because `AtomicUsize` in `Segment` can be interpreted as both `Atomic<T>` and `Atomic<Segment>`.
       Use [`into_usize` and `from_usize`](https://docs.rs/crossbeam/*/crossbeam/epoch/trait.Pointer.html).
       See also: [#225](https://github.com/kaist-cp/cs431/issues/225)
     * To represent the height of the segment tree, [tag](https://en.wikipedia.org/wiki/Tagged_pointer) the `root` pointer with the height.
       Use [`tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.tag) and [`with_tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.with_tag).
-      See [lock-free list](https://github.com/kaist-cp/cs431/blob/main/lockfree/src/list.rs) for example usage.
+      See [lock-free list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) for example usage.
       See also: [#226](https://github.com/kaist-cp/cs431/issues/226)
 1. Implement `SplitOrderedList` in [`hash_table/split_ordered_list.rs`](../src/hash_table/split_ordered_list.rs). (about 80 LOC)
     * You can use bitwise operations on `usize` e.g. `<<`, `&`, `|`, `^`, ...
