@@ -45,7 +45,7 @@ pub trait SequentialMap<K: ?Sized, V> {
     /// Inserts a key-value pair.
     fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)>;
 
-    /// Delets a key returning, returning the value.
+    /// Delets a key, returning the value.
     fn delete(&mut self, key: &K) -> Result<V, ()>;
 }
 
