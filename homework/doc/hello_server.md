@@ -43,13 +43,13 @@ Specifically, make sure that you understand following topics.
 
 ### Major differences between HW1 thread pool and Rust book §20 thread pool
 1. We use [`crossbeam_channel`](https://docs.rs/crossbeam-channel/) instead of [<code>std::sync::<strong>mpsc</strong></code>](https://doc.rust-lang.org/std/sync/mpsc/index.html). Since crossbeam channel is **mpmc**, you don't need to wrap the `Receiver` inside a `Mutex`.
-2. We do not use explicit exit message for thread pool. Instead, we disconnect the channel by `drop`ping the receiver/sender.
+1. We do not use explicit exit message for thread pool. Instead, we disconnect the channel by `drop`ping the receiver/sender.
     * Our message type is simply the `Job` itself:
       ```rust
       struct Job(Box<dyn FnOnce() + Send + 'static>);
       ```
     * Each worker thread automatically breaks out of the loop if the channel is disconnected.
-3. We `join()` each thread in the destructor of `Worker`, not in the destructor of `ThreadPool`. Since `ThreadPool` has field `workers: Vec<Worker>`, the worker destructor will be called when the pool is dropped. Note that the channel should be disconnected before `join()`ning the worker threads. (Otherwise, `join` will block.) This means that the `Sender` should be dropped before `Vec<Worker>`. You can specify the drop order in many ways. In this homework, we use `ThreadPool::job_sender` of type `Option<Sender<Job>>`, content of which can be `take()`n and `drop()`ped explicitly in `<ThreadPool as Drop>::drop`.
+1. We `join()` each thread in the destructor of `Worker`, not in the destructor of `ThreadPool`. Since `ThreadPool` has field `workers: Vec<Worker>`, the worker destructor will be called when the pool is dropped. Note that the channel should be disconnected before `join()`ning the worker threads. (Otherwise, `join` will block.) This means that the `Sender` should be dropped before `Vec<Worker>`. You can specify the drop order in many ways. In this homework, we use `ThreadPool::job_sender` of type `Option<Sender<Job>>`, content of which can be `take()`n and `drop()`ped explicitly in `<ThreadPool as Drop>::drop`.
 
 ### Tips
 * Cache: Start with `Mutex<HashMap<K, V>>`. To fully implement the specification, you will need a more complicated type. The simplest solution makes use of all the things imported in `cache.rs`.

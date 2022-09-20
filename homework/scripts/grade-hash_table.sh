@@ -23,20 +23,22 @@ RUNNERS=(
     "cargo --release"
     "cargo_asan"
     "cargo_asan --release"
+    "cargo_tsan"
     "cargo_tsan --release"
 )
 # timeout for each (TEST_NAME, RUNNER).
 TIMEOUTS=(
-    10s 10s 10s  10s 10s
-    10s 10s 10s  10s 10s
-    10s 10s 10s  10s 10s
-    30s 10s 120s 15s 60s
-    30s 10s 120s 15s 60s
+    10s 10s 10s  10s 10s  10s
+    10s 10s 10s  10s 10s  10s
+    10s 10s 10s  10s 10s  10s
+    30s 10s 120s 15s 180s 60s
+    30s 10s 120s 15s 180s 60s
 )
 # the index of the last failed test
 growable_array_fail=${#TEST_NAMES[@]}
 split_ordered_list_fail=${#TEST_NAMES[@]}
 
+echo "1. Running tests..."
 for t in "${!TEST_NAMES[@]}"; do
     for r in "${!RUNNERS[@]}"; do
         TEST_NAME=${TEST_NAMES[t]}
@@ -60,6 +62,41 @@ for t in "${!TEST_NAMES[@]}"; do
     done
 done
 
-SCORES=( 0 10 20 30 60 90 )
+# 2. Check uses of SeqCst
+# Don't give performance_score score if tests failed.
+growable_array_performance_ok=false
+split_ordered_list_performance_ok=false
+if [ $growable_array_fail -eq ${#TEST_NAMES[@]} ]; then
+    echo "2. Checking uses of SeqCst..."
+    # TODO(@tomtomjhj): This mapfile thing requires bash≥4.0. Not compatible with Mac's bash.
+    # Alternatives: https://stackoverflow.com/a/32931403
+    mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hash_table/growable_array.rs )
+    if [ ${#lines[@]} -gt 0 ]; then
+        echo_err "You used SeqCst in growable_array (and transitively in split_ordered_list)!"
+        ( IFS=$'\n'; echo_err "${lines[*]}"; echo "" )
+        # Give zero in this case, because split_ordered_list uses growable_array.
+    else
+        growable_array_performance_ok=true
+        if [ $split_ordered_list_fail -eq ${#TEST_NAMES[@]} ]; then
+            mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hash_table/split_ordered_list.rs )
+            if [ ${#lines[@]} -gt 0 ]; then
+                echo_err "You used SeqCst in split_ordered_list!"
+                ( IFS=$'\n'; echo_err "${lines[*]}"; echo "" )
+            else
+                split_ordered_list_performance_ok=true
+            fi
+        fi
+    fi
+fi
+
+
+SCORES=( 0 5 10 20 40 70 )
 SCORE=$(( ${SCORES[growable_array_fail]} + ${SCORES[split_ordered_list_fail]} ))
+if [ "$growable_array_performance_ok" = true ]; then
+    SCORE=$((SCORE + 20))
+fi
+if [ "$split_ordered_list_performance_ok" = true ]; then
+    SCORE=$((SCORE + 20))
+fi
+
 echo "Score: $SCORE / 180"

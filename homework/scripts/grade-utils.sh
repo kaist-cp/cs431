@@ -25,6 +25,18 @@ check_diff() {
 }
 export -f check_diff
 
+# grep_skip_comment PATTERN FILE...
+# Shows all occurrences of PATTERN in code, excluding line comment.
+grep_skip_comment() {
+    local pat=$1; shift
+    for file; do
+        for linenr in $(sed 's://.*::' "$file" | grep -on "$pat" | cut -d : -f 1); do
+            sed -n "${linenr}p" "$file" | awk -v F="${file##*/}" -v L="$linenr" '{print F ":" L ":" $0}'
+        done
+    done
+}
+export -f grep_skip_comment
+
 # Returns non-zero exit code if any of the linters have failed.
 run_linters() {
     cargo fmt -- --check

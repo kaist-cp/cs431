@@ -23,6 +23,7 @@
     * We provided type signatures for 2 helper methods for `SplitOrderedList`.
       You can modify/remove them or add more private methods if you want to.
       Just make sure you don't change the public interface. You can import other stuff from the `core` or `crossbeam_epoch` crates (but not necessary).
+1. Implement using the `SeqCst` ordering for every atomic accesses first, and then use more relaxed orderings.
 
 ## Testing
 Tests in `tests/{growable_array,hash_table}.rs` uses the map test functions defined in `tests/map/mod.rs`.
@@ -45,19 +46,26 @@ Tests in `tests/{growable_array,hash_table}.rs` uses the map test functions defi
 ## Grading (180 points)
 Run `./scripts/grade-hash_table.sh`.
 
+### Correctness
 For each module `growable_array` and `split_ordered_list`,
 the grader runs the tests with `cargo`, `cargo_asan`, and `cargo_tsan` in the following order.
-1. `stress_sequential` (10 points)
-2. `lookup_concurrent` (10 points)
-3. `insert_concurrent` (10 points)
-4. `stress_concurrent` (30 points)
-5. `log_concurrent` (30 points)
+1. `stress_sequential` (5 points)
+1. `lookup_concurrent` (5 points)
+1. `insert_concurrent` (10 points)
+1. `stress_concurrent` (20 points)
+1. `log_concurrent` (30 points)
 
 Note:
 * If a test fails in a module, then the later tests in the same module will not be run.
 * The test timeout is at least 5x of the time our implementation took on the homework server.
   It is not a tight timeout, but it will detect implementations that are clearly incorrect.
 
+### Performance
+For each module `growable_array` and `split_ordered_list`,
+the grader checks the usage of `SeqCst` ordering, and gives 20 points if it is not used.
+
+Since `split_ordered_list` uses `growable_array`, using `SeqCst` in `growable_array` means it
+is used in `split_ordered_list` as well.
 
 ## Submission
 ```bash
