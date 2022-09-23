@@ -56,7 +56,7 @@ cargo_asan() {
     local SUBCOMMAND=$1; shift
     RUSTFLAGS="-Z sanitizer=address" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
-        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu $@
+        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu "$@"
 }
 export -f cargo_asan
 
@@ -66,7 +66,7 @@ cargo_tsan() {
         TSAN_OPTIONS="suppressions=suppress_tsan.txt" \
         RUSTDOCFLAGS="-Z sanitizer=thread" \
         RUST_TEST_THREADS=1 \
-        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu $@
+        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu "$@"
 }
 export -f cargo_tsan
 
@@ -79,7 +79,7 @@ export -f cargo_tsan
 _run_tests_with() {
     local CARGO=$1; shift
     local MSGS # https://mywiki.wooledge.org/BashPitfalls#local_var.3D.24.28cmd.29
-    MSGS=$($CARGO test --no-run $@ 2>&1)
+    MSGS=$($CARGO test --no-run "$@" 2>&1)
     if [ $? -ne 0 ]; then
         echo_err "Build failed! Error message:"
         echo_err "${MSGS}"
@@ -90,7 +90,7 @@ _run_tests_with() {
 
     local FAILED=0
     for TEST in "${TESTS[@]}"; do
-        local TEST_CMD="$CARGO test $@ $TEST"
+        local TEST_CMD="$CARGO test $* $TEST"
         timeout ${TIMEOUT:-20s} bash -c "$TEST_CMD 2>/dev/null" 1>&2
         case $? in
             0) ;;
@@ -106,6 +106,6 @@ _run_tests_with() {
 run_tests() {
     # "cargo --release" should be split into "cargo" and "--release"
     local IFS=' '
-    echo $(_run_tests_with $RUNNER)
+    _run_tests_with $RUNNER
 }
 export -f run_tests

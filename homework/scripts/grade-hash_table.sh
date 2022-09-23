@@ -39,8 +39,8 @@ growable_array_fail=${#TEST_NAMES[@]}
 split_ordered_list_fail=${#TEST_NAMES[@]}
 
 echo "1. Running tests..."
-for t in "${!TEST_NAMES[@]}"; do
-    for r in "${!RUNNERS[@]}"; do
+for r in "${!RUNNERS[@]}"; do
+    for t in "${!TEST_NAMES[@]}"; do
         TEST_NAME=${TEST_NAMES[t]}
         RUNNER=${RUNNERS[r]}
         TIMEOUT=${TIMEOUTS[ t * ${#RUNNERS[@]} + r ]}
