@@ -79,16 +79,9 @@ impl<'g, K, V> Cursor<'g, K, V>
 where
     K: Ord,
 {
-    /// Creates a cursor from raw pointers.
-    ///
-    /// # Safety
-    ///
-    /// TODO
-    pub unsafe fn from_raw(prev: *const Atomic<Node<K, V>>, curr: *const Node<K, V>) -> Self {
-        Self {
-            prev: &*prev,
-            curr: Shared::from_usize(curr as usize),
-        }
+    /// Creates a cursor.
+    pub fn new(prev: &'g Atomic<Node<K, V>>, curr: Shared<'g, Node<K, V>>) -> Self {
+        Self { prev, curr }
     }
 
     /// Returns the current node.
