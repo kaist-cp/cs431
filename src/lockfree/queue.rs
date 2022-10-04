@@ -49,13 +49,12 @@ impl<T> Default for Queue<T> {
             data: MaybeUninit::uninit(),
             next: Atomic::null(),
         });
-        unsafe {
-            let guard = &unprotected();
-            let sentinel = sentinel.into_shared(guard);
-            q.head.store(sentinel, Ordering::Relaxed);
-            q.tail.store(sentinel, Ordering::Relaxed);
-            q
-        }
+        // SAFETY: We are creating a new queue, hence have sole ownership of it.
+        let guard = unsafe { unprotected() };
+        let sentinel = sentinel.into_shared(guard);
+        q.head.store(sentinel, Ordering::Relaxed);
+        q.tail.store(sentinel, Ordering::Relaxed);
+        q
     }
 }
 
@@ -148,8 +147,8 @@ impl<T> Queue<T> {
             {
                 unsafe {
                     guard.defer_destroy(head);
-                    return Some(ptr::read(&next_ref.data).assume_init());
                 }
+                return Some(unsafe { ptr::read(&next_ref.data).assume_init() });
             }
         }
     }
@@ -157,15 +156,15 @@ impl<T> Queue<T> {
 
 impl<T> Drop for Queue<T> {
     fn drop(&mut self) {
-        unsafe {
-            let guard = unprotected();
+        // SAFETY: We have `&mut self`, hence have sole ownership of it and its elements.
 
-            while self.try_pop(guard).is_some() {}
+        let guard = unsafe { unprotected() };
 
-            // Destroy the remaining sentinel node.
-            let sentinel = self.head.load(Ordering::Relaxed, guard);
-            drop(sentinel.into_owned());
-        }
+        while self.try_pop(guard).is_some() {}
+
+        // Destroy the remaining sentinel node.
+        let sentinel = self.head.load(Ordering::Relaxed, guard);
+        drop(unsafe { sentinel.into_owned() });
     }
 }
 
@@ -173,7 +172,7 @@ impl<T> Drop for Queue<T> {
 mod test {
     use super::*;
     use crossbeam_epoch::pin;
-    use crossbeam_utils::thread;
+    use std::thread::scope;
 
     struct Queue<T> {
         queue: super::Queue<T>,
@@ -289,8 +288,8 @@ mod test {
         let q: Queue<i64> = Queue::new();
         assert!(q.is_empty());
 
-        thread::scope(|scope| {
-            scope.spawn(|_| {
+        scope(|scope| {
+            scope.spawn(|| {
                 let mut next = 0;
 
                 while next < CONC_COUNT {
@@ -304,8 +303,7 @@ mod test {
             for i in 0..CONC_COUNT {
                 q.push(i)
             }
-        })
-        .unwrap();
+        });
     }
 
     #[test]
@@ -326,19 +324,18 @@ mod test {
 
         let q: Queue<i64> = Queue::new();
         assert!(q.is_empty());
-        thread::scope(|scope| {
+        scope(|scope| {
             for i in 0..3 {
                 let q = &q;
-                scope.spawn(move |_| recv(i, q));
+                scope.spawn(move || recv(i, q));
             }
 
-            scope.spawn(|_| {
+            scope.spawn(|| {
                 for i in 0..CONC_COUNT {
                     q.push(i);
                 }
             });
-        })
-        .unwrap();
+        });
     }
 
     #[test]
@@ -351,19 +348,19 @@ mod test {
         let q: Queue<LR> = Queue::new();
         assert!(q.is_empty());
 
-        thread::scope(|scope| {
-            for _t in 0..2 {
-                scope.spawn(|_| {
+        scope(|scope| {
+            for _ in 0..2 {
+                scope.spawn(|| {
                     for i in CONC_COUNT - 1..CONC_COUNT {
                         q.push(LR::Left(i))
                     }
                 });
-                scope.spawn(|_| {
+                scope.spawn(|| {
                     for i in CONC_COUNT - 1..CONC_COUNT {
                         q.push(LR::Right(i))
                     }
                 });
-                scope.spawn(|_| {
+                scope.spawn(|| {
                     let mut vl = vec![];
                     let mut vr = vec![];
                     for _i in 0..CONC_COUNT {
@@ -383,16 +380,15 @@ mod test {
                     assert_eq!(vr, vr2);
                 });
             }
-        })
-        .unwrap();
+        });
     }
 
     #[test]
     fn push_pop_many_spsc() {
         let q: Queue<i64> = Queue::new();
 
-        thread::scope(|scope| {
-            scope.spawn(|_| {
+        scope(|scope| {
+            scope.spawn(|| {
                 let mut next = 0;
                 while next < CONC_COUNT {
                     assert_eq!(q.pop(), next);
@@ -403,8 +399,7 @@ mod test {
             for i in 0..CONC_COUNT {
                 q.push(i)
             }
-        })
-        .unwrap();
+        });
         assert!(q.is_empty());
     }
 

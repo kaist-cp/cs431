@@ -228,7 +228,7 @@ impl<'s, T> ReadGuard<'s, T> {
 
     /// Tries to upgrade to a writer's lock.
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
-        let result = if unsafe { self.lock.lock.upgrade(self.seq).is_ok() } {
+        let result = if unsafe { self.lock.lock.upgrade(self.seq) }.is_ok() {
             Ok(WriteGuard {
                 lock: self.lock,
                 seq: self.seq,

@@ -77,6 +77,7 @@ impl<L: RawLock, T> Lock<L, T> {
     ///
     /// The underlying lock should be actually acquired.
     pub unsafe fn unlock_unchecked(&self, token: L::Token) {
+        // SAFETY: Trivial from the safety contract.
         self.lock.unlock(token);
     }
 
@@ -84,12 +85,16 @@ impl<L: RawLock, T> Lock<L, T> {
     ///
     /// The underlying lock should be actually acquired.
     pub unsafe fn get_unchecked(&self) -> &T {
+        // SAFETY: since the lock is already aquired,
+        // we have unique access to `data`.
+        // In particular, if we don't change it,
+        // it is immutable.
         &*self.data.get()
     }
 
     /// Dereferences the inner value.
     pub fn get_mut(&mut self) -> &mut T {
-        unsafe { &mut *self.data.get() }
+        self.data.get_mut()
     }
 
     /// # Safety
@@ -97,7 +102,9 @@ impl<L: RawLock, T> Lock<L, T> {
     /// The underlying lock should be actually acquired.
     #[allow(clippy::mut_from_ref)]
     pub unsafe fn get_mut_unchecked(&self) -> &mut T {
-        &mut *self.data.get()
+        // SAFETY: since the lock is already aquired,
+        // we have unique access to `data`.
+        self.data.get().as_mut().unwrap()
     }
 }
 
@@ -121,6 +128,7 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
 
 impl<'s, L: RawLock, T> Drop for LockGuard<'s, L, T> {
     fn drop(&mut self) {
+        // SAFETY: We give `unlock` a clone of the token.
         unsafe { self.lock.lock.unlock(self.token.clone()) };
     }
 }
@@ -129,13 +137,17 @@ impl<'s, L: RawLock, T> Deref for LockGuard<'s, L, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*self.lock.data.get() }
+        // SAFETY: Having a `LockGuard` means the underlying lock is held.
+        unsafe { self.lock.get_unchecked() }
     }
 }
 
 impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *self.lock.data.get() }
+        // SAFETY: Having a `LockGuarad` means the underlying lock is held.
+        // NOTE: Ideally, we would use `get_mut()` here, but `lock` is a `&`,
+        // not a `&mut`.
+        unsafe { self.lock.get_mut_unchecked() }
     }
 }
 
@@ -152,6 +164,7 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
     /// The given arguments should be the data of a forgotten lock guard.
     pub unsafe fn from_raw(data: usize, token: L::Token) -> Self {
         Self {
+            // SAFETY: data is from a `lock` that was forgotten.
             lock: &*(data as *const _),
             token,
             _marker: PhantomData,
@@ -163,7 +176,7 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
 pub mod tests {
     use core::ops::Deref;
 
-    use crossbeam_utils::thread::scope;
+    use std::thread::scope;
 
     use super::{Lock, RawLock};
 
@@ -174,13 +187,12 @@ pub mod tests {
         scope(|s| {
             for i in 1..LENGTH {
                 let d = &d;
-                s.spawn(move |_| {
+                s.spawn(move || {
                     let mut d = d.lock();
                     d.push(i);
                 });
             }
-        })
-        .unwrap();
+        });
 
         let mut d = d.lock();
         d.sort();

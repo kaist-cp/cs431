@@ -1,6 +1,6 @@
 //! Lock-free singly linked list.
 
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
+use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
 
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::sync::atomic::Ordering;
@@ -31,14 +31,16 @@ where
 
 impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
-        unsafe {
-            let mut curr = self.head.load(Ordering::Relaxed, unprotected());
-            while !curr.is_null() {
-                let curr_ref = curr.deref_mut();
-                let next = curr_ref.next.load(Ordering::Relaxed, unprotected());
-                drop(curr.into_owned());
-                curr = next;
-            }
+        // SAFETY: since we have `&mut self`, any
+        // references from `lookup()` must have finished.
+        // Hence, we have sole ownership of `self` and its `Node`s.
+        let guard = unsafe { unprotected() };
+        let mut curr = self.head.load(Ordering::Relaxed, guard);
+        while !curr.is_null() {
+            let curr_ref = unsafe { curr.deref_mut() };
+            let next = curr_ref.next.load(Ordering::Relaxed, guard);
+            drop(unsafe { curr.into_owned() });
+            curr = next;
         }
     }
 }
@@ -141,11 +143,12 @@ where
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
-            unsafe {
-                let next = node.as_ref().unwrap().next.load(Ordering::Acquire, guard);
-                guard.defer_destroy(node);
-                node = next;
-            }
+            let next = unsafe { node.as_ref() }
+                .unwrap()
+                .next
+                .load(Ordering::Acquire, guard);
+            unsafe { guard.defer_destroy(node) };
+            node = next;
         }
 
         Ok(found)
@@ -204,7 +207,7 @@ where
     /// Lookups the value.
     #[inline]
     pub fn lookup(&self) -> Option<&'g V> {
-        unsafe { self.curr.as_ref().map(|n| &n.value) }
+        unsafe { self.curr.as_ref() }.map(|n| &n.value)
     }
 
     /// Inserts a value.
@@ -293,7 +296,7 @@ where
     {
         let (found, cursor) = self.find(key, &find, guard);
         if found {
-            unsafe { cursor.curr.as_ref().map(|n| &n.value) }
+            unsafe { cursor.curr.as_ref() }.map(|n| &n.value)
         } else {
             None
         }
