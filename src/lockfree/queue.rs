@@ -145,10 +145,12 @@ impl<T> Queue<T> {
                 .compare_exchange(head, next, Ordering::Release, Ordering::Relaxed, guard)
                 .is_ok()
             {
+                let result = unsafe { ptr::read(&next_ref.data).assume_init() };
                 unsafe {
                     guard.defer_destroy(head);
                 }
-                return Some(unsafe { ptr::read(&next_ref.data).assume_init() });
+
+                return Some(result);
             }
         }
     }
