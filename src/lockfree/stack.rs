@@ -62,23 +62,19 @@ impl<T> Stack<T> {
         let guard = crossbeam_epoch::pin();
         loop {
             let head = self.head.load(Ordering::Acquire, &guard);
+            let h = unsafe { head.as_ref() }?;
+            let next = h.next.load(Ordering::Relaxed, &guard);
 
-            match unsafe { head.as_ref() } {
-                Some(h) => {
-                    let next = h.next.load(Ordering::Relaxed, &guard);
-
-                    if self
-                        .head
-                        .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, &guard)
-                        .is_ok()
-                    {
-                        unsafe {
-                            guard.defer_destroy(head);
-                        }
-                        return Some(ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) }));
-                    }
+            if self
+                .head
+                .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, &guard)
+                .is_ok()
+            {
+                let result = ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) });
+                unsafe {
+                    guard.defer_destroy(head);
                 }
-                None => return None,
+                return Some(result);
             }
         }
     }

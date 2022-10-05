@@ -204,9 +204,8 @@ mod test {
 
         pub fn pop(&self) -> T {
             loop {
-                match self.try_pop() {
-                    None => continue,
-                    Some(t) => return t,
+                if let Some(t) = self.try_pop() {
+                    return t;
                 }
             }
         }
