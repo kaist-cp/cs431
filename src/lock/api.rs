@@ -85,10 +85,9 @@ impl<L: RawLock, T> Lock<L, T> {
     ///
     /// The underlying lock should be actually acquired.
     pub unsafe fn get_unchecked(&self) -> &T {
-        // SAFETY: since the lock is already aquired,
-        // we have unique access to `data`.
-        // In particular, if we don't change it,
-        // it is immutable.
+        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is
+        // already acquired, we have unique access to `data`. In particular, if we don't
+        // change it, it stays immutable.
         &*self.data.get()
     }
 
@@ -102,9 +101,9 @@ impl<L: RawLock, T> Lock<L, T> {
     /// The underlying lock should be actually acquired.
     #[allow(clippy::mut_from_ref)]
     pub unsafe fn get_mut_unchecked(&self) -> &mut T {
-        // SAFETY: since the lock is already aquired,
-        // we have unique access to `data`.
-        self.data.get().as_mut().unwrap()
+        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
+        // acquired, we have unique access to `data`.
+        &mut *self.data.get()
     }
 }
 
@@ -128,7 +127,8 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
 
 impl<'s, L: RawLock, T> Drop for LockGuard<'s, L, T> {
     fn drop(&mut self) {
-        // SAFETY: We give `unlock` a clone of the token.
+        // SAFETY: since `self` was created with `lock` and it's `token`, the `token` given to
+        // `unlock()` is correct.
         unsafe { self.lock.lock.unlock(self.token.clone()) };
     }
 }
@@ -137,14 +137,15 @@ impl<'s, L: RawLock, T> Deref for LockGuard<'s, L, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Having a `LockGuard` means the underlying lock is held.
+        // SAFETY: Having a `LockGuard` means the underlying lock is acquired.
         unsafe { self.lock.get_unchecked() }
     }
 }
 
 impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: Having a `LockGuarad` means the underlying lock is held.
+        // SAFETY: Having a `LockGuard` means the underlying lock is held.
+        //
         // NOTE: Ideally, we would use `get_mut()` here, but `lock` is a `&`,
         // not a `&mut`.
         unsafe { self.lock.get_mut_unchecked() }
