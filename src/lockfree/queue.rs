@@ -6,7 +6,6 @@
 //! Algorithms.  PODC 1996.  http://dl.acm.org/citation.cfm?id=248106
 
 use core::mem::MaybeUninit;
-use core::ptr;
 use core::sync::atomic::Ordering;
 
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
@@ -26,7 +25,7 @@ pub struct Queue<T> {
 struct Node<T> {
     /// The slot in which a value of type `T` can be stored.
     ///
-    /// The type of `data` is `ManuallyDrop<T>` because a `Node<T>` doesn't always contain a `T`.
+    /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a `T`.
     /// For example, the sentinel node in a queue never contains a value: its slot is always empty.
     /// Other nodes start their life with a push operation and contain a value until it gets popped
     /// out. After that such empty nodes get added to the collector for destruction.
@@ -64,7 +63,7 @@ impl<T> Queue<T> {
         Self::default()
     }
 
-    /// Adds `t` to the back of the queue, possibly waking up threads blocked on `pop`.
+    /// Adds `t` to the back of the queue, possibly waking up threads blocked on `pop()`.
     pub fn push(&self, t: T, guard: &Guard) {
         let new = Owned::new(Node {
             data: MaybeUninit::new(t),
@@ -123,9 +122,12 @@ impl<T> Queue<T> {
     pub fn try_pop(&self, guard: &Guard) -> Option<T> {
         loop {
             let head = self.head.load(Ordering::Acquire, guard);
+            // SAFETY: queue's `head` is always valid as it will be CASed with valid nodes only.
             let h = unsafe { head.deref() };
             let next = h.next.load(Ordering::Acquire, guard);
-            let next_ref = some_or!(unsafe { next.as_ref() }, return None);
+            // SAFETY: If `next` is not null, then it must be a valid node that another thread has
+            // `push()`ed.
+            let next_ref = unsafe { next.as_ref() }?;
 
             // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then the
             // messages for that node are already acquired.
@@ -145,7 +147,21 @@ impl<T> Queue<T> {
                 .compare_exchange(head, next, Ordering::Release, Ordering::Relaxed, guard)
                 .is_ok()
             {
-                let result = unsafe { ptr::read(&next_ref.data).assume_init() };
+                // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
+                // is unreachable from other threads.
+
+                // SAFETY: `next` will never be the sentinal node, since it is the node after
+                // `head`. Hence, it must have been a node made in `push()`, which is initialized.
+                //
+                // Also, We are returning ownership of `data` in `next` by making a copy of it
+                // via `assume_init_read()`. This is safe as no other thread has access to `data`
+                // after `head` is unreachable, so the ownership of `data` in `next` will never be
+                // used again as it is now a sentinal node.
+                let result = unsafe { next_ref.data.assume_init_read() };
+
+                // SAFETY: `head` is unreachable, and we no longer access `head`. We destory `head`
+                // after the final access to `next` above to ensure that `next` is also destroyed
+                // after.
                 unsafe {
                     guard.defer_destroy(head);
                 }
@@ -159,13 +175,14 @@ impl<T> Queue<T> {
 impl<T> Drop for Queue<T> {
     fn drop(&mut self) {
         // SAFETY: We have `&mut self`, hence have sole ownership of it and its elements.
-
         let guard = unsafe { unprotected() };
 
         while self.try_pop(guard).is_some() {}
 
         // Destroy the remaining sentinel node.
         let sentinel = self.head.load(Ordering::Relaxed, guard);
+        // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinal node so it is
+        // still valid.
         drop(unsafe { sentinel.into_owned() });
     }
 }

@@ -70,7 +70,16 @@ impl<T> Stack<T> {
                 .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, &guard)
                 .is_ok()
             {
+                // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
+                // is unreachable from other threads.
+
+                // SAFETY: We are returning ownership of `data` in `head` by making a copy of it via
+                // `ptr::read()`. This is safe as no other thread has access to `data` after
+                // `head` is unreachable, so the ownership of `data` in `head` will never be used
+                // again.
                 let result = ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) });
+
+                // SAFETY: `head` is unreachable, and we no longer access `head`.
                 unsafe {
                     guard.defer_destroy(head);
                 }

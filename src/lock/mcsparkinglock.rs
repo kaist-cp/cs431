@@ -53,10 +53,12 @@ impl RawLock for McsParkingLock {
             return Token(node);
         }
 
+        // SAFETY: See safety of McsLock::lock().
         unsafe {
             (*prev).next.store(node, Ordering::Release);
         }
 
+        // SAFETY: See safety of McsLock::lock().
         while unsafe { (*node).locked.load(Ordering::Acquire) } {
             thread::park();
         }
@@ -70,6 +72,7 @@ impl RawLock for McsParkingLock {
         loop {
             let next = (*node).next.load(Ordering::Acquire);
             if !next.is_null() {
+                // SAFETY: See safety of McsLock::unlock().
                 drop(Box::from_raw(node));
                 let thread = (*next).thread.clone();
                 (*next).locked.store(false, Ordering::Release);
@@ -82,6 +85,7 @@ impl RawLock for McsParkingLock {
                 .compare_exchange(node, ptr::null_mut(), Ordering::Release, Ordering::Relaxed)
                 .is_ok()
             {
+                // SAFETY: See safety of McsLock::unlock().
                 drop(Box::from_raw(node));
                 return;
             }
