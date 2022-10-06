@@ -41,16 +41,30 @@ impl RawLock for ClhLock {
         let prev = self.tail.swap(node, Ordering::AcqRel);
         let backoff = Backoff::new();
 
+        // SAFETY: `prev` is valid, as `self.tail` was valid at initialization and any `swap()` to
+        // it by other `lock()`s. Hence, it points to valid memory as the thread that made
+        // `prev` will not free it.
         while unsafe { (*prev).locked.load(Ordering::Acquire) } {
             backoff.snooze();
         }
 
+        // SAFETY: since `prev` was obtained from a swap on tail, only this thread other
+        // than its creator can access it. Since the creator will no longer access `prev` as its
+        // `locked` is false, we have unique access to it.
         drop(unsafe { Box::from_raw(prev) });
         Token(node)
     }
 
     unsafe fn unlock(&self, token: Self::Token) {
         (*token.0).locked.store(false, Ordering::Release);
+    }
+}
+
+impl Drop for ClhLock {
+    fn drop(&mut self) {
+        // Drop the node made by the last thread that `lock()`ed.
+        let node = self.tail.load(Ordering::Relaxed);
+        drop(unsafe { Box::from_raw(node) });
     }
 }
 
