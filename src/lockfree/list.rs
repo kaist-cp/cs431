@@ -31,8 +31,7 @@ where
 
 impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
-        // SAFETY: since we have `&mut self`, any
-        // references from `lookup()` must have finished.
+        // SAFETY: since we have `&mut self`, any references from `lookup()` must have finished.
         // Hence, we have sole ownership of `self` and its `Node`s.
         let guard = unsafe { unprotected() };
         let mut curr = self.head.load(Ordering::Relaxed, guard);
