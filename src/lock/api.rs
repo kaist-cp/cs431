@@ -1,12 +1,12 @@
 use core::cell::UnsafeCell;
 use core::marker::PhantomData;
-use core::mem;
+use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, DerefMut};
 
 /// Raw lock interface.
 pub trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
-    type Token: Clone;
+    type Token;
 
     /// Acquires the raw lock.
     fn lock(&self) -> Self::Token;
@@ -55,7 +55,7 @@ impl<L: RawLock, T> Lock<L, T> {
         let token = self.lock.lock();
         LockGuard {
             lock: self,
-            token,
+            token: ManuallyDrop::new(token),
             _marker: PhantomData,
         }
     }
@@ -66,7 +66,7 @@ impl<L: RawTryLock, T> Lock<L, T> {
     pub fn try_lock(&self) -> Result<LockGuard<L, T>, ()> {
         self.lock.try_lock().map(|token| LockGuard {
             lock: self,
-            token,
+            token: ManuallyDrop::new(token),
             _marker: PhantomData,
         })
     }
@@ -111,7 +111,7 @@ impl<L: RawLock, T> Lock<L, T> {
 #[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,
-    token: L::Token,
+    token: ManuallyDrop<L::Token>,
     _marker: PhantomData<*const ()>, // !Send + !Sync
 }
 
@@ -127,9 +127,13 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
 
 impl<'s, L: RawLock, T> Drop for LockGuard<'s, L, T> {
     fn drop(&mut self) {
+        // SAFETY: `self.token` is not used anymore in this function, and as we are `drop`ing
+        // `self`, it is not used anymore.
+        let token = unsafe { ManuallyDrop::take(&mut self.token) };
+
         // SAFETY: since `self` was created with `lock` and it's `token`, the `token` given to
         // `unlock()` is correct.
-        unsafe { self.lock.lock.unlock(self.token.clone()) };
+        unsafe { self.lock.lock.unlock(token) };
     }
 }
 
@@ -167,7 +171,7 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
         Self {
             // SAFETY: data is from a `lock` that was forgotten.
             lock: &*(data as *const _),
-            token,
+            token: ManuallyDrop::new(token),
             _marker: PhantomData,
         }
     }
