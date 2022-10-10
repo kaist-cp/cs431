@@ -80,9 +80,8 @@ impl<T> Stack<T> {
                 let result = ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) });
 
                 // SAFETY: `head` is unreachable, and we no longer access `head`.
-                unsafe {
-                    guard.defer_destroy(head);
-                }
+                unsafe { guard.defer_destroy(head) };
+
                 return Some(result);
             }
         }
