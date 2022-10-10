@@ -167,9 +167,7 @@ where
                 self.prev
                     .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
                     .map_err(|_| ())?;
-                unsafe {
-                    guard.defer_destroy(self.curr);
-                }
+                unsafe { guard.defer_destroy(self.curr) };
                 self.curr = next;
                 continue;
             }
