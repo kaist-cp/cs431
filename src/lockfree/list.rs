@@ -147,7 +147,9 @@ where
                 .unwrap()
                 .next
                 .load(Ordering::Acquire, guard);
-            unsafe { guard.defer_destroy(node) };
+            unsafe {
+                guard.defer_destroy(node);
+            }
             node = next;
         }
 
@@ -168,7 +170,9 @@ where
                 self.prev
                     .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
                     .map_err(|_| ())?;
-                unsafe { guard.defer_destroy(self.curr) };
+                unsafe {
+                    guard.defer_destroy(self.curr);
+                }
                 self.curr = next;
                 continue;
             }
@@ -246,7 +250,9 @@ where
             .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
             .is_ok()
         {
-            unsafe { guard.defer_destroy(self.curr) };
+            unsafe {
+                guard.defer_destroy(self.curr);
+            }
         }
 
         Ok(&curr_node.value)

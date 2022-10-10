@@ -162,7 +162,9 @@ impl<T> Queue<T> {
                 // SAFETY: `head` is unreachable, and we no longer access `head`. We destory `head`
                 // after the final access to `next` above to ensure that `next` is also destroyed
                 // after.
-                unsafe { guard.defer_destroy(head) };
+                unsafe {
+                    guard.defer_destroy(head);
+                }
 
                 return Some(result);
             }
