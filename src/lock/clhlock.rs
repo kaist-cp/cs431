@@ -64,6 +64,8 @@ impl Drop for ClhLock {
     fn drop(&mut self) {
         // Drop the node made by the last thread that `lock()`ed.
         let node = self.tail.load(Ordering::Relaxed);
+
+        // SAFETY: Since this is the tail node, no other thread has access to it.
         drop(unsafe { Box::from_raw(node) });
     }
 }
