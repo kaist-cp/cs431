@@ -317,6 +317,25 @@ fn test_prepend() {
 }
 
 #[test]
+fn test_peek_next() {
+    let mut list: LinkedList<i32> = LinkedList::new();
+    let mut it = list.iter_mut();
+    assert_eq!(it.peek_next(), None);
+
+    let mut list = list_from(&[1, 2, 3]);
+    let mut it = list.iter_mut();
+
+    assert_eq!(it.peek_next(), Some(&mut 1));
+
+    it.peek_next().map(|value| *value = 42);
+
+    assert_eq!(it.next(), Some(&mut 42));
+
+    assert_eq!(it.peek_next(), Some(&mut 2));
+    assert_eq!(it.peek_next(), Some(&mut 2));
+}
+
+#[test]
 fn test_insert_next() {
     let mut list = list_from(&[1, 4]);
 
