@@ -1,4 +1,5 @@
 use std::cmp;
+use std::mem;
 use std::ptr;
 use std::sync::{Mutex, MutexGuard};
 

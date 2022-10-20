@@ -8,7 +8,6 @@ use either::Either;
 
 use arr_macro::arr;
 use itertools::izip;
-use static_assertions::const_assert;
 
 /// The sentinel value for index.
 pub const KEY_ENDMARK: u8 = 0xffu8;
@@ -385,7 +384,7 @@ impl<V> DerefMut for NodeBodyV<V> {
 
 const TAG_BITS: usize = 3;
 const TAG_MASK: usize = (1 << TAG_BITS) - 1;
-const_assert!(mem::align_of::<CachePadded<()>>() >= (1 << TAG_BITS));
+const _: () = assert!(mem::align_of::<CachePadded<()>>() >= (1 << TAG_BITS));
 
 impl<V> NodeBox<V> {
     #[inline]
