@@ -243,7 +243,7 @@ pub fn stress_concurrent<
                     match op {
                         Ops::Lookup => {
                             let key = K::rand_gen(&mut rng);
-                            let _ = map.lookup(&key, &pin(), |_v| {});
+                            map.lookup(&key, &pin(), |_v| {});
                         }
                         Ops::Insert => {
                             let key = K::rand_gen(&mut rng);

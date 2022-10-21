@@ -3,11 +3,11 @@
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
 #![allow(clippy::result_unit_err)]
+// Allow lints for homework.
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 #![allow(unused_mut)]
-#![allow(clippy::boxed_local)]
 
 #[macro_use]
 mod utils;

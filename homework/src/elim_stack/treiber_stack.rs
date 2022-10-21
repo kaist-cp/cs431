@@ -72,7 +72,7 @@ impl<T> Stack<T> for TreiberStack<T> {
             .map_err(|_| ())?;
 
         Ok(Some(unsafe {
-            let data = ptr::read(&(*head_ref).data);
+            let data = ptr::read(&head_ref.data);
             guard.defer_destroy(head);
             ManuallyDrop::into_inner(data)
         }))

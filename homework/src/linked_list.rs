@@ -609,7 +609,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
         if self.len == 0 {
             None
         } else {
-            unsafe { self.head.as_mut() }.map(|node| {
+            unsafe { self.head.as_ref() }.map(|node| {
                 self.len -= 1;
                 self.head = node.next;
                 &node.element
@@ -624,7 +624,7 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
         if self.len == 0 {
             None
         } else {
-            unsafe { self.tail.as_mut() }.map(|node| {
+            unsafe { self.tail.as_ref() }.map(|node| {
                 self.len -= 1;
                 self.tail = node.prev;
                 &node.element

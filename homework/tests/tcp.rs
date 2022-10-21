@@ -11,7 +11,7 @@ fn cancellable_listener_cancel() {
     let mut port = 23456;
     let (addr, listener) = loop {
         let addr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), port));
-        if let Ok(listener) = CancellableTcpListener::bind(&addr) {
+        if let Ok(listener) = CancellableTcpListener::bind(addr) {
             break (addr, listener);
         }
         port += 1;
