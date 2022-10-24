@@ -6,6 +6,7 @@
 // Allow lints for homework.
 #![allow(dead_code)]
 #![allow(unused_variables)]
+#![allow(clippy::boxed_local)]
 #![allow(unused_imports)]
 #![allow(unused_mut)]
 

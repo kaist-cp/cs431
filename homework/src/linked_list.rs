@@ -101,7 +101,6 @@ impl<T> Node<T> {
         }
     }
 
-    #[allow(clippy::boxed_local)]
     fn into_element(self: Box<Self>) -> T {
         self.element
     }
