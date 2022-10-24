@@ -101,7 +101,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn into_element(self: Box<Self>) -> T {
+    fn into_element(self) -> T {
         self.element
     }
 }
@@ -109,11 +109,11 @@ impl<T> Node<T> {
 impl<T> LinkedList<T> {
     /// Adds the given node to the front of the list.
     #[inline]
-    fn push_front_node(&mut self, mut node: Box<Node<T>>) {
+    fn push_front_node(&mut self, mut node: Node<T>) {
         unsafe {
             node.next = self.head;
             node.prev = ptr::null_mut();
-            let node = Box::into_raw(node);
+            let node = Box::into_raw(Box::new(node));
 
             if self.head.is_null() {
                 self.tail = node;
@@ -128,7 +128,7 @@ impl<T> LinkedList<T> {
 
     /// Removes and returns the node at the front of the list.
     #[inline]
-    fn pop_front_node(&mut self) -> Option<Box<Node<T>>> {
+    fn pop_front_node(&mut self) -> Option<Node<T>> {
         if self.head.is_null() {
             return None;
         }
@@ -144,19 +144,19 @@ impl<T> LinkedList<T> {
             }
 
             self.len -= 1;
-            Some(node)
+            Some(*node)
         }
     }
 
     /// Adds the given node to the back of the list.
     #[inline]
-    fn push_back_node(&mut self, mut node: Box<Node<T>>) {
+    fn push_back_node(&mut self, mut node: Node<T>) {
         todo!()
     }
 
     /// Removes and returns the node at the back of the list.
     #[inline]
-    fn pop_back_node(&mut self) -> Option<Box<Node<T>>> {
+    fn pop_back_node(&mut self) -> Option<Node<T>> {
         todo!()
     }
 }
@@ -570,7 +570,7 @@ impl<T> LinkedList<T> {
     /// assert_eq!(3, *d.back().unwrap());
     /// ```
     pub fn push_back(&mut self, elt: T) {
-        self.push_back_node(Box::new(Node::new(elt)));
+        self.push_back_node(Node::new(elt));
     }
 
     /// Removes the last element from a list and returns it, or `None` if
