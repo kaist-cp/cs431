@@ -18,6 +18,10 @@ struct Node<T> {
     next: Atomic<Node<T>>,
 }
 
+// Any particular `T` should never be accessed concurrently, so no need for `Sync`.
+unsafe impl<T: Send> Send for Stack<T> {}
+unsafe impl<T: Send> Sync for Stack<T> {}
+
 impl<T> Default for Stack<T> {
     fn default() -> Self {
         Self {

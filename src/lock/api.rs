@@ -1,5 +1,4 @@
 use core::cell::UnsafeCell;
-use core::marker::PhantomData;
 use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, DerefMut};
 
@@ -56,7 +55,6 @@ impl<L: RawLock, T> Lock<L, T> {
         LockGuard {
             lock: self,
             token: ManuallyDrop::new(token),
-            _marker: PhantomData,
         }
     }
 }
@@ -67,7 +65,6 @@ impl<L: RawTryLock, T> Lock<L, T> {
         self.lock.try_lock().map(|token| LockGuard {
             lock: self,
             token: ManuallyDrop::new(token),
-            _marker: PhantomData,
         })
     }
 }
@@ -112,7 +109,6 @@ impl<L: RawLock, T> Lock<L, T> {
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,
     token: ManuallyDrop<L::Token>,
-    _marker: PhantomData<*const ()>, // !Send + !Sync
 }
 
 unsafe impl<'s, L: RawLock, T: Send> Send for LockGuard<'s, L, T> {}
@@ -172,7 +168,6 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
             // SAFETY: data is from a `lock` that was forgotten.
             lock: &*(data as *const _),
             token: ManuallyDrop::new(token),
-            _marker: PhantomData,
         }
     }
 }
