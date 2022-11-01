@@ -181,7 +181,7 @@ impl<T> Drop for Queue<T> {
 
         // Destroy the remaining sentinel node.
         let sentinel = self.head.load(Ordering::Relaxed, guard);
-        // SAFETY: As `pop()` only drops detached nodes, it never dropped the seninel node so it is
+        // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so it is
         // still valid.
         drop(unsafe { sentinel.into_owned() });
     }
