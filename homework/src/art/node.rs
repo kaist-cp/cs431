@@ -426,7 +426,7 @@ impl<V> NodeBox<V> {
         } else if (49..=256).contains(&size) {
             Self::new_inner_default::<NodeBody256<V>>(header, 3)
         } else {
-            panic!("NodeBox::newi(): invalid size {}", size)
+            panic!("NodeBox::newi(): invalid size {size}")
         };
 
         let base = node.deref_mut().unwrap().1.left().unwrap();
@@ -528,7 +528,7 @@ impl<V> Drop for NodeBox<V> {
                 2 => Self::drop_inner::<NodeBody48<V>>(ptr),
                 3 => Self::drop_inner::<NodeBody256<V>>(ptr),
                 4 => Self::drop_inner::<NodeBodyV<V>>(ptr),
-                _ => panic!("invalid tag {}", tag),
+                _ => panic!("invalid tag {tag}"),
             }
         }
     }

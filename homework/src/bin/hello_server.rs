@@ -65,7 +65,7 @@ fn main() -> io::Result<()> {
     pool.execute(move || {
         let mut stats = Statistics::default();
         for report in report_receiver {
-            println!("[report] {:?}", report);
+            println!("[report] {report:?}");
             stats.add_report(report);
         }
 
@@ -76,7 +76,7 @@ fn main() -> io::Result<()> {
 
     // Blocks until the reporter sends the statistics.
     let stat = stat_receiver.recv().unwrap();
-    println!("[stat] {:?}", stat);
+    println!("[stat] {stat:?}");
 
     Ok(())
     // When the pool is dropped, all worker threads are joined.

@@ -29,10 +29,10 @@ fn counter() {
                         *new = value + 1;
                         let new_ptr = Box::leak(new);
                         if count
-                            .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
+                            .compare_exchange(cur_ptr.cast_mut(), new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            unsafe { retire(cur_ptr as *mut usize) };
+                            unsafe { retire(cur_ptr.cast_mut()) };
                             break;
                         } else {
                             new = unsafe { Box::from_raw(new_ptr) };
@@ -62,7 +62,7 @@ fn counter_sleep() {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
                     loop {
-                        let mut cur_ptr = count.load(Relaxed) as *const _;
+                        let mut cur_ptr = count.load(Relaxed).cast_const();
                         while !shield.try_protect(&mut cur_ptr, &count) {
                             sleep(Duration::from_micros(1));
                         }
@@ -71,10 +71,10 @@ fn counter_sleep() {
                         *new = value + 1;
                         let new_ptr = Box::leak(new);
                         if count
-                            .compare_exchange(cur_ptr as *mut _, new_ptr, AcqRel, Acquire)
+                            .compare_exchange(cur_ptr.cast_mut(), new_ptr, AcqRel, Acquire)
                             .is_ok()
                         {
-                            unsafe { retire(cur_ptr as *mut usize) };
+                            unsafe { retire(cur_ptr.cast_mut()) };
                             collect();
                             break;
                         } else {
@@ -186,19 +186,19 @@ impl<T> Stack<T> {
         let shield = Shield::default();
         loop {
             let head_ptr = shield.protect(&self.head);
-            let head_ref = unsafe { head_ptr.as_ref()? };
+            let head_ref = unsafe { head_ptr.as_ref() }?;
 
             if self
                 .head
                 .compare_exchange(
-                    head_ptr as *mut _,
-                    head_ref.next as *mut _,
+                    head_ptr.cast_mut(),
+                    head_ref.next.cast_mut(),
                     Relaxed,
                     Relaxed,
                 )
                 .is_ok()
             {
-                let head_ptr = head_ptr as *mut Node<T>;
+                let head_ptr = head_ptr.cast_mut();
                 unsafe {
                     let data = ManuallyDrop::take(&mut (*head_ptr).data);
                     retire(head_ptr);
@@ -238,7 +238,7 @@ mod sync {
             let th = {
                 let atomic = atomic.clone();
                 thread::spawn(move || {
-                    let mut local = atomic.load(Relaxed) as *const usize;
+                    let mut local = atomic.load(Relaxed).cast_const();
                     if local.is_null() {
                         return;
                     }
@@ -314,7 +314,7 @@ mod sync {
             drop(shield);
 
             th.join().unwrap();
-            unsafe { drop(Box::from_raw(local as *mut AtomicUsize)) };
+            unsafe { drop(Box::from_raw(local.cast_mut())) };
         })
     }
 }

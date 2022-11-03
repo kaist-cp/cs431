@@ -17,7 +17,7 @@ fn smoke() {
     set.insert(3).unwrap();
     assert_eq!(set.remove(&2), Ok(2));
     for i in set.iter() {
-        println!("{}", i);
+        println!("{i}");
     }
     assert_eq!(set.remove(&3), Ok(3));
 }
@@ -72,35 +72,35 @@ fn stress_sequential() {
         match op {
             Ops::ContainsSome => {
                 if let Some(key) = hashset.iter().choose(&mut rng) {
-                    println!("iteration {}: contains({:?}) (existing)", i, key);
+                    println!("iteration {i}: contains({key:?}) (existing)");
                     assert_eq!(set.contains(key), hashset.contains(key));
                 }
             }
             Ops::ContainsNone => {
                 let key = generate_random_string(&mut rng);
-                println!("iteration {}: contains({:?}) (non-existing)", i, key);
+                println!("iteration {i}: contains({key:?}) (non-existing)");
                 assert_eq!(set.contains(&key), hashset.contains(&key));
             }
             Ops::Insert => {
                 let key = generate_random_string(&mut rng);
-                println!("iteration {}: insert({:?})", i, key);
+                println!("iteration {i}: insert({key:?})");
                 assert_eq!(set.insert(key.clone()).is_ok(), hashset.insert(key));
             }
             Ops::RemoveSome => {
                 let key = hashset.iter().choose(&mut rng).map(Clone::clone);
                 if let Some(key) = key {
-                    println!("iteration {}: remove({:?}) (existing)", i, key);
+                    println!("iteration {i}: remove({key:?}) (existing)");
                     assert_eq!(set.remove(&key).is_ok(), hashset.remove(&key));
                 }
             }
             Ops::RemoveNone => {
                 let key = generate_random_string(&mut rng);
-                println!("iteration {}: remove({:?}) (non-existing)", i, key);
+                println!("iteration {i}: remove({key:?}) (non-existing)");
                 assert_eq!(set.remove(&key).is_ok(), hashset.remove(&key));
             }
             Ops::Iterate => {
                 let result = set.iter().map(Clone::clone).collect::<HashSet<_>>();
-                println!("iteration {}: iter() → {:?}", i, result);
+                println!("iteration {i}: iter() → {result:?}");
                 assert_eq!(result, hashset);
             }
         }

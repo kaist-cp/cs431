@@ -37,7 +37,7 @@ impl<T> Shield<T> {
 
     /// Get a protected pointer from `src`.
     pub fn protect(&self, src: &AtomicPtr<T>) -> *const T {
-        let mut pointer = src.load(Ordering::Relaxed) as *const T;
+        let mut pointer = src.load(Ordering::Relaxed).cast_const();
         while !self.try_protect(&mut pointer, src) {
             #[cfg(feature = "check-loom")]
             loom::sync::atomic::spin_loop_hint();

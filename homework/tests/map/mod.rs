@@ -41,32 +41,32 @@ pub fn stress_sequential<
         match op {
             Ops::LookupSome => {
                 if let Some(key) = hashmap.keys().choose(&mut rng) {
-                    println!("iteration {}: lookup({:?}) (existing)", i, key);
+                    println!("iteration {i}: lookup({key:?}) (existing)");
                     assert_eq!(map.lookup(key), hashmap.get(key));
                 }
             }
             Ops::LookupNone => {
                 let key = K::rand_gen(&mut rng);
-                println!("iteration {}: lookup({:?}) (non-existing)", i, key);
+                println!("iteration {i}: lookup({key:?}) (non-existing)");
                 assert_eq!(map.lookup(&key), hashmap.get(&key));
             }
             Ops::Insert => {
                 let key = K::rand_gen(&mut rng);
                 let value = rng.gen::<usize>();
-                println!("iteration {}: insert({:?}, {})", i, key, value);
+                println!("iteration {i}: insert({key:?}, {value})");
                 let _ = map.insert(&key, value);
                 hashmap.entry(key).or_insert(value);
             }
             Ops::DeleteSome => {
                 let key = hashmap.keys().choose(&mut rng).cloned();
                 if let Some(key) = key {
-                    println!("iteration {}: delete({:?}) (existing)", i, key);
+                    println!("iteration {i}: delete({key:?}) (existing)");
                     assert_eq!(map.delete(&key), hashmap.remove(&key).ok_or(()));
                 }
             }
             Ops::DeleteNone => {
                 let key = K::rand_gen(&mut rng);
-                println!("iteration {}: delete({:?}) (non-existing)", i, key);
+                println!("iteration {i}: delete({key:?}) (non-existing)");
                 assert_eq!(map.delete(&key), hashmap.remove(&key).ok_or(()));
             }
         }
@@ -90,7 +90,7 @@ impl<K: ?Sized, V, M: Default + ConcurrentMap<K, V>> Default for Sequentialize<K
 impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize<K, V, M> {
     fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
         unsafe {
-            let hack = &value as *const _ as *mut V;
+            let hack = (&value as *const V).cast_mut();
             self.inner
                 .insert(key, value, &pin())
                 .map(|_| &mut *hack)
