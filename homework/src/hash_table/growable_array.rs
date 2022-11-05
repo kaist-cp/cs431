@@ -145,7 +145,10 @@ struct Segment {
 impl Segment {
     fn new() -> Self {
         Self {
-            inner: unsafe { mem::zeroed() },
+            inner: unsafe {
+                // SAFETY: `AtomicUsize` can be zero.
+                mem::zeroed()
+            },
         }
     }
 }

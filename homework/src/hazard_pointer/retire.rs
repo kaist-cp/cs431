@@ -34,11 +34,18 @@ impl<'s> RetiredSet<'s> {
     ///
     /// # Safety
     ///
-    /// * `pointer` must be removed from shared memory before calling this function.
-    /// * Subsumes the safety requirements of [`Box::from_raw`].
-    ///
-    /// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
+    /// * `pointer` must be removed from shared memory before calling this function, and must be
+    ///   valid.
     pub unsafe fn retire<T>(&mut self, pointer: *const T) {
+        /// Frees a pointer. This function is defined here instead of `collect()` as we know about
+        /// the type of `pointer` only at the time of retireing it.
+        ///
+        /// # Safety
+        ///
+        /// * Subsumes the safety requirements of [`Box::from_raw`]. In particular, one must have
+        ///   unique ownership to `data`.
+        ///
+        /// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
         unsafe fn free<T>(data: usize) {
             drop(Box::from_raw(data as *mut T))
         }
