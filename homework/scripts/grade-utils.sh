@@ -7,7 +7,7 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-# rustup toolchain update stable nightly
+rustup toolchain update stable nightly
 
 echo_err() {
     echo "$@" 1>&2
