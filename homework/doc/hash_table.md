@@ -1,12 +1,20 @@
 # Lock-free hashtable
-**Implement lock-free hash table based on recursive split-ordered list.**
+**Implement a lock-free hash table based on recursive split-ordered list.**
 
-## Guide
-1. Fully understand the following reading material.
-    + [The original paper on split-ordered list](https://dl.acm.org/doi/abs/10.1145/1147954.1147958).
+This homework is in 2 parts:
+1. (140 points) Functionality:
+   Implement the hash table with `Ordering::SeqCst` for every atomic access.
+   With this, we can pretend that we are on a sequentially consistent memory model.
+2. (40 points) Performance:
+   After you learn about relaxed memory semantics,
+   optimize the implementation by relaxing the ordering on the atomic accesses.
+
+## Part 1: Split-ordered list in sequentially consistent memory model
+1. Fully understand the following reading materials.
+    + [The original paper on the split-ordered list](https://dl.acm.org/doi/abs/10.1145/1147954.1147958).
       You can skip the correctness proof and performance evaluation section.
     + Chapter 13.3 of [The Art of Multiprocessor Programming](https://www.amazon.com/Art-Multiprocessor-Programming-Revised-Reprint/dp/0123973376):
-      Presents the same stuff, but more readable.
+      Presents the same stuff, but is more readable.
       [pdf](https://dl.acm.org/doi/book/10.5555/2385452) of the book can be downloaded for free in KAIST.
     + The [lock-free linked list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) interface and implementation.
 1. Implement `GrowableArray` in [`hash_table/growable_array.rs`](../src/hash_table/growable_array.rs). (about 100 LOC)
@@ -15,7 +23,7 @@
       See also: [#225](https://github.com/kaist-cp/cs431/issues/225)
     * To represent the height of the segment tree, [tag](https://en.wikipedia.org/wiki/Tagged_pointer) the `root` pointer with the height.
       Use [`tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.tag) and [`with_tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.with_tag).
-      See [lock-free list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) for example usage.
+      See [`lockfree/list.rs`](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) for example usage.
       See also: [#226](https://github.com/kaist-cp/cs431/issues/226)
 1. Implement `SplitOrderedList` in [`hash_table/split_ordered_list.rs`](../src/hash_table/split_ordered_list.rs). (about 80 LOC)
     * You can use bitwise operations on `usize` e.g. `<<`, `&`, `|`, `^`, ...
@@ -23,16 +31,19 @@
     * We provided type signatures for 2 helper methods for `SplitOrderedList`.
       You can modify/remove them or add more private methods if you want to.
       Just make sure you don't change the public interface. You can import other stuff from the `core` or `crossbeam_epoch` crates (but not necessary).
-1. Implement using the `SeqCst` ordering for every atomic accesses first, and then use more relaxed orderings.
+
+## Part 2: Relaxing the orderings
+Use release-acquire synchronization for atomic accesses, just like many other data structures covered in the lecture.
+
 
 ## Testing
-Tests in `tests/{growable_array,hash_table}.rs` uses the map test functions defined in `tests/map/mod.rs`.
+Tests in `tests/{growable_array,hash_table}.rs` use the map test functions defined in `tests/map/mod.rs`.
 * `smoke`:
   Simple test case that tries a few operations. Useful for debugging.
 * `stress_sequential`:
   Runs many operations in a single thread and tests if it works like a map data structure using `std::collections::HashMap` as reference.
 * `lookup_concurrent`:
-  Inserts keys sequentially, then concurrently runs lookup in multiple threads.
+  Inserts keys sequentially, then concurrently run lookup in multiple threads.
 * `insert_concurrent`:
   Inserts concurrently.
 * `stress_concurrent`:
@@ -41,12 +52,12 @@ Tests in `tests/{growable_array,hash_table}.rs` uses the map test functions defi
   Randomly runs many operations concurrently and logs the operations & results per thread.
   Then checks the consistency of the log.
   For example, if the key `k` was successfully deleted twice, then `k` must have been inserted at least twice.
-  This check doesn't guarantee complete correctness unlike `stress_sequential`.
+  Unlike `stress_sequential`, this test doesn't guarantee complete correctness.
 
 ## Grading (180 points)
 Run `./scripts/grade-hash_table.sh`.
 
-### Correctness
+### Part 1: Functionality (140 points)
 For each module `growable_array` and `split_ordered_list`,
 the grader runs the tests with `cargo`, `cargo_asan`, and `cargo_tsan` in the following order.
 1. `stress_sequential` (5 points)
@@ -58,11 +69,11 @@ the grader runs the tests with `cargo`, `cargo_asan`, and `cargo_tsan` in the fo
 Note:
 * If a test fails in a module, then the later tests in the same module will not be run.
 * The test timeout is at least 5x of the time our implementation took on the homework server.
-  It is not a tight timeout, but it will detect implementations that are clearly incorrect.
+  It is not a tight timeout, but it will detect clearly incorrect implementations.
 
-### Performance
+### Part 2: Relaxed ordering (40 points)
 For each module `growable_array` and `split_ordered_list`,
-the grader checks the usage of `SeqCst` ordering, and gives 20 points if it is not used.
+the grader checks the usage of `SeqCst` ordering and gives 20 points if it is not used.
 
 Since `split_ordered_list` uses `growable_array`, using `SeqCst` in `growable_array` means it
 is used in `split_ordered_list` as well.
@@ -74,29 +85,3 @@ cd cs431/homework
 ls ./target/hw-hash_table.zip
 ```
 Submit `hw-hash_table.zip` to gg.
-
-
-## FAQ
-
-### Is ThreadSanitizer check meaningful for lock-free data structure?
-> If I understand correctly, role of the thread sanitizer is to detect data race, which can be prevented by using locks.
-> I think that the data race is inevitable in lock-free data structures since they are "lock-free".
-> And I believe that the goal of lock-free data structure is to guarantee the correctness of data structure,
-> even in the situation where data race inevitably exists and multiple thread access the data in arbitrary order.
-
-We say there is a data race if multiple (unsynchronized) threads are accessing a location and at least one access is write.
-Clearly lock-free data structures have data race in that regard.
-However, not all data races are created equal.
-Some races are inherent and expected like lock-free data structures, and the other races are totally unexpected
-(e.g. a variable that should be protected by lock is accessed without holding a lock).
-The job of tools like ThreadSanitizer is to detect the latter type of race.
-But how do we tell the tools that a race is actually expected?
-We use the *atomic* operations like `AtomicUsize::store`.
-All the other operations are considered non-atomic,
-e.g. `=` (this actually is atomic at the architecture level for types like `usize`, but considered non-atomic in this context), `memcpy`, etc,
-and races caused by them are considered real.
-[In fact, C/C++ (which Rust follows) defines data race as a conflict caused by non-atomic operations](https://en.cppreference.com/w/cpp/language/memory_model#Threads_and_data_races).
-
-Related:
-* The problem of ThreadSanitizer is that it doesn't understand synchronization using fences. Because of this, it fails to establish happens-before relation between non-atomic operations, which leads to false positive report. This is not a big problem for most programs because they will simply use locks.
-* In **safe** Rust, the type system guarantees data race freedom by the exclusiveness of `&mut` and  `Send`/`Sync` traits.

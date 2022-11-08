@@ -2,12 +2,12 @@
 **Implement a concurrent set data structure with sorted singly linked list using fine-grained lock-coupling.**
 
 Suppose you want a set data structure that supports concurrent operations.
-The simplest possible approach would be taking a non-concurrent set implementation and protect it with a global lock.
+The simplest possible approach would be taking a non-concurrent set implementation and protecting it with a global lock.
 However, this is not a great idea if the set is accessed frequently because a thread's operation blocks all the other threads' operations.
 
-In this homework, we aim to implement the set using a linked list that uses fine-grained locks in order to allow multiple threads to operate on the set.
-In this data structure, each node of the list has its own lock,
-and the operations traverse the list while acquiring the lock of the next node and releasing the lock of previous node.
+In this homework, we aim to implement the set using a linked list that uses fine-grained locks to allow multiple threads to operate on the set.
+In this data structure, each node of the list has its lock,
+and the operations traverse the list while acquiring the lock of the next node and releasing the lock of the previous node.
 Although a thread holding a node lock may still block another thread that wants to acquire that lock,
 it allows operations to run more concurrently than using a global lock.
 

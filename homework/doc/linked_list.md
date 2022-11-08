@@ -1,7 +1,7 @@
 # Doubly linked list
 **Implement doubly linked list in unsafe Rust.**
 
-This homework serves as a brief tutorial for unsafe Rust with focus on the basic raw pointer operations.
+This homework serves as a brief tutorial for unsafe Rust with a focus on the basic raw pointer operations.
 
 The [skeleton code](https://github.com/kaist-cp/cs431/blob/main/homework/src/linked_list.rs) is slightly modified version of [the linked list from Rust standard library](https://doc.rust-lang.org/std/collections/struct.LinkedList.html).
 We already provided implementation for several methods e.g. `push_front_node`.
@@ -14,7 +14,7 @@ so that you can build enough skill set for upcoming homeworks.
 We also recommend you to play around with AddressSanitizer and debugger.
 
 ## Grading
-* The full score for this homework is 40 points (HW1 was 100) and total lines of code to be written is about 80.
+* The full score for this homework is 40 points (HW1 was 100) and the total lines of code to be written is about 80.
 * You can evaluate your solution by running `./scripts/grade-linked_list.sh` in the `homework` directory.
 
 ## Submission
@@ -30,7 +30,7 @@ Submit `linked_list.rs` to gg.
 1. Read [`std::iter`](https://doc.rust-lang.org/std/iter/index.html) documentation.
 
 ### Tips for debugging
-When cargo test fails with error messages like this,
+When `cargo test` fails with error messages like this,
 ```
 thread panicked while panicking. aborting.
 error: test failed, to rerun pass '--test linked_list'

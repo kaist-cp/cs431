@@ -65,8 +65,6 @@ growable_array_performance_ok=false
 split_ordered_list_performance_ok=false
 if [ $growable_array_fail -eq ${#TEST_NAMES[@]} ]; then
     echo "2. Checking uses of SeqCst..."
-    # TODO(@tomtomjhj): This mapfile thing requires bash≥4.0. Not compatible with Mac's bash.
-    # Alternatives: https://stackoverflow.com/a/32931403
     mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hash_table/growable_array.rs )
     if [ ${#lines[@]} -gt 0 ]; then
         echo_err "You used SeqCst in growable_array (and transitively in split_ordered_list)!"
