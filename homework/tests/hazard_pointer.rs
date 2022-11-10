@@ -231,7 +231,7 @@ mod sync {
     }
 
     // Above tests can't detect the absence of release-acquire between `Shield::drop` and `collect`
-    // for an unknown reasone. So explicitly check release-acquire between `Shield::drop` and
+    // for an unknown reason. So explicitly check release-acquire between `Shield::drop` and
     // `all_hazards`.
     #[test]
     fn shield_drop_all_hazards_sync() {
@@ -493,17 +493,17 @@ mod queue {
                     // Since the above `compare_exchange()` succeeded, `head` is detached from
                     // `self` so is unreachable from other threads.
 
-                    // SAFETY: `next` will never be the seninel node, since it is the node after
+                    // SAFETY: `next` will never be the sentinel node, since it is the node after
                     // `head`. Hence, it must have been a node made in `push()`, which is
                     // initialized.
                     //
-                    // Also, We are returning ownership of `data` in `next` by making a copy of it
+                    // Also, we are returning ownership of `data` in `next` by making a copy of it
                     // via `assume_init_read()`. This is safe as no other thread has access to
                     // `data` after `head` is unreachable, so the ownership of `data` in `next` will
-                    // never be used again as it is now a seninel node.
+                    // never be used again as it is now a sentinel node.
                     let result = unsafe { next_ref.data.assume_init_read() };
 
-                    // SAFETY: `head` is unreachable, and we no longer access `head`. We destory
+                    // SAFETY: `head` is unreachable, and we no longer access `head`. We retire
                     // `head` after the final access to `next` above to ensure that `next` is also
                     // destroyed after.
                     unsafe {
