@@ -67,7 +67,8 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test hazard_pointer -- --exact counter"
             "--test hazard_pointer -- --exact counter_sleep"
             "--test hazard_pointer -- --exact stack"
-            "--test hazard_pointer -- --exact two_stacks"
+            "--test hazard_pointer -- --exact queue"
+            "--test hazard_pointer -- --exact stack_queue"
         )
         if [ $(run_tests) -ne 0 ]; then
             integration_failed=true

@@ -13,7 +13,7 @@ use super::HAZARDS;
 /// Represents the ownership of a hazard pointer slot.
 pub struct Shield<T> {
     slot: NonNull<HazardSlot>,
-    _marker: PhantomData<*const T>, // !Send + !Sync
+    _marker: PhantomData<*mut T>, // !Send + !Sync
 }
 
 impl<T> Shield<T> {
@@ -26,23 +26,49 @@ impl<T> Shield<T> {
         }
     }
 
-    /// Try protecting the pointer `*pointer`.
-    /// 1. Store `*pointer` to the hazard slot.
-    /// 2. Check if `src` still points to `*pointer` (validation) and update `pointer` to the
-    ///    latest value.
-    /// 3. If validated, return true. Otherwise, clear the slot (store 0) and return false.
-    pub fn try_protect(&self, pointer: &mut *const T, src: &AtomicPtr<T>) -> bool {
+    /// Store `pointer` to the hazard slot.
+    pub fn set(&self, pointer: *mut T) {
         todo!()
     }
 
+    /// Clear the hazard slot.
+    pub fn clear(&self) {
+        self.set(ptr::null_mut());
+    }
+
+    /// Check if `src` still points to `pointer`. If not, returns the current value.
+    ///
+    /// For a pointer `p`, if "`src` still pointing to `pointer`" implies that `p` is not retired,
+    /// then `Ok(())` means that shields set to `p` are validated.
+    pub fn validate(pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
+        todo!()
+    }
+
+    /// Try protecting `pointer` obtained from `src`. If not, returns the current value.
+    ///
+    /// If "`src` still pointing to `pointer`" implies that `pointer` is not retired, then `Ok(())`
+    /// means that this shield is validated.
+    pub fn try_protect(&self, pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
+        self.set(pointer);
+        Self::validate(pointer, src).map_err(|new| {
+            self.clear();
+            new
+        })
+    }
+
     /// Get a protected pointer from `src`.
-    pub fn protect(&self, src: &AtomicPtr<T>) -> *const T {
-        let mut pointer = src.load(Ordering::Relaxed).cast_const();
-        while !self.try_protect(&mut pointer, src) {
+    ///
+    /// See `try_protect()`.
+    pub fn protect(&self, src: &AtomicPtr<T>) -> *mut T {
+        let mut pointer = src.load(Ordering::Relaxed);
+        loop {
+            match self.try_protect(pointer, src) {
+                Ok(_) => return pointer,
+                Err(new) => pointer = new,
+            };
             #[cfg(feature = "check-loom")]
             loom::sync::atomic::spin_loop_hint();
         }
-        pointer
     }
 }
 
