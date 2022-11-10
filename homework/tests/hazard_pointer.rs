@@ -372,10 +372,11 @@ mod queue {
     struct Node<T> {
         /// The slot in which a value of type `T` can be stored.
         ///
-        /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a `T`.
-        /// For example, the sentinel node in a queue never contains a value: its slot is always empty.
-        /// Other nodes start their life with a push operation and contain a value until it gets popped
-        /// out. After that such empty nodes get added to the collector for destruction.
+        /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a
+        /// `T`. For example, the sentinel node in a queue never contains a value: its slot is
+        /// always empty. Other nodes start their life with a push operation and contain a value
+        /// until it gets popped out. After that such empty nodes get added to the collector for
+        /// destruction.
         data: MaybeUninit<T>,
 
         next: AtomicPtr<Node<T>>,
@@ -421,7 +422,8 @@ mod queue {
                 // Attempt to push onto the `tail` snapshot; fails if `tail.next` has changed.
                 let next = tail_ref.next.load(Acquire);
 
-                // If `tail` is not the actual tail, try to "help" by moving the tail pointer forward.
+                // If `tail` is not the actual tail, try to "help" by moving the tail pointer
+                // forward.
                 if !next.is_null() {
                     let _ = self.tail.compare_exchange(tail, next, Release, Relaxed);
                     continue;
@@ -470,13 +472,14 @@ mod queue {
                     //    re-validating `head` also validates `next.
                     Ok(_) => unsafe { next.as_ref().unwrap() },
                     Err(new) => {
+                        next_shield.clear();
                         head = new;
                         continue;
                     }
                 };
 
-                // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then the
-                // messages for that node are already acquired.
+                // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then
+                // the messages for that node are already acquired.
                 let tail = self.tail.load(Relaxed);
                 if tail == head {
                     let _ = self.tail.compare_exchange(tail, next, Release, Relaxed);
@@ -487,21 +490,22 @@ mod queue {
                     .compare_exchange(head, next, Release, Relaxed)
                     .is_ok()
                 {
-                    // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
-                    // is unreachable from other threads.
+                    // Since the above `compare_exchange()` succeeded, `head` is detached from
+                    // `self` so is unreachable from other threads.
 
                     // SAFETY: `next` will never be the seninel node, since it is the node after
-                    // `head`. Hence, it must have been a node made in `push()`, which is initialized.
+                    // `head`. Hence, it must have been a node made in `push()`, which is
+                    // initialized.
                     //
                     // Also, We are returning ownership of `data` in `next` by making a copy of it
-                    // via `assume_init_read()`. This is safe as no other thread has access to `data`
-                    // after `head` is unreachable, so the ownership of `data` in `next` will never be
-                    // used again as it is now a seninel node.
+                    // via `assume_init_read()`. This is safe as no other thread has access to
+                    // `data` after `head` is unreachable, so the ownership of `data` in `next` will
+                    // never be used again as it is now a seninel node.
                     let result = unsafe { next_ref.data.assume_init_read() };
 
-                    // SAFETY: `head` is unreachable, and we no longer access `head`. We destory `head`
-                    // after the final access to `next` above to ensure that `next` is also destroyed
-                    // after.
+                    // SAFETY: `head` is unreachable, and we no longer access `head`. We destory
+                    // `head` after the final access to `next` above to ensure that `next` is also
+                    // destroyed after.
                     unsafe {
                         retire(head);
                     }
@@ -518,8 +522,8 @@ mod queue {
 
             // Destroy the remaining sentinel node.
             let sentinel = self.head.load(Relaxed);
-            // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so it is
-            // still valid.
+            // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so
+            // it is still valid.
             drop(unsafe { Box::from_raw(sentinel) });
         }
     }
