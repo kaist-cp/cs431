@@ -48,6 +48,8 @@ impl<K, V> Drop for List<K, V> {
 #[derive(Debug)]
 pub struct Cursor<'g, K, V> {
     prev: &'g Atomic<Node<K, V>>,
+    // Tag of `curr` should always be zero so when `curr` is stored in a `prev`, we don't store a
+    // marked pointer and cause cleanup to fail.
     curr: Shared<'g, Node<K, V>>,
 }
 
@@ -82,7 +84,10 @@ where
 {
     /// Creates a cursor.
     pub fn new(prev: &'g Atomic<Node<K, V>>, curr: Shared<'g, Node<K, V>>) -> Self {
-        Self { prev, curr }
+        Self {
+            prev,
+            curr: curr.with_tag(0),
+        }
     }
 
     /// Returns the current node.
@@ -108,13 +113,14 @@ where
             // - advance cursor.prev if not marked
 
             if next.tag() != 0 {
+                // We add a 0 tag here so that `self.curr`s tag is always 0.
                 self.curr = next.with_tag(0);
                 continue;
             }
 
             match curr_node.key.cmp(key) {
                 Less => {
-                    self.curr = next.with_tag(0);
+                    self.curr = next;
                     self.prev = &curr_node.next;
                     prev_next = next;
                 }
