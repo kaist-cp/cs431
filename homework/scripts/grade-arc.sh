@@ -9,19 +9,27 @@ source $BASEDIR/grade-utils.sh
 
 run_linters || exit 1
 
+lines=$(grep_skip_comment transmute "$BASEDIR/../src/arc.rs")
+if [ -n "$lines" ]; then
+    echo "transmute() is not allowed."
+    echo "$lines"
+    exit 1
+fi
+
 SCORE=0
 
 # 1. SeqCst is not allowed.
-echo "1. Checking uses of SeqCst..."
-mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/arc.rs)
-if [ ${#lines[@]} -gt 0 ]; then
+echo "1. Checking uses of SeqCst"
+lines=$(grep_skip_comment SeqCst "$BASEDIR/../src/arc.rs")
+if [ -n "$lines" ]; then
     echo "You used SeqCst!"
-    ( IFS=$'\n'; echo "${lines[*]}"; echo "" )
+    echo "$lines"
     echo "Score: 0 / 50"
     exit
 fi
 
 # 2. Basic arc functionality
+echo "2. Running basic functionality tests"
 RUNNERS=(
     "cargo"
     "cargo --release"
@@ -46,6 +54,7 @@ if [ "$arc_basic_failed" = false ]; then
 fi
 
 # 3. Correctness
+echo "3. Running correctness tests"
 RUNNER="cargo --features check-loom"
 TESTS=("--test arc")
 echo "Running with $RUNNER..."

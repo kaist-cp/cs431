@@ -11,14 +11,21 @@ run_linters || exit 1
 
 export RUST_TEST_THREADS=1
 
+lines=$(grep_skip_comment transmute "$BASEDIR"/../src/hazard_pointer/{retire,hazard}.rs)
+if [ -n "$lines" ]; then
+    echo "transmute() is not allowed."
+    echo "$lines"
+    exit 1
+fi
+
 # 1. Check uses of SeqCst
 performance_failed=false
 
 echo "1. Checking uses of SeqCst..."
-mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hazard_pointer/{retire,hazard}.rs )
-if [ ${#lines[@]} -gt 2 ]; then
+lines=$(grep_skip_comment SeqCst "$BASEDIR"/../src/hazard_pointer/{retire,hazard}.rs)
+if [ "$(echo -n "$lines" | grep -c '^')" -gt 2 ]; then
     echo "You used SeqCst more than 2 times!"
-    ( IFS=$'\n'; echo "${lines[*]}"; echo "" )
+    echo "$lines"
     performance_failed=true
 fi
 

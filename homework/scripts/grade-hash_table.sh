@@ -9,6 +9,13 @@ source $BASEDIR/grade-utils.sh
 
 run_linters || exit 1
 
+lines=$(grep_skip_comment transmute "$BASEDIR"/../src/hash_table/{growable_array,split_ordered_list}.rs )
+if [ -n "$lines" ]; then
+    echo "transmute() is not allowed."
+    echo "$lines"
+    exit 1
+fi
+
 export RUST_TEST_THREADS=1
 
 TEST_NAMES=(
@@ -65,18 +72,18 @@ growable_array_performance_ok=false
 split_ordered_list_performance_ok=false
 if [ $growable_array_fail -eq ${#TEST_NAMES[@]} ]; then
     echo "2. Checking uses of SeqCst..."
-    mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hash_table/growable_array.rs )
-    if [ ${#lines[@]} -gt 0 ]; then
+    lines=$(grep_skip_comment SeqCst "$BASEDIR"/../src/hash_table/growable_array.rs )
+    if [ -n "$lines" ]; then
         echo_err "You used SeqCst in growable_array (and transitively in split_ordered_list)!"
-        ( IFS=$'\n'; echo_err "${lines[*]}"; echo "" )
+        echo "$lines"
         # Give zero in this case, because split_ordered_list uses growable_array.
     else
         growable_array_performance_ok=true
         if [ $split_ordered_list_fail -eq ${#TEST_NAMES[@]} ]; then
-            mapfile -t lines < <(grep_skip_comment SeqCst $BASEDIR/../src/hash_table/split_ordered_list.rs )
-            if [ ${#lines[@]} -gt 0 ]; then
+            lines=$(grep_skip_comment SeqCst "$BASEDIR"/../src/hash_table/split_ordered_list.rs )
+            if [ -n "$lines" ]; then
                 echo_err "You used SeqCst in split_ordered_list!"
-                ( IFS=$'\n'; echo_err "${lines[*]}"; echo "" )
+                echo "$lines"
             else
                 split_ordered_list_performance_ok=true
             fi

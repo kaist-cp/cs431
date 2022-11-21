@@ -27,14 +27,10 @@ export -f check_diff
 
 # grep_skip_comment PATTERN FILE...
 # Shows all occurrences of PATTERN in code, excluding line comment.
-# To store the output in an array:
-#   mapfile -t lines < <(grep_skip_comment PATTER FILE)
-# TODO(@tomtomjhj): This mapfile thing requires bash≥4.0. Not compatible with Mac's bash.
-# Alternatives: https://stackoverflow.com/a/32931403
 grep_skip_comment() {
     local pat=$1; shift
     for file; do
-        for linenr in $(sed 's://.*::' "$file" | grep -on "$pat" | cut -d : -f 1); do
+        for linenr in $(sed 's://.*::' "$file" | grep -n "$pat" | cut -d : -f 1); do
             sed -n "${linenr}p" "$file" | awk -v F="${file##*/}" -v L="$linenr" '{print F ":" L ":" $0}'
         done
     done
