@@ -1,7 +1,8 @@
 //! Lock-free singly linked list.
 
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
+use core::mem;
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::sync::atomic::Ordering;
 
@@ -31,15 +32,11 @@ where
 
 impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
+        let mut curr = mem::replace(&mut self.head, Atomic::null());
         // SAFETY: since we have `&mut self`, any references from `lookup()` must have finished.
         // Hence, we have sole ownership of `self` and its `Node`s.
-        let guard = unsafe { unprotected() };
-        let mut curr = self.head.load(Ordering::Relaxed, guard);
-        while !curr.is_null() {
-            let curr_ref = unsafe { curr.deref_mut() };
-            let next = curr_ref.next.load(Ordering::Relaxed, guard);
-            drop(unsafe { curr.into_owned() });
-            curr = next;
+        while let Some(mut curr_ref) = unsafe { curr.try_into_owned() } {
+            curr = mem::replace(&mut curr_ref.next, Atomic::null());
         }
     }
 }

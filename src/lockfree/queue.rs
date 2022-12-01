@@ -5,7 +5,8 @@
 //! Michael and Scott.  Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue
 //! Algorithms.  PODC 1996.  http://dl.acm.org/citation.cfm?id=248106
 
-use core::mem::MaybeUninit;
+use core::mem::{self, MaybeUninit};
+use core::ops::DerefMut;
 use core::sync::atomic::Ordering;
 
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
@@ -180,7 +181,7 @@ impl<T> Drop for Queue<T> {
         while self.try_pop(guard).is_some() {}
 
         // Destroy the remaining sentinel node.
-        let sentinel = self.head.load(Ordering::Relaxed, guard);
+        let sentinel = mem::replace(self.head.deref_mut(), Atomic::null());
         // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so it is
         // still valid.
         drop(unsafe { sentinel.into_owned() });
