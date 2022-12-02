@@ -148,6 +148,7 @@ impl<T> Arc<T> {
     /// assert_eq!(2, Arc::count(&five));
     /// ```
     #[inline]
+    #[allow(clippy::unnecessary_safety_doc)]
     pub fn count(this: &Self) -> usize {
         todo!()
     }
