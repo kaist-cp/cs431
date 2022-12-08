@@ -3,12 +3,12 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time: Mon & Wed 13:00pm-14:15pm
+- Time: Mon & Wed 1:00pm-2:15pm
 - Place
   + Rm. 102, Bldg. N1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
   + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4). Turn on English subtitle at YouTube, if necessary.
-- Websites: https://github.com/kaist-cp/cs431 , https://gg.kaist.ac.kr/course/11
+- Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/11>
 - Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository.
@@ -64,6 +64,7 @@ systems. This course aims to help such students to:
 ### Textbook
 
 - [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
+
 - Classical papers and libraries
     + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language & architecture semantics for shared-memory concurrency
     + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library written in [Rust](https://www.rust-lang.org/)
@@ -150,7 +151,7 @@ Make sure you're capable of using the following development tools:
 
     + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
 
-    + Your initial password is `123454321`. IMPORTANT: you should change it ASAP.
+    + Your initial password will be announced at <https://gg.kaist.ac.kr>.
 
     + I require you to register public SSH keys to the server. (In September, we'll expire your password so that you can log in only via SSH keys.)
       See [this tutorial](https://serverpilot.io/docs/how-to-use-ssh-public-key-authentication/) for more information on SSH public key authentication.
@@ -249,7 +250,7 @@ For details, see <https://gg.kaist.ac.kr/course/11>.
       * Any directory or file changes you've made. If it is solution file, just describe which part of the code is modified.
       * Googling result. Search before asking, and share the keyword used for searching and what you've learned from it.
     + Give a proper title to your issue.
-    + Read [this](https://cp-git.kaist.ac.kr/cs431/cs431#communication) for more instructions.
+    + Read [this](https://github.com/kaist-cp/cs431#communication) for more instructions.
 
     + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
       question is the first step to reach an answer. Second, you can benefit from questions and
