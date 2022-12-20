@@ -82,9 +82,9 @@ impl<L: RawLock, T> Lock<L, T> {
     ///
     /// The underlying lock should be actually acquired.
     pub unsafe fn get_unchecked(&self) -> &T {
-        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is
-        // already acquired, we have unique access to `data`. In particular, if we don't
-        // change it, it stays immutable.
+        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
+        // acquired, we have unique access to `data`. In particular, if we don't change it, it stays
+        // immutable.
         &*self.data.get()
     }
 
@@ -146,8 +146,7 @@ impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Having a `LockGuard` means the underlying lock is held.
         //
-        // NOTE: Ideally, we would use `get_mut()` here, but `lock` is a `&`,
-        // not a `&mut`.
+        // NOTE: Ideally, we would use `get_mut()` here, but `lock` is a `&`, not a `&mut`.
         unsafe { self.lock.get_mut_unchecked() }
     }
 }

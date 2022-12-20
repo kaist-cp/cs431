@@ -29,7 +29,6 @@ use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
 /// When you store element `cat` at the index `0b001`, it first initializes a segment.
 ///
 /// ```text
-///
 ///                          +----+
 ///                          |root|
 ///                          +----+
@@ -128,7 +127,6 @@ use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
 ///
 /// Instead, it should be handled by the container that the elements actually belong to. For
 /// example in `SplitOrderedList`, destruction of elements are handled by `List`.
-///
 #[derive(Debug)]
 pub struct GrowableArray<T> {
     root: Atomic<Segment>,

@@ -42,15 +42,15 @@ impl RawLock for ClhLock {
         let backoff = Backoff::new();
 
         // SAFETY: `prev` is valid, as `self.tail` was valid at initialization and any `swap()` to
-        // it by other `lock()`s. Hence, it points to valid memory as the thread that made
-        // `prev` will not free it.
+        // it by other `lock()`s. Hence, it points to valid memory as the thread that made `prev`
+        // will not free it.
         while unsafe { (*prev).locked.load(Ordering::Acquire) } {
             backoff.snooze();
         }
 
-        // SAFETY: since `prev` was obtained from a swap on tail, only this thread other
-        // than its creator can access it. Since the creator will no longer access `prev` as its
-        // `locked` is false, we have unique access to it.
+        // SAFETY: since `prev` was obtained from a swap on tail, only this thread other than its
+        // creator can access it. Since the creator will no longer access `prev` as its `locked` is
+        // false, we have unique access to it.
         drop(unsafe { Box::from_raw(prev) });
         Token(node)
     }

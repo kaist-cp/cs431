@@ -86,8 +86,8 @@ impl RawLock for McsLock {
             } {}
         }
 
-        // SAFETY: Since `next` is not null, the thread that made `next` has finished access
-        // to `node`, hence we have unique access to it.
+        // SAFETY: Since `next` is not null, the thread that made `next` has finished access to
+        // `node`, hence we have unique access to it.
         drop(Box::from_raw(node));
         (*next).locked.store(false, Ordering::Release);
     }

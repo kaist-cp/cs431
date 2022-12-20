@@ -92,7 +92,7 @@ done
 # - This assumes that there is no solution with SeqCst accesses ≤ 2.
 loom_failed=$performance_failed
 if [ "$performance_failed" = false ]; then
-    echo "Running synchronization tests..."
+    echo "3. Running synchronization tests..."
     RUNNER="cargo --features check-loom"
     TIMEOUT=2m
     TESTS=(

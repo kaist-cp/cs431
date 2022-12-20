@@ -9,10 +9,7 @@ fn main() -> io::Result<()> {
     // Use a browser that doesn't cache too eagerly so that request is always sent. For example,
     // Firefox works well.  If you want to test using command line only, use curl. If you want to
     // run it on the lab server, you may need to change the port number to something else.
-    println!(
-        "Run `curl http://{}/KEY` to query the server with KEY",
-        ADDR
-    );
+    println!("Run `curl http://{ADDR}/KEY` to query the server with KEY");
 
     // The thread pool.
     //
@@ -23,8 +20,8 @@ fn main() -> io::Result<()> {
     // - Workers (once for each incoming connection): a worker handles an incoming connection and
     //   sends a corresponding report to the reporter.
     //
-    // - A reporter: it aggregates the reports from the workers and processes the
-    //   statistics.  When it ends, it sends the statistics to the main thread.
+    // - A reporter: it aggregates the reports from the workers and processes the statistics. When
+    //   it ends, it sends the statistics to the main thread.
     let pool = Arc::new(ThreadPool::new(7));
 
     // The (MPSC) channel of reports between workers and the reporter.

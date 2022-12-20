@@ -110,20 +110,18 @@ impl<T> LinkedList<T> {
     /// Adds the given node to the front of the list.
     #[inline]
     fn push_front_node(&mut self, mut node: Node<T>) {
-        unsafe {
-            node.next = self.head;
-            node.prev = ptr::null_mut();
-            let node = Box::into_raw(Box::new(node));
+        node.next = self.head;
+        node.prev = ptr::null_mut();
+        let node = Box::into_raw(Box::new(node));
 
-            if self.head.is_null() {
-                self.tail = node;
-            } else {
-                (*self.head).prev = node;
-            }
-
-            self.head = node;
-            self.len += 1;
+        if self.head.is_null() {
+            self.tail = node;
+        } else {
+            unsafe { (*self.head).prev = node };
         }
+
+        self.head = node;
+        self.len += 1;
     }
 
     /// Removes and returns the node at the front of the list.
@@ -133,19 +131,17 @@ impl<T> LinkedList<T> {
             return None;
         }
 
-        unsafe {
-            let node = Box::from_raw(self.head);
-            self.head = node.next;
+        let node = unsafe { Box::from_raw(self.head) };
+        self.head = node.next;
 
-            if self.head.is_null() {
-                self.tail = ptr::null_mut();
-            } else {
-                (*self.head).prev = ptr::null_mut();
-            }
-
-            self.len -= 1;
-            Some(*node)
+        if self.head.is_null() {
+            self.tail = ptr::null_mut();
+        } else {
+            unsafe { (*self.head).prev = ptr::null_mut() };
         }
+
+        self.len -= 1;
+        Some(*node)
     }
 
     /// Adds the given node to the back of the list.
@@ -439,7 +435,7 @@ impl<T> LinkedList<T> {
     /// ```
     #[inline]
     pub fn front(&self) -> Option<&T> {
-        unsafe { self.head.as_ref().map(|node| &node.element) }
+        unsafe { self.head.as_ref() }.map(|node| &node.element)
     }
 
     /// Provides a mutable reference to the front element, or `None` if the list
@@ -464,7 +460,7 @@ impl<T> LinkedList<T> {
     /// ```
     #[inline]
     pub fn front_mut(&mut self) -> Option<&mut T> {
-        unsafe { self.head.as_mut().map(|node| &mut node.element) }
+        unsafe { self.head.as_mut() }.map(|node| &mut node.element)
     }
 
     /// Provides a reference to the back element, or `None` if the list is
@@ -508,7 +504,7 @@ impl<T> LinkedList<T> {
     /// ```
     #[inline]
     pub fn back_mut(&mut self) -> Option<&mut T> {
-        unsafe { self.tail.as_mut().map(|node| &mut node.element) }
+        unsafe { self.tail.as_mut() }.map(|node| &mut node.element)
     }
 
     /// Adds an element first in the list.

@@ -15,8 +15,8 @@ pub struct Cache<K, V> {
 impl<K: Eq + Hash + Clone, V: Clone> Cache<K, V> {
     /// Retrieve the value or insert a new one created by `f`.
     ///
-    /// An invocation to this function should not block another invocation with a different key.
-    /// For example, if a thread calls `get_or_insert_with(key1, f1)` and another thread calls
+    /// An invocation to this function should not block another invocation with a different key. For
+    /// example, if a thread calls `get_or_insert_with(key1, f1)` and another thread calls
     /// `get_or_insert_with(key2, f2)` (`key1≠key2`, `key1,key2∉cache`) concurrently, `f1` and `f2`
     /// should run concurrently.
     ///

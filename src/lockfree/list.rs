@@ -1,10 +1,10 @@
 //! Lock-free singly linked list.
 
-use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
-
+use core::cmp::Ordering::{Equal, Greater, Less};
 use core::mem;
-use std::cmp::Ordering::{Equal, Greater, Less};
-use std::sync::atomic::Ordering;
+use core::sync::atomic::Ordering;
+
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
 /// Linked list node.
 #[derive(Debug)]
@@ -32,17 +32,17 @@ where
 
 impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
-        let mut curr = mem::replace(&mut self.head, Atomic::null());
+        let mut curr = mem::take(&mut self.head);
         // SAFETY: since we have `&mut self`, any references from `lookup()` must have finished.
         // Hence, we have sole ownership of `self` and its `Node`s.
-        while let Some(mut curr_ref) = unsafe { curr.try_into_owned() } {
-            curr = mem::replace(&mut curr_ref.next, Atomic::null());
+        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
+            curr = curr_ref.into_box().next;
         }
     }
 }
 
 /// Linked list cursor.
-#[derive(Debug)]
+#[derive(Debug, Copy)]
 pub struct Cursor<'g, K, V> {
     prev: &'g Atomic<Node<K, V>>,
     // Tag of `curr` should always be zero so when `curr` is stored in a `prev`, we don't store a
@@ -50,6 +50,7 @@ pub struct Cursor<'g, K, V> {
     curr: Shared<'g, Node<K, V>>,
 }
 
+// Manual implementation as deriving `Clone` leads to unnecessary trait bounds.
 impl<'g, K, V> Clone for Cursor<'g, K, V> {
     fn clone(&self) -> Self {
         Self {
@@ -145,13 +146,8 @@ where
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
-            let next = unsafe { node.as_ref() }
-                .unwrap()
-                .next
-                .load(Ordering::Acquire, guard);
-            unsafe {
-                guard.defer_destroy(node);
-            }
+            let next = unsafe { node.deref() }.next.load(Ordering::Acquire, guard);
+            unsafe { guard.defer_destroy(node) };
             node = next;
         }
 
@@ -172,9 +168,7 @@ where
                 self.prev
                     .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
                     .map_err(|_| ())?;
-                unsafe {
-                    guard.defer_destroy(self.curr);
-                }
+                unsafe { guard.defer_destroy(self.curr) };
                 self.curr = next;
                 continue;
             }
@@ -240,7 +234,7 @@ where
     /// Deletes the current node.
     #[inline]
     pub fn delete(self, guard: &'g Guard) -> Result<&'g V, ()> {
-        let curr_node = unsafe { self.curr.as_ref() }.unwrap();
+        let curr_node = unsafe { self.curr.deref() };
 
         let next = curr_node.next.fetch_or(1, Ordering::Acquire, guard);
         if next.tag() == 1 {
@@ -252,9 +246,7 @@ where
             .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
             .is_ok()
         {
-            unsafe {
-                guard.defer_destroy(self.curr);
-            }
+            unsafe { guard.defer_destroy(self.curr) };
         }
 
         Ok(&curr_node.value)
@@ -275,10 +267,7 @@ where
     /// Creates the head cursor.
     #[inline]
     pub fn head<'g>(&'g self, guard: &'g Guard) -> Cursor<'g, K, V> {
-        Cursor {
-            prev: &self.head,
-            curr: self.head.load(Ordering::Acquire, guard),
-        }
+        Cursor::new(&self.head, self.head.load(Ordering::Acquire, guard))
     }
 
     /// Finds a key using the given find strategy.
@@ -317,7 +306,6 @@ where
         loop {
             let (found, mut cursor) = self.find(&node.key, &find, guard);
             if found {
-                drop(node.into_box().into_value());
                 return false;
             }
 

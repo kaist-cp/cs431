@@ -16,14 +16,16 @@ struct Worker {
 
 impl Drop for Worker {
     /// When dropped, the thread's `JoinHandle` must be `join`ed.  If the worker panics, then this
-    /// function should panic too.  NOTE: that the thread is detached if not `join`ed explicitly.
+    /// function should panic too.
+    ///
+    /// NOTE: The thread is detached if not `join`ed explicitly.
     fn drop(&mut self) {
         todo!()
     }
 }
 
-/// Internal data structure for tracking the current job status. This is shared by the worker
-/// closures via `Arc` so that the workers can report to the pool that it started/finished a job.
+/// Internal data structure for tracking the current job status. This is shared by worker closures
+/// via `Arc` so that the workers can report to the pool that it started/finished a job.
 #[derive(Debug, Default)]
 struct ThreadPoolInner {
     job_count: Mutex<usize>,

@@ -272,8 +272,6 @@ mod stack {
     use cs431_homework::hazard_pointer::{retire, Shield};
 
     /// Treiber's lock-free stack.
-    ///
-    /// Usable with any number of producers and consumers.
     #[derive(Debug)]
     pub struct Stack<T> {
         head: AtomicPtr<Node<T>>,
@@ -297,7 +295,6 @@ mod stack {
     }
 
     impl<T> Stack<T> {
-        /// Pushes a value on top of the stack.
         pub fn push(&self, t: T) {
             let new = Box::leak(Box::new(Node {
                 data: ManuallyDrop::new(t),
@@ -318,9 +315,6 @@ mod stack {
             }
         }
 
-        /// Attempts to pop the top element from the stack.
-        ///
-        /// Returns `None` if the stack is empty.
         pub fn try_pop(&self) -> Option<T> {
             let shield = Shield::default();
             loop {
@@ -332,12 +326,9 @@ mod stack {
                     .compare_exchange(head_ptr, head_ref.next, Relaxed, Relaxed)
                     .is_ok()
                 {
-                    let head_ptr = head_ptr;
-                    unsafe {
-                        let data = ManuallyDrop::take(&mut (*head_ptr).data);
-                        retire(head_ptr);
-                        return Some(data);
-                    }
+                    let data = unsafe { ManuallyDrop::take(&mut (*head_ptr).data) };
+                    unsafe { retire(head_ptr) };
+                    return Some(data);
                 }
             }
         }
@@ -345,7 +336,16 @@ mod stack {
 
     impl<T> Drop for Stack<T> {
         fn drop(&mut self) {
-            while self.try_pop().is_some() {}
+            #[cfg(not(feature = "check-loom"))]
+            let mut curr = *self.head.get_mut();
+            #[cfg(feature = "check-loom")]
+            let mut curr = self.head.load(Relaxed);
+
+            while !curr.is_null() {
+                let curr_ref = unsafe { Box::from_raw(curr) };
+                drop(ManuallyDrop::into_inner(curr_ref.data));
+                curr = curr_ref.next;
+            }
         }
     }
 }
@@ -370,19 +370,10 @@ mod queue {
 
     #[derive(Debug)]
     struct Node<T> {
-        /// The slot in which a value of type `T` can be stored.
-        ///
-        /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a
-        /// `T`. For example, the sentinel node in a queue never contains a value: its slot is
-        /// always empty. Other nodes start their life with a push operation and contain a value
-        /// until it gets popped out. After that such empty nodes get added to the collector for
-        /// destruction.
         data: MaybeUninit<T>,
-
         next: AtomicPtr<Node<T>>,
     }
 
-    // Any particular `T` should never be accessed concurrently, so no need for `Sync`.
     unsafe impl<T: Send> Sync for Queue<T> {}
     unsafe impl<T: Send> Send for Queue<T> {}
 
@@ -403,7 +394,6 @@ mod queue {
     }
 
     impl<T> Queue<T> {
-        /// Adds `t` to the back of the queue.
         pub fn push(&self, t: T) {
             let new = Box::leak(Box::new(Node {
                 data: MaybeUninit::new(t),
@@ -419,23 +409,17 @@ mod queue {
                 // 2. `tail` is protected & validated.
                 let tail_ref = unsafe { tail.as_ref().unwrap() };
 
-                // Attempt to push onto the `tail` snapshot; fails if `tail.next` has changed.
                 let next = tail_ref.next.load(Acquire);
-
-                // If `tail` is not the actual tail, try to "help" by moving the tail pointer
-                // forward.
                 if !next.is_null() {
                     let _ = self.tail.compare_exchange(tail, next, Release, Relaxed);
                     continue;
                 }
 
-                // looks like the actual tail; attempt to link at `tail.next`.
                 if tail_ref
                     .next
                     .compare_exchange(ptr::null_mut(), new, Release, Relaxed)
                     .is_ok()
                 {
-                    // try to move the tail pointer forward.
                     let _ = self.tail.compare_exchange(tail, new, Release, Relaxed);
                     break;
                 }
@@ -454,10 +438,10 @@ mod queue {
                     head = new;
                     continue;
                 }
-                // SAFETY
+                // SAFETY:
                 // 1. queue's `head` is always valid as it will be CASed with valid nodes only.
                 // 2. `head` is protected & validated.
-                let head_ref = unsafe { head.as_ref().unwrap() };
+                let head_ref = unsafe { &*head };
 
                 let next = head_ref.next.load(Acquire);
                 if next.is_null() {
@@ -465,12 +449,14 @@ mod queue {
                 }
                 next_shield.set(next);
                 let next_ref = match Shield::validate(head, &self.head) {
-                    // SAFETY
-                    // 1. If `next` was not null, then it must be a valid node that another thread
-                    //    has `push()`ed.
-                    // 2. Validation: If `head` is not retired, then `next` is not retired. So
-                    //    re-validating `head` also validates `next.
-                    Ok(_) => unsafe { next.as_ref().unwrap() },
+                    Ok(_) => {
+                        // SAFETY:
+                        // 1. If `next` was not null, then it must be a valid node that another
+                        //    thread has `push()`ed.
+                        // 2. Validation: If `head` is not retired, then `next` is not retired. So
+                        //    re-validating `head` also validates `next.
+                        unsafe { &*next }
+                    }
                     Err(new) => {
                         next_shield.clear();
                         head = new;
@@ -490,26 +476,8 @@ mod queue {
                     .compare_exchange(head, next, Release, Relaxed)
                     .is_ok()
                 {
-                    // Since the above `compare_exchange()` succeeded, `head` is detached from
-                    // `self` so is unreachable from other threads.
-
-                    // SAFETY: `next` will never be the sentinel node, since it is the node after
-                    // `head`. Hence, it must have been a node made in `push()`, which is
-                    // initialized.
-                    //
-                    // Also, we are returning ownership of `data` in `next` by making a copy of it
-                    // via `assume_init_read()`. This is safe as no other thread has access to
-                    // `data` after `head` is unreachable, so the ownership of `data` in `next` will
-                    // never be used again as it is now a sentinel node.
                     let result = unsafe { next_ref.data.assume_init_read() };
-
-                    // SAFETY: `head` is unreachable, and we no longer access `head`. We retire
-                    // `head` after the final access to `next` above to ensure that `next` is also
-                    // destroyed after.
-                    unsafe {
-                        retire(head);
-                    }
-
+                    unsafe { retire(head) };
                     return Some(result);
                 }
             }
@@ -518,13 +486,15 @@ mod queue {
 
     impl<T> Drop for Queue<T> {
         fn drop(&mut self) {
-            while self.try_pop().is_some() {}
-
-            // Destroy the remaining sentinel node.
+            //TODO: Once loom supports get_mut, use it.
             let sentinel = self.head.load(Relaxed);
-            // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so
-            // it is still valid.
-            drop(unsafe { Box::from_raw(sentinel) });
+
+            let mut curr = unsafe { (*sentinel).next.load(Relaxed) };
+            while !curr.is_null() {
+                let curr_ref = unsafe { Box::from_raw(curr) };
+                drop(unsafe { curr_ref.data.assume_init() });
+                curr = curr_ref.next.load(Relaxed);
+            }
         }
     }
 }

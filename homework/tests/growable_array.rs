@@ -1,6 +1,7 @@
-use core::mem::{replace, ManuallyDrop};
+use core::mem::{self, ManuallyDrop};
+use core::ptr;
 use core::sync::atomic::Ordering;
-use crossbeam_epoch::{pin, unprotected, Atomic, Guard, Owned, Shared};
+use crossbeam_epoch::{pin, Atomic, Guard, Owned, Shared};
 use cs431_homework::{GrowableArray, NonblockingConcurrentMap, NonblockingMap};
 
 mod map;
@@ -18,14 +19,14 @@ impl<V> NonblockingMap<u32, V> for ArrayMap<V> {
     fn lookup<'g>(&self, key: &u32, guard: &'g Guard) -> Option<&'g V> {
         let slot = self.array.get(*key as usize, guard);
         let ptr = slot.load(Ordering::Acquire, guard);
-        unsafe { ptr.as_ref().map(|n| &*n.data) }
+        unsafe { ptr.as_ref() }.map(|n| &*n.data)
     }
 
     fn insert(&self, key: &u32, value: V, guard: &Guard) -> Result<(), V> {
         let slot = self.array.get(*key as usize, guard);
         let node = Owned::new(Node {
             data: ManuallyDrop::new(value),
-            next: Atomic::null(),
+            next: ptr::null(),
         });
         match slot.compare_exchange(
             Shared::null(),
@@ -56,7 +57,7 @@ impl<V> NonblockingMap<u32, V> for ArrayMap<V> {
             Ordering::Acquire,
             guard,
         ) {
-            Ok(_) => Ok(unsafe { &*curr.as_ref().unwrap().data }),
+            Ok(_) => Ok(unsafe { &*curr.deref().data }),
             Err(_) => Err(()), // already removed
         }
     }
@@ -70,8 +71,11 @@ struct Stack<T> {
 #[derive(Debug)]
 struct Node<T> {
     data: ManuallyDrop<T>,
-    next: Atomic<Node<T>>,
+    next: *const Node<T>,
 }
+
+unsafe impl<T: Send> Send for Node<T> {}
+unsafe impl<T: Sync> Sync for Node<T> {}
 
 impl<T> Default for Stack<T> {
     fn default() -> Self {
@@ -87,7 +91,7 @@ impl<T> Stack<T> {
 
         loop {
             let head = self.head.load(Ordering::Relaxed, &guard);
-            n.next.store(head, Ordering::Relaxed);
+            n.next = head.as_raw();
 
             match self
                 .head
@@ -102,13 +106,12 @@ impl<T> Stack<T> {
 
 impl<T> Drop for Stack<T> {
     fn drop(&mut self) {
-        unsafe {
-            let guard = unprotected();
-            let mut cur = self.head.load(Ordering::Relaxed, guard);
-            while let Some(n) = cur.as_ref() {
-                let next = n.next.load(Ordering::Relaxed, guard);
-                drop(replace(&mut cur, next).into_owned());
-            }
+        let mut curr = mem::take(&mut self.head);
+
+        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
+            let curr_ref = curr_ref.into_box();
+            drop(ManuallyDrop::into_inner(curr_ref.data));
+            curr = curr_ref.next.into();
         }
     }
 }

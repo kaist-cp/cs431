@@ -1,8 +1,8 @@
-use core::mem::ManuallyDrop;
+use core::mem::{self, ManuallyDrop};
 use core::ptr;
 use core::sync::atomic::Ordering;
 
-use crossbeam_epoch::{Atomic, Owned};
+use crossbeam_epoch::{Atomic, Owned, Shared};
 
 /// Treiber's lock-free stack.
 ///
@@ -15,7 +15,7 @@ pub struct Stack<T> {
 #[derive(Debug)]
 struct Node<T> {
     data: ManuallyDrop<T>,
-    next: Atomic<Node<T>>,
+    next: *const Node<T>,
 }
 
 // Any particular `T` should never be accessed concurrently, so no need for `Sync`.
@@ -40,14 +40,14 @@ impl<T> Stack<T> {
     pub fn push(&self, t: T) {
         let mut n = Owned::new(Node {
             data: ManuallyDrop::new(t),
-            next: Atomic::null(),
+            next: ptr::null(),
         });
 
         let guard = crossbeam_epoch::pin();
 
         loop {
             let head = self.head.load(Ordering::Relaxed, &guard);
-            n.next.store(head, Ordering::Relaxed);
+            n.next = head.as_raw();
 
             match self
                 .head
@@ -67,7 +67,7 @@ impl<T> Stack<T> {
         loop {
             let head = self.head.load(Ordering::Acquire, &guard);
             let h = unsafe { head.as_ref() }?;
-            let next = h.next.load(Ordering::Relaxed, &guard);
+            let next = Shared::from(h.next);
 
             if self
                 .head
@@ -78,15 +78,12 @@ impl<T> Stack<T> {
                 // is unreachable from other threads.
 
                 // SAFETY: We are returning ownership of `data` in `head` by making a copy of it via
-                // `ptr::read()`. This is safe as no other thread has access to `data` after
-                // `head` is unreachable, so the ownership of `data` in `head` will never be used
-                // again.
+                // `ptr::read()`. This is safe as no other thread has access to `data` after `head`
+                // is unreachable, so the ownership of `data` in `head` will never be used again.
                 let result = ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) });
 
                 // SAFETY: `head` is unreachable, and we no longer access `head`.
-                unsafe {
-                    guard.defer_destroy(head);
-                }
+                unsafe { guard.defer_destroy(head) };
 
                 return Some(result);
             }
@@ -102,7 +99,14 @@ impl<T> Stack<T> {
 
 impl<T> Drop for Stack<T> {
     fn drop(&mut self) {
-        while self.pop().is_some() {}
+        let mut curr = mem::take(&mut self.head);
+
+        // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
+        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
+            let curr_ref = curr_ref.into_box();
+            drop(ManuallyDrop::into_inner(curr_ref.data));
+            curr = curr_ref.next.into();
+        }
     }
 }
 

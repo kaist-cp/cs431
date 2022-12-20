@@ -61,14 +61,12 @@ impl<T> Shield<T> {
     /// See `try_protect()`.
     pub fn protect(&self, src: &AtomicPtr<T>) -> *mut T {
         let mut pointer = src.load(Ordering::Relaxed);
-        loop {
-            match self.try_protect(pointer, src) {
-                Ok(_) => return pointer,
-                Err(new) => pointer = new,
-            };
+        while let Err(new) = self.try_protect(pointer, src) {
+            pointer = new;
             #[cfg(feature = "check-loom")]
             loom::sync::atomic::spin_loop_hint();
         }
+        pointer
     }
 }
 
@@ -179,7 +177,7 @@ mod tests {
     #[test]
     fn all_hazards_protected() {
         let hazard_bag = Arc::new(HazardBag::new());
-        let _ = (0..THREADS)
+        (0..THREADS)
             .map(|_| {
                 let hazard_bag = hazard_bag.clone();
                 thread::spawn(move || {
@@ -187,15 +185,14 @@ mod tests {
                         let src = AtomicPtr::new(data as *mut ());
                         let shield = Shield::new(&hazard_bag);
                         shield.protect(&src);
-                        // leak the shield so that
+                        // leak the shield so that it is not unprotected.
                         mem::forget(shield);
                     }
                 })
             })
             .collect::<Vec<_>>()
             .into_iter()
-            .map(|th| th.join().unwrap())
-            .collect::<Vec<_>>();
+            .for_each(|th| th.join().unwrap());
         let all = hazard_bag.all_hazards();
         let values = VALUES.collect();
         assert!(all.is_superset(&values))
@@ -205,7 +202,7 @@ mod tests {
     #[test]
     fn all_hazards_unprotected() {
         let hazard_bag = Arc::new(HazardBag::new());
-        let _ = (0..THREADS)
+        (0..THREADS)
             .map(|_| {
                 let hazard_bag = hazard_bag.clone();
                 thread::spawn(move || {
@@ -218,8 +215,7 @@ mod tests {
             })
             .collect::<Vec<_>>()
             .into_iter()
-            .map(|th| th.join().unwrap())
-            .collect::<Vec<_>>();
+            .for_each(|th| th.join().unwrap());
         let all = hazard_bag.all_hazards();
         let values = VALUES.collect();
         let intersection: HashSet<_> = all.intersection(&values).collect();

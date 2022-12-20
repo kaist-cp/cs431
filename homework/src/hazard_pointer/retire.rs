@@ -39,7 +39,7 @@ impl<'s> RetiredSet<'s> {
     /// * The same `pointer` should only be retired once.
     pub unsafe fn retire<T>(&mut self, pointer: *mut T) {
         /// Frees a pointer. This function is defined here instead of `collect()` as we know about
-        /// the type of `pointer` only at the time of retireing it.
+        /// the type of `pointer` only at the time of retiring it.
         ///
         /// # Safety
         ///

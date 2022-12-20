@@ -6,7 +6,6 @@
 //! Algorithms.  PODC 1996.  http://dl.acm.org/citation.cfm?id=248106
 
 use core::mem::{self, MaybeUninit};
-use core::ops::DerefMut;
 use core::sync::atomic::Ordering;
 
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
@@ -50,8 +49,7 @@ impl<T> Default for Queue<T> {
             next: Atomic::null(),
         });
         // SAFETY: We are creating a new queue, hence have sole ownership of it.
-        let guard = unsafe { unprotected() };
-        let sentinel = sentinel.into_shared(guard);
+        let sentinel = sentinel.into_shared(unsafe { unprotected() });
         q.head.store(sentinel, Ordering::Relaxed);
         q.tail.store(sentinel, Ordering::Relaxed);
         q
@@ -70,7 +68,7 @@ impl<T> Queue<T> {
             data: MaybeUninit::new(t),
             next: Atomic::null(),
         });
-        let new = Owned::into_shared(new, guard);
+        let new = new.into_shared(guard);
 
         loop {
             // We push onto the tail, so we'll start optimistically by looking there first.
@@ -123,11 +121,8 @@ impl<T> Queue<T> {
     pub fn try_pop(&self, guard: &Guard) -> Option<T> {
         loop {
             let head = self.head.load(Ordering::Acquire, guard);
-            // SAFETY: queue's `head` is always valid as it will be CASed with valid nodes only.
-            let h = unsafe { head.deref() };
-            let next = h.next.load(Ordering::Acquire, guard);
-            // SAFETY: If `next` is not null, then it must be a valid node that another thread has
-            // `push()`ed.
+            let next = unsafe { head.deref() }.next.load(Ordering::Acquire, guard);
+
             let next_ref = unsafe { next.as_ref() }?;
 
             // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then the
@@ -163,9 +158,7 @@ impl<T> Queue<T> {
                 // SAFETY: `head` is unreachable, and we no longer access `head`. We destroy `head`
                 // after the final access to `next` above to ensure that `next` is also destroyed
                 // after.
-                unsafe {
-                    guard.defer_destroy(head);
-                }
+                unsafe { guard.defer_destroy(head) };
 
                 return Some(result);
             }
@@ -175,16 +168,21 @@ impl<T> Queue<T> {
 
 impl<T> Drop for Queue<T> {
     fn drop(&mut self) {
-        // SAFETY: We have `&mut self`, hence have sole ownership of it and its elements.
-        let guard = unsafe { unprotected() };
+        // Destroy the sentinel node.
 
-        while self.try_pop(guard).is_some() {}
+        let sentinel = mem::take(&mut *self.head);
 
-        // Destroy the remaining sentinel node.
-        let sentinel = mem::replace(self.head.deref_mut(), Atomic::null());
-        // SAFETY: As `pop()` only drops detached nodes, it never dropped the sentinel node so it is
-        // still valid.
-        drop(unsafe { sentinel.into_owned() });
+        // Destroy and deallocate `data` for the rest of the nodes.
+
+        // SAFETY: `pop()` never dropped the sentinel node so it is still valid.
+        let mut curr = unsafe { sentinel.into_owned() }.into_box().next;
+        // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
+        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
+            let curr_ref = curr_ref.into_box();
+            // SAFETY: Not sentinel node, so `data` is valid.
+            drop(unsafe { curr_ref.data.assume_init() });
+            curr = curr_ref.next;
+        }
     }
 }
 
@@ -213,8 +211,8 @@ mod test {
         pub fn is_empty(&self) -> bool {
             let guard = &pin();
             let head = self.queue.head.load(Ordering::Acquire, guard);
-            let h = unsafe { head.deref() };
-            h.next.load(Ordering::Acquire, guard).is_null()
+            let next = unsafe { head.deref() }.next.load(Ordering::Acquire, guard);
+            next.is_null()
         }
 
         pub fn try_pop(&self) -> Option<T> {

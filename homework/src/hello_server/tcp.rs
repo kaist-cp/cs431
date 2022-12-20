@@ -9,16 +9,17 @@ use std::sync::atomic::{AtomicBool, Ordering};
 #[derive(Debug)]
 pub struct CancellableTcpListener {
     inner: TcpListener,
-    /// An atomic boolean flag that indicates if the listener is `cancel`led. NOTE: This can be
-    /// safely read/written by multiple thread at the same time (note that its methods take `&self`
-    /// instead of `&mut self`). To set the flag, use `store` method with `Ordering::Release`. To
-    /// read the flag, use `load` method with `Ordering::Acquire`. We will discuss their precise
-    /// semantics later.
+
+    /// An atomic boolean flag that indicates if the listener is `cancel`led.
+    ///
+    /// NOTE: This can be safely read/written by multiple thread at the same time (note that its
+    /// methods take `&self` instead of `&mut self`). To set the flag, use `store` method with
+    /// `Ordering::Release`. To read the flag, use `load` method with `Ordering::Acquire`. We  will
+    /// discuss their precise semantics later.
     is_canceled: AtomicBool,
 }
 
-/// Like `std::net::tcp::Incoming`, but stops `accept`ing connections if the listener is
-/// `cancel`ed.
+/// Like `std::net::tcp::Incoming`, but stops `accept`ing connections if the listener is `cancel`ed.
 #[derive(Debug)]
 pub struct Incoming<'a> {
     listener: &'a CancellableTcpListener,
