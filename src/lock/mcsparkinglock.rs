@@ -1,4 +1,3 @@
-use core::marker::PhantomData;
 use core::ptr;
 use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
 use std::thread::{self, Thread};
@@ -11,7 +10,6 @@ struct Node {
     thread: Thread,
     locked: AtomicBool,
     next: AtomicPtr<CachePadded<Node>>,
-    _marker: PhantomData<*const ()>,
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +27,6 @@ impl Node {
             thread: thread::current(),
             locked: AtomicBool::new(true),
             next: AtomicPtr::new(ptr::null_mut()),
-            _marker: PhantomData,
         }
     }
 }
