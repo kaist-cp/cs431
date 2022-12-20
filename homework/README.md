@@ -23,6 +23,19 @@
   cargo clippy
   ```
 
+- Running individual tests
+
+  ```
+  # Run all tests in a module
+  cargo test --test <module name>
+  # For example, run all tests in the hazard_pointer module
+  cargo test --test hazard_pointer
+  # Run all tests in a module
+  cargo test --test <module name> <test name>
+  # For example, run the stack_queue test in the hazard_pointer module
+  cargo test --test hazard_pointer stack_queue
+  ```
+
 ## Using LLVM Sanitizers
 
 We are going to use the LLVM sanitizers for grading.
@@ -31,7 +44,7 @@ Sanitizers are dynamic analysis tools that detects buggy behaviors during runtim
 [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html) detects data races.
 
 You can run the tests with sanitizers using following commands:
-```bash
+```
 source scripts/grade-utils.sh
 # This may take some time because of `rustup toolchain update stable nightly` in the script.
 # If you have run that already, please feel free to comment that line out.
@@ -40,10 +53,16 @@ cargo_asan SUBCOMMAND
 # cargo_asan runs the following command
 # RUSTFLAGS="-Z sanitizer=address" cargo +nightly SUBCOMMAND --target x86_64-unknown-linux-gnu
 
+# For example, run all tests in the hazard_pointer module under the address sanitizer
+cargo_asan test --test hazard_pointer
+
 cargo_tsan SUBCOMMAND
 # cargo_tsan runs the following command
 # TSAN_OPTIONS="suppressions=suppress_tsan.txt" RUST_TEST_THREADS=1 RUSTFLAGS="-Z sanitizer=thread" cargo +nightly SUBCOMMAND --target x86_64-unknown-linux-gnu
 # (`suppressions=suppress_tsan.txt` is for suppressing some false positive from ThreadSanitizer.)
+
+# For example, run all tests in the growable_array module under the thread sanitizer
+cargo_tsan test --test growable_array
 ```
 
 While (safe) Rust's type system guarantees memory safety and absence of data race,

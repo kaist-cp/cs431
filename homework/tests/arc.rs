@@ -229,7 +229,7 @@ mod correctness {
     }
 
     #[test]
-    /// Resistence against arbitrary interleaving of instructions in `clone` and `drop`.
+    /// Resistance against arbitrary interleaving of instructions in `clone` and `drop`.
     fn clone_drop_atomic() {
         model(|| {
             let canary = AtomicUsize::new(0);

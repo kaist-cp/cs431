@@ -121,5 +121,6 @@ Submit `hw-hazard_pointer.zip` to gg.
 
 > loom throws an error when I used `get_mut()` on a `AtomicPtr`.
 
-Currently, loom does not understand `get_mut()`.
+Currently, loom does not understand `get_mut()`
+(<https://github.com/tokio-rs/loom/issues/154>).
 Please use `load()` with `Ordering::Relaxed` instead.
