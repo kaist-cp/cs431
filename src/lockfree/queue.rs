@@ -325,9 +325,9 @@ mod test {
 
     #[test]
     fn push_try_pop_many_spmc() {
-        fn recv(_t: i32, q: &Queue<i64>) {
+        fn recv(q: &Queue<i64>) {
             let mut cur = -1;
-            for _i in 0..CONC_COUNT {
+            for _ in 0..CONC_COUNT {
                 if let Some(elem) = q.try_pop() {
                     assert!(elem > cur);
                     cur = elem;
@@ -342,9 +342,8 @@ mod test {
         let q: Queue<i64> = Queue::new();
         assert!(q.is_empty());
         scope(|scope| {
-            for i in 0..3 {
-                let q = &q;
-                scope.spawn(move || recv(i, q));
+            for _ in 0..3 {
+                scope.spawn(|| recv(&q));
             }
 
             scope.spawn(|| {
@@ -366,21 +365,21 @@ mod test {
         assert!(q.is_empty());
 
         scope(|scope| {
+            scope.spawn(|| {
+                for i in 0..CONC_COUNT {
+                    q.push(LR::Left(i))
+                }
+            });
+            scope.spawn(|| {
+                for i in 0..CONC_COUNT {
+                    q.push(LR::Right(i))
+                }
+            });
             for _ in 0..2 {
-                scope.spawn(|| {
-                    for i in CONC_COUNT - 1..CONC_COUNT {
-                        q.push(LR::Left(i))
-                    }
-                });
-                scope.spawn(|| {
-                    for i in CONC_COUNT - 1..CONC_COUNT {
-                        q.push(LR::Right(i))
-                    }
-                });
                 scope.spawn(|| {
                     let mut vl = vec![];
                     let mut vr = vec![];
-                    for _i in 0..CONC_COUNT {
+                    for _ in 0..CONC_COUNT {
                         match q.try_pop() {
                             Some(LR::Left(x)) => vl.push(x),
                             Some(LR::Right(x)) => vr.push(x),
