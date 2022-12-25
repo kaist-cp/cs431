@@ -3,9 +3,9 @@ name: Question
 about: Ask questions in this format.
 title: "[Question] (SUMMARIZE YOUR QUESTION AS CLEARLY AS POSSIBLE)"
 labels: question
-assignees: Lee-Janggun
-
+assignees: ''
 ---
+<!---
 
 When you're asking a question, please make sure:
 
@@ -21,6 +21,6 @@ When you're asking a question, please make sure:
     + [ ] You paste code, if any, in text with [syntax hightlight](https://docs.github.com/en/github/writing-on-github/creating-and-highlighting-code-blocks).  No images.
     + [ ] You paste code, if any, that is minimized as much as possible.  Your code should be immediately relevant to your question.
 
---
+-->
 
 (YOUR QUESTION HERE)
