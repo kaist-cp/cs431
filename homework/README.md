@@ -30,7 +30,7 @@
   cargo test --test <module name>
   # For example, run all tests in the hazard_pointer module
   cargo test --test hazard_pointer
-  # Run all tests in a module
+  # Run a single tests in a module
   cargo test --test <module name> <test name>
   # For example, run the stack_queue test in the hazard_pointer module
   cargo test --test hazard_pointer stack_queue
