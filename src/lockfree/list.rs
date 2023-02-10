@@ -16,6 +16,9 @@ pub struct Node<K, V> {
 }
 
 /// Sorted singly linked list.
+///
+/// Use-after-free will be caused when an unprotected guard is used, as the lifetime of returned
+/// elments are linked to that of the guard in the same way a `Shared<'g,T>` is.
 #[derive(Debug)]
 pub struct List<K, V> {
     head: Atomic<Node<K, V>>,
@@ -146,7 +149,9 @@ where
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
+            // SAFETY: All nodes in the unlinked chain are not null.
             let next = unsafe { node.deref() }.next.load(Ordering::Acquire, guard);
+            // SAFETY: we unlinked the chain.
             unsafe { guard.defer_destroy(node) };
             node = next;
         }
@@ -192,7 +197,7 @@ where
             match curr_node.key.cmp(key) {
                 Less => {
                     self.curr = curr_node.next.load(Ordering::Acquire, guard);
-                    // NOTE: unnecessary (this function is expected to be used only for `get`)
+                    // NOTE: unnecessary (this function is expected to be used only for `lookup`)
                     self.prev = &curr_node.next;
                     continue;
                 }
@@ -204,8 +209,9 @@ where
 
     /// Lookups the value.
     #[inline]
-    pub fn lookup(&self) -> Option<&'g V> {
-        unsafe { self.curr.as_ref() }.map(|n| &n.value)
+    pub fn lookup(&self) -> &'g V {
+        // SAFETY: Since value is found, curr cannot be null.
+        &unsafe { self.curr.deref() }.value
     }
 
     /// Inserts a value.
@@ -234,6 +240,7 @@ where
     /// Deletes the current node.
     #[inline]
     pub fn delete(self, guard: &'g Guard) -> Result<&'g V, ()> {
+        // SAFETY: curr was found, hence cannot be null.
         let curr_node = unsafe { self.curr.deref() };
 
         let next = curr_node.next.fetch_or(1, Ordering::Acquire, guard);
@@ -246,6 +253,8 @@ where
             .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
             .is_ok()
         {
+            // SAFETY: we are unlinker of curr. As the lifetime of the guard extends to the return
+            // value of the function, later access of curr_node is ok.
             unsafe { guard.defer_destroy(self.curr) };
         }
 
@@ -291,7 +300,7 @@ where
     {
         let (found, cursor) = self.find(key, &find, guard);
         if found {
-            unsafe { cursor.curr.as_ref() }.map(|n| &n.value)
+            Some(cursor.lookup())
         } else {
             None
         }
