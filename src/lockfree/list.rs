@@ -243,7 +243,9 @@ where
         // SAFETY: curr was found, hence cannot be null.
         let curr_node = unsafe { self.curr.deref() };
 
-        let next = curr_node.next.fetch_or(1, Ordering::Acquire, guard);
+        // Release: to relase current view of the deleting thread on this mark.
+        // Acquire: to ensure that if the latter CAS succeds, then the thread that reads `prev` through `next` will be safe.
+        let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
         if next.tag() == 1 {
             return Err(());
         }

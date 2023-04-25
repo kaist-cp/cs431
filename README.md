@@ -15,7 +15,8 @@
 - TA: [Janggun Lee](https://cp.kaist.ac.kr/janggun.lee)
   + Office Hour: Fri 9:00am-10:00am, [Zoom room](https://us05web.zoom.us/j/5293497056?pwd=OHFyMStoQm83UnY2dzg0ZDgwcWxjUT09) (The passcode is same as the class). It is not required, but if you want to come, do so by 9:15am. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
     <!-- Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy. -->
-
+- **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
+  the [upstream](https://github.com/kaist-cp/cs431) and push there.
 
 
 ## Course description
@@ -95,9 +96,7 @@ Make sure you're capable of using the following development tools:
   development. If you're not familiar with Git, walk through [this
   tutorial](https://www.atlassian.com/git/tutorials).
 
-    + **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
-      the [upstream](https://github.com/kaist-cp/cs431) and push there. Please the following
-      steps:
+    + Please do the following steps to set up your repository:
 
         * Directly clone the upstream without forking it.
 
@@ -119,7 +118,7 @@ Make sure you're capable of using the following development tools:
     + If you want to manage your development in a Git server, please create your own private
       repository.
 
-        * You may upgrade your GitHub account to "PRO", which is free of charge.  
+        * You may upgrade your GitHub account to "PRO", which is free of charge.
           Refer to the [documentation](https://education.github.com/students).
 
         * Set up your repository as a remote.
@@ -174,14 +173,14 @@ Make sure you're capable of using the following development tools:
 
     + [NOTE: We recommend the `rust-analyzer` plugin instead of `rls`](https://github.com/rust-analyzer/rust-analyzer).
 
-    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the 
-      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps: 
+    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the
+      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps:
       1. Download [this file](https://github.com/vadimcn/vscode-lldb/releases/download/v1.5.0/codelldb-x86_64-linux.vsix) at the remote server.
-      1. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
+      2. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
 
     + [NOTE: If you cannot connect to the remote server via VSCode with `fail to create hard link` error message](https://github.com/kaist-cp/cs420/issues/91), please follow the steps:
       1. Close VSCode window and try to connect to the remote server via terminal(or cmd). If you encounter `Connection timed out` error message, try again after a few minutes.
-      1. Delete all the files in `~/.vscode-server/bin/`.
+      2. Delete all the files in `~/.vscode-server/bin/`.
 
 
 ## Grading & honor code
@@ -214,7 +213,7 @@ For details, see <https://gg.kaist.ac.kr/course/11>.
 
 ### Attendance (?%)
 
-- You should solve a quiz at the [Course Management](https://gg.kaist.ac.kr/course/11) website for each session. **You should answer to the quiz by the end of the day.**
+- You should solve a quiz on the [Course](https://gg.kaist.ac.kr/course/11) Management](https://gg.kaist.ac.kr/course/11) website for each session. **You should answer the quiz by the end of the day.**
 
 - If you miss a significant number of sessions, you'll automatically get an F.
 
@@ -239,29 +238,28 @@ For details, see <https://gg.kaist.ac.kr/course/11>.
   [website](https://github.com/kaist-cp/cs431) as well as on the [GitHub issue
   tracker](https://github.com/kaist-cp/cs431/issues).  You are expected to read all
   announcements within 24 hours of their being posted.  It is highly recommended to watch the
-  repository so that new announcements will automatically be delivered to you email address.
+  repository so that new announcements will automatically be delivered to your email address.
 
 - Ask questions on course materials and assignments in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
     + Don't send emails to the instructor or TAs for course materials and assignments.
-    + Before asking a question, search it in Google and Stack Overflow.
-    + Describe your question as detailed as possible. It should include following things:
+    + Before asking a question, search for it in Google and Stack Overflow.
+    + Describe your question in as much detail as possible. It should include the following things:
       * Environment (OS, gcc, g++ version, and any other related program information).
       * Command(s) that you used and the result. Any logs should be formatted in code. Refer to [this](https://guides.github.com/features/mastering-markdown/).
-      * Any directory or file changes you've made. If it is solution file, just describe which part of the code is modified.
+      * Any directory or file changes you've made. If it is the solution file, just describe which part of the code is modified.
       * Googling result. Search before asking, and share the keyword used for searching and what you've learned from it.
     + Give a proper title to your issue.
     + Read [this](https://github.com/kaist-cp/cs431#communication) for more instructions.
 
     + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
-      question is the first step to reach an answer. Second, you can benefit from questions and
-      answers of other students.
+      question is the first step to reaching an answer. Second, you can benefit from the questions and answers of other students.
 
 - Ask your questions via email **only if** they are either confidential or personal. Any questions
    failing to do so (e.g. email questions on course materials) will not be answered.
 
-- We are NOT going to discuss *new* questions during the office hour. Before coming to the office
+- We are NOT going to discuss *new* questions during office hours. Before coming to the office
   hour, please check if there is a similar question on the issue tracker. If there isn't, file a new
-  issue and start discussion there. The agenda of the office hour will be the issues that are not
+  issue and start a discussion there. The agenda of the office hour will be the issues that are not
   resolved yet.
 
 - Emails to the instructor or the head TA should begin with "CS431:" in the subject line, followed
@@ -269,8 +267,12 @@ For details, see <https://gg.kaist.ac.kr/course/11>.
   and student number. Any emails failing to do so (e.g. emails without student number) will not be
   answered.
 
-- If you join the session remotely from Zoom (https://kaist.zoom.us/my/jeehoon.kang), 
+- If you join the session remotely from Zoom (https://kaist.zoom.us/my/jeehoon.kang),
   your Zoom name should be `<your student number> <your name>` (e.g., `20071163 강지훈`).
   Change your name by referring to [this](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
 
-- This course is conducted in English. But you may ask questions in Korean. Then I will translate it to English.
+- This course is conducted in English. But you may ask questions in Korean. Then I will translate it into English.
+
+## Ignore
+
+1830eaed90e5986c75320daaf131bd3730b8575e866c4e92935a690e7c2a0717
