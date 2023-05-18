@@ -11,12 +11,12 @@ use loom::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 use super::HAZARDS;
 
 /// Represents the ownership of a hazard pointer slot.
-pub struct Shield<T> {
+pub struct Shield {
     slot: NonNull<HazardSlot>,
-    _marker: PhantomData<*mut T>, // !Send + !Sync
+    _marker: PhantomData<*mut ()>, // !Send + !Sync
 }
 
-impl<T> Shield<T> {
+impl Shield {
     /// Creates a new shield for hazard pointer.
     pub fn new(hazards: &HazardBag) -> Self {
         let slot = hazards.acquire_slot();
@@ -27,20 +27,20 @@ impl<T> Shield<T> {
     }
 
     /// Store `pointer` to the hazard slot.
-    pub fn set(&self, pointer: *mut T) {
+    pub fn set<T>(&self, pointer: *mut T) {
         todo!()
     }
 
     /// Clear the hazard slot.
     pub fn clear(&self) {
-        self.set(ptr::null_mut());
+        self.set(ptr::null_mut::<()>())
     }
 
     /// Check if `src` still points to `pointer`. If not, returns the current value.
     ///
     /// For a pointer `p`, if "`src` still pointing to `pointer`" implies that `p` is not retired,
     /// then `Ok(())` means that shields set to `p` are validated.
-    pub fn validate(pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
+    pub fn validate<T>(pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
         todo!()
     }
 
@@ -48,7 +48,7 @@ impl<T> Shield<T> {
     ///
     /// If "`src` still pointing to `pointer`" implies that `pointer` is not retired, then `Ok(())`
     /// means that this shield is validated.
-    pub fn try_protect(&self, pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
+    pub fn try_protect<T>(&self, pointer: *mut T, src: &AtomicPtr<T>) -> Result<(), *mut T> {
         self.set(pointer);
         Self::validate(pointer, src).map_err(|new| {
             self.clear();
@@ -59,7 +59,7 @@ impl<T> Shield<T> {
     /// Get a protected pointer from `src`.
     ///
     /// See `try_protect()`.
-    pub fn protect(&self, src: &AtomicPtr<T>) -> *mut T {
+    pub fn protect<T>(&self, src: &AtomicPtr<T>) -> *mut T {
         let mut pointer = src.load(Ordering::Relaxed);
         while let Err(new) = self.try_protect(pointer, src) {
             pointer = new;
@@ -70,20 +70,20 @@ impl<T> Shield<T> {
     }
 }
 
-impl<T> Default for Shield<T> {
+impl Default for Shield {
     fn default() -> Self {
         Self::new(&HAZARDS)
     }
 }
 
-impl<T> Drop for Shield<T> {
+impl Drop for Shield {
     /// Clear and release the ownership of the hazard slot.
     fn drop(&mut self) {
         todo!()
     }
 }
 
-impl<T> fmt::Debug for Shield<T> {
+impl fmt::Debug for Shield {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Shield")
             .field("slot address", &self.slot)
@@ -228,7 +228,7 @@ mod tests {
         let hazard_bag = HazardBag::new();
         // allocate slots
         let shields = (0..1024)
-            .map(|_| Shield::<()>::new(&hazard_bag))
+            .map(|_| Shield::new(&hazard_bag))
             .collect::<Vec<_>>();
         // slot addresses
         let old_slots = shields
@@ -239,7 +239,7 @@ mod tests {
         drop(shields);
 
         let shields = (0..128)
-            .map(|_| Shield::<()>::new(&hazard_bag))
+            .map(|_| Shield::new(&hazard_bag))
             .collect::<Vec<_>>();
         let new_slots = shields
             .iter()

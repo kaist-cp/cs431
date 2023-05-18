@@ -402,12 +402,11 @@ mod queue {
             let shield = Shield::default();
 
             loop {
-                // We push onto the tail, so we'll start optimistically by looking there first.
                 let tail = shield.protect(&self.tail);
                 // SAFETY
                 // 1. queue's `tail` is always valid as it will be CASed with valid nodes only.
                 // 2. `tail` is protected & validated.
-                let tail_ref = unsafe { tail.as_ref().unwrap() };
+                let tail_ref = unsafe { &*tail };
 
                 let next = tail_ref.next.load(Acquire);
                 if !next.is_null() {
@@ -426,9 +425,6 @@ mod queue {
             }
         }
 
-        /// Attempts to dequeue from the front.
-        ///
-        /// Returns `None` if the queue is empty.
         pub fn try_pop(&self) -> Option<T> {
             let head_shield = Shield::default();
             let next_shield = Shield::default();
@@ -464,8 +460,6 @@ mod queue {
                     }
                 };
 
-                // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then
-                // the messages for that node are already acquired.
                 let tail = self.tail.load(Relaxed);
                 if tail == head {
                     let _ = self.tail.compare_exchange(tail, next, Release, Relaxed);
@@ -485,15 +479,26 @@ mod queue {
     }
 
     impl<T> Drop for Queue<T> {
+        #[cfg(feature = "check-loom")]
         fn drop(&mut self) {
-            //TODO: Once loom supports get_mut, use it.
-            let sentinel = self.head.load(Relaxed);
+            let sentinel = unsafe { Box::from_raw(self.head.load(Relaxed)) };
 
-            let mut curr = unsafe { (*sentinel).next.load(Relaxed) };
+            let mut curr = sentinel.next.load(Relaxed);
             while !curr.is_null() {
                 let curr_ref = unsafe { Box::from_raw(curr) };
                 drop(unsafe { curr_ref.data.assume_init() });
                 curr = curr_ref.next.load(Relaxed);
+            }
+        }
+        #[cfg(not(feature = "check-loom"))]
+        fn drop(&mut self) {
+            let sentinel = unsafe { Box::from_raw(*self.head.get_mut()) };
+
+            let mut curr = sentinel.next.into_inner();
+            while !curr.is_null() {
+                let curr_ref = unsafe { Box::from_raw(curr) };
+                drop(unsafe { curr_ref.data.assume_init() });
+                curr = curr_ref.next.into_inner();
             }
         }
     }
