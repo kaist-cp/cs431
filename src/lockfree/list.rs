@@ -147,11 +147,11 @@ where
             .map_err(|_| ())?;
 
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
-        let mut node = prev_next;
+        let mut node: Shared<Node<K, V>> = prev_next;
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
-            let next = unsafe { node.deref() }.next.load(Ordering::Acquire, guard);
-            // SAFETY: we unlinked the chain.
+            let next = unsafe { node.deref() }.next.load(Ordering::Relaxed, guard);
+            // SAFETY: we unlinked the chain with above CAS.
             unsafe { guard.defer_destroy(node) };
             node = next;
         }
@@ -209,9 +209,8 @@ where
 
     /// Lookups the value.
     #[inline]
-    pub fn lookup(&self) -> &'g V {
-        // SAFETY: Since value is found, curr cannot be null.
-        &unsafe { self.curr.deref() }.value
+    pub fn lookup(&self) -> Option<&'g V> {
+        unsafe { self.curr.as_ref() }.map(|n| &n.value)
     }
 
     /// Inserts a value.
@@ -244,7 +243,7 @@ where
         let curr_node = unsafe { self.curr.deref() };
 
         // Release: to relase current view of the deleting thread on this mark.
-        // Acquire: to ensure that if the latter CAS succeds, then the thread that reads `prev` through `next` will be safe.
+        // Acquire: to ensure that if the latter CAS succeds, then the thread that reads `next` through `prev` will be safe.
         let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
         if next.tag() == 1 {
             return Err(());
@@ -302,7 +301,7 @@ where
     {
         let (found, cursor) = self.find(key, &find, guard);
         if found {
-            Some(cursor.lookup())
+            cursor.lookup()
         } else {
             None
         }
