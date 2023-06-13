@@ -147,7 +147,7 @@ where
             .map_err(|_| ())?;
 
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
-        let mut node: Shared<Node<K, V>> = prev_next;
+        let mut node = prev_next;
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
             let next = unsafe { node.deref() }.next.load(Ordering::Relaxed, guard);
