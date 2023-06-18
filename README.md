@@ -201,6 +201,8 @@ Make sure you're capable of using the following development tools:
 
 For details, see <https://gg.kaist.ac.kr/course/11>.
 
+Read the documentation: <https://public.fearless.systems/jeehoon.kang/class/cs431/cs431_homework/>.
+
 
 ### Midterm and final exams (40%)
 
