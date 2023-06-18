@@ -3,7 +3,7 @@
 //! Usable with any number of producers and consumers.
 //!
 //! Michael and Scott.  Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue
-//! Algorithms.  PODC 1996.  http://dl.acm.org/citation.cfm?id=248106
+//! Algorithms.  PODC 1996.  <http://dl.acm.org/citation.cfm?id=248106>
 
 use core::mem::{self, MaybeUninit};
 use core::sync::atomic::Ordering;
