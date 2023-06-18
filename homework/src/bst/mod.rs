@@ -1,7 +1,7 @@
 //! Concurrent binary search tree protected with optimistic lock coupling.
 //!
 //! - From Bronson, Casper, Chafi, Olukotun. A Practical Concurrent Binary Search Tree. PPoPP 2010
-//! (https://stanford-ppl.github.io/website/papers/ppopp207-bronson.pdf)
+//! (<https://stanford-ppl.github.io/website/papers/ppopp207-bronson.pdf>)
 //!
 //! - We implement partially external relaxed tree (section 3) with a few simplifications.
 

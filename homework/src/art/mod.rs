@@ -25,7 +25,7 @@ struct Cursor<'a, V> {
 
 /// Entry API for Art.
 ///
-/// See https://doc.rust-lang.org/std/collections/hash_map/enum.Entry.html for more details of the
+/// See <https://doc.rust-lang.org/std/collections/hash_map/enum.Entry.html> for more details of the
 /// entry API.
 #[derive(Debug)]
 pub struct Entry<'a, V, I: Iterator<Item = u8> + DoubleEndedIterator> {
