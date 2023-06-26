@@ -5,11 +5,11 @@ use crossbeam_epoch::{pin, Atomic, Guard, Owned};
 use rand::{thread_rng, Rng};
 use std::time;
 
-pub const ELIM_SIZE: usize = 16;
-pub const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);
+pub(crate) const ELIM_SIZE: usize = 16;
+pub(crate) const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);
 
 #[inline]
-pub fn get_random_elim_index() -> usize {
+pub(crate) fn get_random_elim_index() -> usize {
     thread_rng().gen::<usize>() % ELIM_SIZE
 }
 

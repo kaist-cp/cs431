@@ -17,7 +17,7 @@ fn thread_pool_parallel() {
         let barrier = barrier.clone();
         let done_sender = done_sender.clone();
         pool.execute(move || {
-            barrier.wait();
+            let _ = barrier.wait();
             done_sender.send(()).unwrap();
         });
     }
@@ -32,7 +32,7 @@ fn run_jobs(pool: &ThreadPool, counter: &Arc<AtomicUsize>) {
         let counter = counter.clone();
         pool.execute(move || {
             sleep(Duration::from_millis(NUM_THREADS as u64));
-            counter.fetch_add(1, Ordering::Relaxed);
+            let _ = counter.fetch_add(1, Ordering::Relaxed);
         });
     }
 }

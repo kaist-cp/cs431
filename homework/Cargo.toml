@@ -11,14 +11,13 @@ check-loom = ["loom"]
 arr_macro = "0.2.1"
 cfg-if = "1.0.0"
 crossbeam-channel = "0.5.8"
-crossbeam-epoch = "0.9.14"
-crossbeam-utils = "0.8.15"
-ctrlc = "3.2.5"
+crossbeam-epoch = "0.9.15"
+crossbeam-utils = "0.8.16"
+ctrlc = "3.4.0"
 either = "1.8.1"
 itertools = "0.10.5"
-once_cell = "1.17.1"
 cs431 = { git = "https://github.com/kaist-cp/cs431" }
 # cs431 = { path = "../cs431" }
 loom = { version = "0.5.6", optional = true }
 rand = "0.8.5"
-regex = "1.8.1"
+regex = "1.8.4"

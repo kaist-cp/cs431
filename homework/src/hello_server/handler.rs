@@ -1,10 +1,10 @@
 //! Request handler with a cache.
 
-use once_cell::sync::Lazy;
 use regex::bytes::Regex;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::thread;
 use std::time::Duration;
 
@@ -53,9 +53,10 @@ impl Handler {
         let mut buf = [0; 512];
         let _ = stream.read(&mut buf).unwrap();
 
-        static REQUEST_REGEX: Lazy<Regex> =
-            Lazy::new(|| Regex::new(r"GET /(?P<key>\w+) HTTP/1.1\r\n").unwrap());
+        static REQUEST_REGEX: OnceLock<Regex> = OnceLock::<Regex>::new();
+
         let key = REQUEST_REGEX
+            .get_or_init(|| Regex::new(r"GET /(?P<key>\w+) HTTP/1.1\r\n").unwrap())
             .captures(&buf)
             .and_then(|cap| cap.name("key"))
             .map(|key| String::from_utf8_lossy(key.as_bytes()));

@@ -105,7 +105,7 @@ where
         // 1 -> 2 -x-> 3 -x-> 4 -> 5 -> ∅  (search key: 4)
         let mut prev_next = self.curr;
         let found = loop {
-            let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
+            let Some(curr_node) = (unsafe { self.curr.as_ref() }) else { break false };
             let next = curr_node.next.load(Ordering::Acquire, guard);
 
             // - finding stage is done if cursor.curr advancement stops
@@ -165,7 +165,7 @@ where
         loop {
             debug_assert_eq!(self.curr.tag(), 0);
 
-            let curr_node = some_or!(unsafe { self.curr.as_ref() }, return Ok(false));
+            let Some(curr_node) = (unsafe { self.curr.as_ref() }) else { return Ok(false) };
             let mut next = curr_node.next.load(Ordering::Acquire, guard);
 
             if next.tag() != 0 {
@@ -193,7 +193,7 @@ where
     #[inline]
     pub fn find_harris_herlihy_shavit(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         Ok(loop {
-            let curr_node = some_or!(unsafe { self.curr.as_ref() }, break false);
+            let Some(curr_node) = (unsafe { self.curr.as_ref() }) else { break false };
             match curr_node.key.cmp(key) {
                 Less => {
                     self.curr = curr_node.next.load(Ordering::Acquire, guard);

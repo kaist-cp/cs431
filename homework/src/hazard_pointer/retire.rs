@@ -94,7 +94,7 @@ mod tests {
         struct Tester(Rc<RefCell<HashSet<usize>>>, usize);
         impl Drop for Tester {
             fn drop(&mut self) {
-                self.0.borrow_mut().insert(self.1);
+                let _ = self.0.borrow_mut().insert(self.1);
             }
         }
         let hazards = HazardBag::new();

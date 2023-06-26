@@ -1,7 +1,5 @@
 //! Lock-free data structures.
 
-#[macro_use]
-mod utils;
 pub mod list;
 mod queue;
 mod stack;

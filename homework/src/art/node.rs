@@ -10,12 +10,12 @@ use arr_macro::arr;
 use itertools::izip;
 
 /// The sentinel value for index.
-pub const KEY_ENDMARK: u8 = 0xffu8;
-pub const KEY_INVALID: u8 = 0xfeu8;
+pub(crate) const KEY_ENDMARK: u8 = 0xffu8;
+pub(crate) const KEY_INVALID: u8 = 0xfeu8;
 
 /// The header of a node.
 #[derive(Default, Debug, Clone)]
-pub struct NodeHeader {
+pub(crate) struct NodeHeader {
     /// The length of the key fragment.
     length: u8,
     /// The key fragment of the node used for path compression optimization.
@@ -62,7 +62,7 @@ struct NodeBodyV<V> {
 }
 
 /// The trait for the body of an internal node.
-pub trait NodeBodyI<V> {
+pub(crate) trait NodeBodyI<V> {
     /// Lookups the child of `key`.
     ///
     /// Returns `Some((i, n))` if `n` is the child of `key` at the internal index `i`.
@@ -415,7 +415,11 @@ impl<V> NodeBox<V> {
     /// # Panics
     ///
     /// Panics if the number of `children` or `min_size` exceeds 256.
-    pub fn newi(header: NodeHeader, children: Vec<(u8, NodeBox<V>)>, min_size: usize) -> Self {
+    pub(crate) fn newi(
+        header: NodeHeader,
+        children: Vec<(u8, NodeBox<V>)>,
+        min_size: usize,
+    ) -> Self {
         let size = cmp::max(children.len(), min_size);
         let mut node = if (0..=4).contains(&size) {
             Self::new_inner_default::<NodeBody4<V>>(header, 0)
@@ -431,7 +435,7 @@ impl<V> NodeBox<V> {
 
         let base = node.deref_mut().unwrap().1.left().unwrap();
         for (i, c) in children.into_iter() {
-            base.update(i, c).map_err(|_| ()).unwrap();
+            let _unused = base.update(i, c).map_err(|_| ()).unwrap();
         }
 
         node
@@ -542,7 +546,7 @@ impl<V> NodeBox<V> {
     /// an internal node and `body` is its body, or `Right(value)`, if it's a leaf node and `value`
     /// is a reference to the leaf node's value.
     #[allow(clippy::type_complexity)]
-    pub fn deref(&self) -> Option<(&NodeHeader, Either<&dyn NodeBodyI<V>, &V>)> {
+    pub(crate) fn deref(&self) -> Option<(&NodeHeader, Either<&dyn NodeBodyI<V>, &V>)> {
         let ptr = self.inner & !TAG_MASK;
         if ptr == 0 {
             return None;
@@ -580,7 +584,7 @@ impl<V> NodeBox<V> {
     ///
     /// See the comments for `Self::deref()`.
     #[allow(clippy::type_complexity)]
-    pub fn deref_mut(
+    pub(crate) fn deref_mut(
         &mut self,
     ) -> Option<(&mut NodeHeader, Either<&mut dyn NodeBodyI<V>, &mut V>)> {
         let ptr = self.inner & !TAG_MASK;

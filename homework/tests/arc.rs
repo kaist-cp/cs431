@@ -10,9 +10,7 @@ unsafe impl Sync for Canary {}
 
 impl Drop for Canary {
     fn drop(&mut self) {
-        unsafe {
-            (*self.0).fetch_add(1, Relaxed);
-        }
+        let _ = unsafe { (*self.0).fetch_add(1, Relaxed) };
     }
 }
 
@@ -68,6 +66,7 @@ mod basic {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn test_cowarc_clone_unique2() {
         let mut cow0 = Arc::new(75);
         let cow1 = cow0.clone();
@@ -92,7 +91,7 @@ mod basic {
     #[test]
     fn drop_arc() {
         let canary = AtomicUsize::new(0);
-        let x = Arc::new(Canary(&canary as *const AtomicUsize));
+        let x = Arc::new(Canary(&canary));
         let y = x.clone();
         drop(x);
         drop(y);
@@ -100,6 +99,7 @@ mod basic {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn test_count() {
         let a = Arc::new(0);
         assert!(Arc::count(&a) == 1);
@@ -109,6 +109,7 @@ mod basic {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn test_ptr_eq() {
         let five = Arc::new(5);
         let same_five = five.clone();
@@ -121,7 +122,7 @@ mod basic {
     #[test]
     fn test_try_unwrap_drop_once() {
         let canary = AtomicUsize::new(0);
-        let x = Arc::new(Canary(&canary as *const AtomicUsize));
+        let x = Arc::new(Canary(&canary));
         drop(Arc::try_unwrap(x));
         assert!(canary.load(Relaxed) == 1);
     }
@@ -134,7 +135,7 @@ mod basic {
                 let count = count.clone();
                 thread::spawn(move || {
                     for _ in 0..128 {
-                        count.fetch_add(1, Relaxed);
+                        let _ = count.fetch_add(1, Relaxed);
                     }
                 })
             })
@@ -162,7 +163,7 @@ mod correctness {
             {
                 let flag = flag.clone();
                 let data = data.clone();
-                thread::spawn(move || {
+                let _unused = thread::spawn(move || {
                     data.store(123, Relaxed);
                     drop(flag)
                 });
@@ -180,7 +181,7 @@ mod correctness {
             let mut value = Arc::new(AtomicUsize::new(0));
             {
                 let value = value.clone();
-                thread::spawn(move || {
+                let _unused = thread::spawn(move || {
                     value.store(123, Relaxed);
                 });
             }
@@ -197,7 +198,7 @@ mod correctness {
             let value = Arc::new(AtomicUsize::new(0));
             {
                 let value = value.clone();
-                thread::spawn(move || {
+                let _unused = thread::spawn(move || {
                     value.store(123, Relaxed);
                 });
             }
@@ -221,10 +222,10 @@ mod correctness {
         model(|| {
             let arc1 = Arc::new(Counter(AtomicUsize::new(0)));
             let arc2 = arc1.clone();
-            thread::spawn(move || {
-                arc1.0.fetch_add(1, Relaxed);
+            let _unused = thread::spawn(move || {
+                let _ = arc1.0.fetch_add(1, Relaxed);
             });
-            arc2.0.fetch_add(1, Relaxed);
+            let _ = arc2.0.fetch_add(1, Relaxed);
         })
     }
 
@@ -233,7 +234,7 @@ mod correctness {
     fn clone_drop_atomic() {
         model(|| {
             let canary = AtomicUsize::new(0);
-            let arc1 = Arc::new(Canary(&canary as *const AtomicUsize));
+            let arc1 = Arc::new(Canary(&canary));
             let arc2 = arc1.clone();
             let handle = thread::spawn(move || {
                 drop(arc1.clone());

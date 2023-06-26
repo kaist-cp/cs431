@@ -19,7 +19,7 @@ fn cancellable_listener_cancel() {
 
     let (done_sender, done_receiver) = bounded(0);
     scope(|s| {
-        s.spawn(|| {
+        let _unused = s.spawn(|| {
             for stream in listener.incoming() {
                 let mut stream = stream.unwrap();
                 let mut buf = [0];

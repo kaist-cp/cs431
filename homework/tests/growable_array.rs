@@ -87,7 +87,7 @@ impl<T> Default for Stack<T> {
 
 impl<T> Stack<T> {
     fn push_node(&self, mut n: Owned<Node<T>>) {
-        let guard = crossbeam_epoch::pin();
+        let guard = pin();
 
         loop {
             let head = self.head.load(Ordering::Relaxed, &guard);

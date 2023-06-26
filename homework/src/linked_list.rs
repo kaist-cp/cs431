@@ -29,7 +29,7 @@ struct Node<T> {
 ///
 /// [`iter`]: struct.LinkedList.html#method.iter
 /// [`LinkedList`]: struct.LinkedList.html
-pub struct Iter<'a, T: 'a> {
+pub struct Iter<'a, T> {
     head: *mut Node<T>,
     tail: *mut Node<T>,
     len: usize,
@@ -55,7 +55,7 @@ impl<T> Clone for Iter<'_, T> {
 ///
 /// [`iter_mut`]: struct.LinkedList.html#method.iter_mut
 /// [`LinkedList`]: struct.LinkedList.html
-pub struct IterMut<'a, T: 'a> {
+pub struct IterMut<'a, T> {
     // We do *not* exclusively own the entire list here, references to node's `element`
     // have been handed out by the iterator! So be careful when using this; the methods
     // called must be aware that there can be aliasing pointers to `element`.

@@ -64,10 +64,13 @@ impl<T> Stack<T> for TreiberStack<T> {
 
     fn try_pop(&self, guard: &Guard) -> Result<Option<T>, ()> {
         let head = self.head.load(Ordering::Acquire, guard);
-        let head_ref = some_or!(unsafe { head.as_ref() }, return Ok(None));
+        let Some(head_ref) = (unsafe { head.as_ref() }) else {
+                   return Ok(None);
+        };
         let next = head_ref.next.load(Ordering::Relaxed, guard);
 
-        self.head
+        let _ = self
+            .head
             .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, guard)
             .map_err(|_| ())?;
 
@@ -103,7 +106,7 @@ mod test {
 
         scope(|scope| {
             for _ in 0..10 {
-                scope.spawn(|| {
+                let _unused = scope.spawn(|| {
                     for i in 0..10_000 {
                         stack.push(i);
                         assert!(stack.pop().is_some());

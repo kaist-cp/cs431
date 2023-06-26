@@ -55,7 +55,7 @@ pub fn stress_sequential<
                 let value = rng.gen::<usize>();
                 println!("iteration {i}: insert({key:?}, {value})");
                 let _ = map.insert(&key, value);
-                hashmap.entry(key).or_insert(value);
+                let _ = hashmap.entry(key).or_insert(value);
             }
             Ops::DeleteSome => {
                 let key = hashmap.keys().choose(&mut rng).cloned();
@@ -140,12 +140,12 @@ pub fn lookup_concurrent<
         let key = K::rand_gen(&mut rng);
         let value = rng.gen::<usize>();
         let _ = map.insert(&key, value, &pin());
-        hashmap.entry(key).or_insert(value);
+        let _ = hashmap.entry(key).or_insert(value);
     }
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();
@@ -184,7 +184,7 @@ pub fn insert_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let key = K::rand_gen(&mut rng);
@@ -235,7 +235,7 @@ pub fn stress_concurrent<
 
     thread::scope(|s| {
         for _ in 0..threads {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let op = ops.choose(&mut rng).unwrap();

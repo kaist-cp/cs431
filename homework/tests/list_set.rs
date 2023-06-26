@@ -28,13 +28,13 @@ fn parallel_iter_end() {
     set.insert(1).unwrap();
     set.insert(2).unwrap();
     let mut iter = set.iter();
-    iter.next();
-    iter.next();
-    iter.next();
+    let _ = iter.next();
+    let _ = iter.next();
+    let _ = iter.next();
     thread::scope(|s| {
-        s.spawn(|| {
+        let _unused = s.spawn(|| {
             // this shouldn't block
-            let _ = set.iter().collect::<Vec<_>>();
+            let _unused = set.iter().collect::<Vec<_>>();
         });
     });
     drop(iter);
@@ -149,7 +149,7 @@ fn stress_concurrent() {
 
     thread::scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _ununsed = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let op = ops.choose(&mut rng).unwrap();
@@ -161,11 +161,11 @@ fn stress_concurrent() {
                         }
                         Ops::Insert => {
                             let value = generate_random_string(&mut rng);
-                            let _ = set.insert(value);
+                            let _unused = set.insert(value);
                         }
                         Ops::Remove => {
                             let value = generate_random_string(&mut rng);
-                            let _ = set.remove(&value);
+                            let _unused = set.remove(&value);
                         }
                     }
                 }
@@ -284,7 +284,7 @@ fn iter_consistent() {
     thread::scope(|s| {
         // insert or remove odd numbers
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let key = 2 * rng.gen_range(0..50) + 1;
@@ -298,7 +298,7 @@ fn iter_consistent() {
             });
         }
         // iterator consistency check
-        s.spawn(|| {
+        let _unused = s.spawn(|| {
             while !done.load(Acquire) {
                 let snapshot = set.iter().copied().collect::<Vec<_>>();
                 // sorted

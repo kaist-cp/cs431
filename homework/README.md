@@ -1,6 +1,6 @@
 # Tips
 
-- Read the paper and the skeleton code carefully.  I'll ask questions on those in the exams.
+- Read the paper and the skeleton code carefully.  I'll ask questions about those in the exams.
 
 - Read [the Rust book](https://doc.rust-lang.org/book/), especially the ["getting started"
   section](https://doc.rust-lang.org/book/ch01-00-getting-started.html) for learning how to build
@@ -39,11 +39,11 @@
 ## Using LLVM Sanitizers
 
 We are going to use the LLVM sanitizers for grading.
-Sanitizers are dynamic analysis tools that detects buggy behaviors during runtime. For example,
+Sanitizers are dynamic analysis tools that detect buggy behaviors during runtime. For example,
 [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html) detects memory bugs like use-after-free and
 [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html) detects data races.
 
-You can run the tests with sanitizers using following commands:
+You can run the tests with sanitizers using the following commands:
 ```
 source scripts/grade-utils.sh
 # This may take some time because of `rustup toolchain update stable nightly` in the script.
@@ -65,6 +65,6 @@ cargo_tsan SUBCOMMAND
 cargo_tsan test --test growable_array
 ```
 
-While (safe) Rust's type system guarantees memory safety and absence of data race,
+While (safe) Rust's type system guarantees memory safety and the absence of data race,
 this guarantee relies on the correctness of the libraries implemented with unsafe features.
 Therefore tools like sanitizers are still essential when we use unsafe Rust.

@@ -19,7 +19,7 @@ fn counter() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
@@ -57,7 +57,7 @@ fn counter_sleep() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
@@ -107,7 +107,7 @@ fn stack() {
     let stack = Stack::default();
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 for i in 0..ITER {
                     stack.push(i);
                     assert!(stack.try_pop().is_some());
@@ -127,7 +127,7 @@ fn queue() {
     let queue = Queue::default();
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 for i in 0..ITER {
                     queue.push(i);
                     assert!(queue.try_pop().is_some());
@@ -147,12 +147,12 @@ fn stack_queue() {
     let queue = Queue::default();
     scope(|s| {
         for _ in 0..THREADS {
-            s.spawn(|| {
+            let _unused = s.spawn(|| {
                 for i in 0..ITER {
                     stack.push(i);
                     queue.push(i);
-                    stack.try_pop();
-                    queue.try_pop();
+                    let _ = stack.try_pop();
+                    let _ = queue.try_pop();
                     collect();
                 }
             });

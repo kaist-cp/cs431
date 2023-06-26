@@ -9,9 +9,6 @@
 #![allow(unused_imports)]
 #![allow(unused_mut)]
 
-#[macro_use]
-mod utils;
-
 mod arc;
 mod art;
 mod bst;

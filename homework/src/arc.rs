@@ -314,6 +314,6 @@ impl<T: fmt::Debug> fmt::Debug for Arc<T> {
 
 impl<T> fmt::Pointer for Arc<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Pointer::fmt(&(&**self as *const T), f)
+        fmt::Pointer::fmt(&(&**self), f)
     }
 }

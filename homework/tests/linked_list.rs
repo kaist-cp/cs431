@@ -69,7 +69,7 @@ fn test_iterator_clone() {
     n.push_back(3);
     n.push_back(4);
     let mut it = n.iter();
-    it.next();
+    let _ = it.next();
     let mut jt = it.clone();
     assert_eq!(it.next(), jt.next());
     assert_eq!(it.next_back(), jt.next_back());
@@ -98,7 +98,7 @@ fn test_rev_iter() {
         assert_eq!((6 - i) as i32, *elt);
     }
     let mut n = LinkedList::new();
-    assert_eq!(n.iter().rev().next(), None);
+    assert_eq!(n.iter().next_back(), None);
     n.push_front(4);
     let mut it = n.iter().rev();
     assert_eq!(it.next().unwrap(), &4);
@@ -146,7 +146,7 @@ fn test_mut_rev_iter() {
         assert_eq!((6 - i) as i32, *elt);
     }
     let mut n = LinkedList::new();
-    assert!(n.iter_mut().rev().next().is_none());
+    assert!(n.iter_mut().next_back().is_none());
     n.push_front(4);
     let mut it = n.iter_mut().rev();
     assert!(it.next().is_some());
@@ -232,9 +232,7 @@ fn test_drop() {
     struct Elem;
     impl Drop for Elem {
         fn drop(&mut self) {
-            unsafe {
-                DROPS += 1;
-            }
+            unsafe { DROPS += 1 };
         }
     }
 
@@ -254,9 +252,7 @@ fn test_drop_with_pop() {
     struct Elem;
     impl Drop for Elem {
         fn drop(&mut self) {
-            unsafe {
-                DROPS += 1;
-            }
+            unsafe { DROPS += 1 };
         }
     }
 
@@ -280,9 +276,7 @@ fn test_drop_clear() {
     struct Elem;
     impl Drop for Elem {
         fn drop(&mut self) {
-            unsafe {
-                DROPS += 1;
-            }
+            unsafe { DROPS += 1 };
         }
     }
 

@@ -17,12 +17,12 @@ pub trait AtomicRW {
 // because it's a generally accepted practice.
 impl<T> AtomicRW for T {
     unsafe fn atomic_write(&self, value: T) {
-        let this = self as *const _ as *mut _;
+        let this = (self as *const T).cast_mut();
         ptr::write_volatile(this, value);
     }
 
     unsafe fn atomic_swap(&self, value: T) -> Self {
-        let this = self as *const _ as *mut _;
+        let this = (self as *const T).cast_mut();
         let result = ptr::read_volatile(this);
         ptr::write_volatile(this, value);
         result
@@ -31,7 +31,7 @@ impl<T> AtomicRW for T {
 
 /// Node's inner data protected by sequence lock.
 #[derive(Debug)]
-pub struct NodeInner<K: Ord, V> {
+pub(crate) struct NodeInner<K: Ord, V> {
     /// Value on the node. `None` means it's vacant.
     pub(crate) value: Option<V>,
 
@@ -43,7 +43,7 @@ pub struct NodeInner<K: Ord, V> {
 }
 
 #[derive(Debug)]
-pub struct Node<K: Ord, V> {
+pub(crate) struct Node<K: Ord, V> {
     /// Key on the node.
     pub(crate) key: K,
 
@@ -53,7 +53,7 @@ pub struct Node<K: Ord, V> {
 
 /// Direction (left or right).
 #[derive(Debug, Clone, Copy)]
-pub enum Dir {
+pub(crate) enum Dir {
     /// Left dirction.
     L,
 
@@ -88,7 +88,7 @@ pub struct Bst<K: Ord, V> {
 
 impl<K: Ord, V> NodeInner<K, V> {
     #[inline]
-    pub fn child(&self, dir: Dir) -> &Atomic<Node<K, V>> {
+    pub(crate) fn child(&self, dir: Dir) -> &Atomic<Node<K, V>> {
         match dir {
             Dir::L => &self.left,
             Dir::R => &self.right,
@@ -99,7 +99,7 @@ impl<K: Ord, V> NodeInner<K, V> {
 impl Dir {
     /// Returns the opposite direction.
     #[inline]
-    pub fn opposite(self) -> Self {
+    pub(crate) fn opposite(self) -> Self {
         match self {
             Self::L => Self::R,
             Self::R => Self::L,
@@ -107,7 +107,7 @@ impl Dir {
     }
 }
 
-impl<'g, K: Ord, V> Cursor<'g, K, V> {
+impl<K: Ord, V> Cursor<'_, K, V> {
     /// Checks if it is at the root.
     pub fn is_root(&self) -> bool {
         self.ancestors.is_empty()

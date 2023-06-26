@@ -184,7 +184,7 @@ mod tests {
                     for data in VALUES {
                         let src = AtomicPtr::new(data as *mut ());
                         let shield = Shield::new(&hazard_bag);
-                        shield.protect(&src);
+                        let _ = shield.protect(&src);
                         // leak the shield so that it is not unprotected.
                         mem::forget(shield);
                     }
@@ -209,7 +209,7 @@ mod tests {
                     for data in VALUES {
                         let src = AtomicPtr::new(data as *mut ());
                         let shield = Shield::new(&hazard_bag);
-                        shield.protect(&src);
+                        let _ = shield.protect(&src);
                     }
                 })
             })

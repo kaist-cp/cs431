@@ -51,7 +51,7 @@ impl<T> OrderedListSet<T> {
 }
 
 impl<T: Ord> OrderedListSet<T> {
-    fn find(&self, key: &T) -> (bool, Cursor<T>) {
+    fn find(&self, key: &T) -> (bool, Cursor<'_, T>) {
         todo!()
     }
 
@@ -76,7 +76,7 @@ pub struct Iter<'l, T>(Option<MutexGuard<'l, *mut Node<T>>>);
 
 impl<T> OrderedListSet<T> {
     /// An iterator visiting all elements.
-    pub fn iter(&self) -> Iter<T> {
+    pub fn iter(&self) -> Iter<'_, T> {
         Iter(Some(self.head.lock().unwrap()))
     }
 }

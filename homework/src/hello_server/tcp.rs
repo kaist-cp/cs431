@@ -44,16 +44,16 @@ impl CancellableTcpListener {
 
     /// Returns an iterator over the connections being received on this listener.  The returned
     /// iterator will return `None` if the listener is `cancel`led.
-    pub fn incoming(&self) -> Incoming {
+    pub fn incoming(&self) -> Incoming<'_> {
         Incoming { listener: self }
     }
 }
 
-impl<'a> Iterator for Incoming<'a> {
+impl Iterator for Incoming<'_> {
     type Item = io::Result<TcpStream>;
     /// Returns None if the listener is `cancel()`led.
     fn next(&mut self) -> Option<io::Result<TcpStream>> {
-        let stream: io::Result<TcpStream> = self.listener.inner.accept().map(|p| p.0);
+        let stream = self.listener.inner.accept().map(|p| p.0);
         todo!()
     }
 }
