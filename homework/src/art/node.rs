@@ -113,7 +113,7 @@ impl NodeHeader {
     ///
     /// Returns `Ok(header)` if a new header is created; `Err(())` if the key is not fit for a
     /// header.
-    pub fn new(key: &[u8]) -> Result<Self, ()> {
+    pub(crate) fn new(key: &[u8]) -> Result<Self, ()> {
         let length = key.len();
         if length > Self::MAX_LENGTH {
             return Err(());
@@ -128,7 +128,7 @@ impl NodeHeader {
     }
 
     /// Shrinks the key by `delta`.
-    pub fn shrink_key(&mut self, delta: u8) {
+    pub(crate) fn shrink_key(&mut self, delta: u8) {
         for i in delta..self.length {
             self.key[usize::from(i - delta)] = self.key[usize::from(i)];
         }
@@ -137,13 +137,13 @@ impl NodeHeader {
 
     /// Returns the length of the given header's key.
     #[inline]
-    pub fn length(&self) -> u8 {
+    pub(crate) fn length(&self) -> u8 {
         self.length
     }
 
     /// Returns the key of the given header.
     #[inline]
-    pub fn key(&self) -> &[u8] {
+    pub(crate) fn key(&self) -> &[u8] {
         &self.key[0..usize::from(self.length)]
     }
 }
