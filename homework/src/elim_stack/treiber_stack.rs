@@ -65,7 +65,7 @@ impl<T> Stack<T> for TreiberStack<T> {
     fn try_pop(&self, guard: &Guard) -> Result<Option<T>, ()> {
         let head = self.head.load(Ordering::Acquire, guard);
         let Some(head_ref) = (unsafe { head.as_ref() }) else {
-                   return Ok(None);
+            return Ok(None);
         };
         let next = head_ref.next.load(Ordering::Relaxed, guard);
 
