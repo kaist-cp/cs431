@@ -216,10 +216,7 @@ fn test_show() {
     let list: LinkedList<_> = (0..10).collect();
     assert_eq!(format!("{list:?}"), "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]");
 
-    let list: LinkedList<_> = vec!["just", "one", "test", "more"]
-        .iter()
-        .cloned()
-        .collect();
+    let list: LinkedList<_> = ["just", "one", "test", "more"].iter().cloned().collect();
     assert_eq!(
         format!("{list:?}"),
         "[\"just\", \"one\", \"test\", \"more\"]"

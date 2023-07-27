@@ -120,6 +120,7 @@ impl<T> Arc<T> {
     /// }
     /// assert_eq!(*x, "foo");
     /// ```
+    #[allow(clippy::needless_pass_by_ref_mut)]
     pub unsafe fn get_mut_unchecked(this: &mut Self) -> &mut T {
         // We are careful to *not* create a reference covering the "count" fields, as
         // this would alias with concurrent access to the reference counts.

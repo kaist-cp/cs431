@@ -101,7 +101,7 @@ impl<V> Art<V> {
     /// Encodes a given string into an array of `u8`. Appending a sentinel value (0xff) to make sure
     /// a string is not a prefix of another.
     fn encode_key(key: &'_ str) -> impl '_ + Iterator<Item = u8> + DoubleEndedIterator {
-        key.bytes().chain(vec![KEY_ENDMARK].into_iter())
+        key.bytes().chain(vec![KEY_ENDMARK])
     }
 
     /// Creates an adaptive radix tree.
