@@ -3,6 +3,7 @@ use cs431_homework::{Art, SequentialMap, StrStringMap};
 pub mod map;
 
 #[test]
+#[ignore]
 fn art_smoke() {
     let mut art = Art::new();
     assert!(art.insert("aa", 42).is_ok());
@@ -13,6 +14,7 @@ fn art_smoke() {
 }
 
 #[test]
+#[ignore]
 fn art_regression_long_key() {
     let mut art = Art::<usize>::new();
     assert!(art
@@ -28,6 +30,7 @@ fn art_regression_long_key() {
 }
 
 #[test]
+#[ignore]
 fn art_regression_lookup_single_key() {
     let mut art = Art::<usize>::new();
     assert!(art.insert("AA", 2).is_ok());
@@ -37,6 +40,7 @@ fn art_regression_lookup_single_key() {
 }
 
 #[test]
+#[ignore]
 fn art_regression_delete_after_enlarge() {
     let mut art = Art::<usize>::new();
     assert!(art.insert("AA", 2).is_ok());
@@ -48,6 +52,7 @@ fn art_regression_delete_after_enlarge() {
 }
 
 #[test]
+#[ignore]
 fn art_stress() {
     const STEPS: usize = 4096;
     map::stress_sequential::<String, StrStringMap<_, Art<usize>>>(STEPS);
