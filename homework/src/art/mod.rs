@@ -139,13 +139,13 @@ impl<V> SequentialMap<str, V> for Art<V> {
     }
 
     fn lookup<'a>(&'a self, key: &'a str) -> Option<&'a V> {
-        let key = Self::encode_key(key);
-        unsafe {
-            #[allow(clippy::cast_ref_to_mut)]
-            (*(self as *const _ as *mut Self))
-                .entry(key)
-                .lookup()
-                .map(|v| &*(v as *const V))
-        }
+        unimplemented!("Below code is UB.")
+        // let key = Self::encode_key(key);
+        // unsafe {
+        //     (*(self as *const Self).cast_mut())
+        //         .entry(key)
+        //         .lookup()
+        //         .map(|v| &*(v as *const V))
+        // }
     }
 }
