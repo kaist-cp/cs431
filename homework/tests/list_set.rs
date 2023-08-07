@@ -180,7 +180,7 @@ fn assert_logs_consistent(logs: &Vec<Vec<Log>>) {
         for l in ls {
             per_key_logs
                 .entry(l.key().clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(l.clone());
         }
     }

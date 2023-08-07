@@ -89,6 +89,7 @@ impl<K: ?Sized, V, M: Default + ConcurrentMap<K, V>> Default for Sequentialize<K
 
 impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize<K, V, M> {
     fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
+        #[allow(invalid_reference_casting)]
         unsafe {
             let hack = (&value as *const V).cast_mut();
             self.inner
@@ -267,7 +268,7 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
         for l in ls {
             per_key_logs
                 .entry(l.key().clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(l.clone());
         }
     }

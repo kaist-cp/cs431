@@ -41,7 +41,9 @@ export -f grep_skip_comment
 run_linters() {
     cargo fmt -- --check
     local FMT_ERR=$?
-    cargo clippy -- -D warnings
+    # FIXME: `clippy::needless_pass_by_ref_mut` has false positives that does not go well with skeleton code.
+    # cargo clippy -- -D warnings
+    cargo clippy -- -D warnings -A clippy::needless_pass_by_ref_mut
     local CLIPPY_ERR=$?
     [ "$FMT_ERR" -ne 0 ] && echo_err 'Please format your code with `cargo fmt` first.'
     [ "$CLIPPY_ERR" -ne 0 ] && echo_err 'Please fix the issues from `cargo clippy` first.'
