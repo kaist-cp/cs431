@@ -3,17 +3,17 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time: Mon & Wed 1:00pm-2:15pm
+- Time: Mon & Wed 13:00pm-14:15pm
 - Place
-  + Rm. 102, Bldg. N1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
+  + Rm. 2443, Bldg. E3-1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
   + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4). Turn on English subtitle at YouTube, if necessary.
-- Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/11>
+- Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/16>
 - Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository.
-- TA: [Janggun Lee](https://cp.kaist.ac.kr/janggun.lee)
-  + Office Hour: Fri 9:00am-10:00am, [Zoom room](https://us05web.zoom.us/j/5293497056?pwd=OHFyMStoQm83UnY2dzg0ZDgwcWxjUT09) (The passcode is same as the class). It is not required, but if you want to come, do so by 9:15am. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+- TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
+  + Office Hour: Fri 9:15am-10:15am, Rm. 4432, Bldg. E3-1. If you want to come, do so by 9:30am. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
     <!-- Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy. -->
 - **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
   the [upstream](https://github.com/kaist-cp/cs431) and push there.
@@ -146,41 +146,22 @@ Make sure you're capable of using the following development tools:
 
 - [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
 
-- You can connect to server by `ssh s<student-id>@cp-service.kaist.ac.kr -p13002`, e.g., `ssh s20071163@cp-service.kaist.ac.kr -p13002`.
+- [Development server](https://cloud.fearless.systems/)
 
     + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
 
-    + Your initial password will be announced at <https://gg.kaist.ac.kr>.
-
-    + I require you to register public SSH keys to the server. (In September, we'll expire your password so that you can log in only via SSH keys.)
-      See [this tutorial](https://serverpilot.io/docs/how-to-use-ssh-public-key-authentication/) for more information on SSH public key authentication.
-      Use `ed25519`.
-
-    + In your client, you may want to set your `~/.ssh/config` as follows for easier SSH access:
-
-      ```
-      Host cs431
-        Hostname cp-service.kaist.ac.kr
-        Port 13002
-        User s20071163
-      ```
-
-      Then you can connect to the server by `ssh cs431`.
-
     + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
-
-    + Install [rustup](https://rustup.rs) in the server to begin working on Rust!
 
     + [NOTE: We recommend the `rust-analyzer` plugin instead of `rls`](https://github.com/rust-analyzer/rust-analyzer).
 
-    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the
-      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps:
+    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the 
+      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps: 
       1. Download [this file](https://github.com/vadimcn/vscode-lldb/releases/download/v1.5.0/codelldb-x86_64-linux.vsix) at the remote server.
-      2. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
+      1. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
 
     + [NOTE: If you cannot connect to the remote server via VSCode with `fail to create hard link` error message](https://github.com/kaist-cp/cs420/issues/91), please follow the steps:
       1. Close VSCode window and try to connect to the remote server via terminal(or cmd). If you encounter `Connection timed out` error message, try again after a few minutes.
-      2. Delete all the files in `~/.vscode-server/bin/`.
+      1. Delete all the files in `~/.vscode-server/bin/`.
 
 
 ## Grading & honor code
@@ -199,23 +180,25 @@ Make sure you're capable of using the following development tools:
 
 ### Programming assignments (60%)
 
-For details, see <https://gg.kaist.ac.kr/course/11>.
-
-Read the documentation: <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
+- We'll announce **all** assignments before the semester begins.
+- Submit your solution to <https://gg.kaist.ac.kr/course/16>.
+- Read the documentation at <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
+- You're **allowed** to use ChatGPT or other LLMs.
 
 
 ### Midterm and final exams (40%)
 
 - Date & Time: TBA (midterm) and TBA (final), 13:00pm-15:45pm (or shorter, TBA)
 
-- Place: Rm. 102, Bldg. N1, KAIST
+- Place: Rm. 2443, Bldg. E3-1, KAIST
 
-    + If online participation is absolutely necessary, we'll use Zoom.
+- Your physical apperance is required. If online participation is **absolutely necessary**, we'll use Zoom.
 
+- You'll bring your own laptop. (You can also borrow one from School of Computing Admin Team.)
 
 ### Attendance (?%)
 
-- You should solve a quiz on the [Course](https://gg.kaist.ac.kr/course/11) Management](https://gg.kaist.ac.kr/course/11) website for each session. **You should answer the quiz by the end of the day.**
+- You should solve a quiz on the [Course Management](https://gg.kaist.ac.kr/course/16) website for each session. **You should answer the quiz by the end of the day.**
 
 - If you miss a significant number of sessions, you'll automatically get an F.
 
@@ -226,13 +209,13 @@ Read the documentation: <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
 
 - Make sure you can log in the [lab submission website](https://gg.kaist.ac.kr).
 
-    + Reset your password here: https://gg.kaist.ac.kr/accounts/password_reset/
-      The email address is your `@kaist.ac.kr` address.
+    + Log in with your `kaist-cp-class` account.
 
-    + The id is your student id (e.g., 20071163).
+    + Your id is your `@kaist.ac.kr` email address.
 
-    + Log in with your student id and the new password.
-      If you cannot, please contact the head TA in the chat.
+    + Reset your password here: https://auth.fearless.systems/if/flow/default-recovery-flow/
+
+    + If you cannot log in, please contact the instructor.
 
 ### Rules
 
@@ -261,7 +244,7 @@ Read the documentation: <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
 
 - We are NOT going to discuss *new* questions during office hours. Before coming to the office
   hour, please check if there is a similar question on the issue tracker. If there isn't, file a new
-  issue and start a discussion there. The agenda of the office hour will be the issues that are not
+  issue and start discussion there. The agenda of the office hour will be the issues that are not
   resolved yet.
 
 - Emails to the instructor or the head TA should begin with "CS431:" in the subject line, followed
@@ -273,7 +256,7 @@ Read the documentation: <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
   your Zoom name should be `<your student number> <your name>` (e.g., `20071163 강지훈`).
   Change your name by referring to [this](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
 
-- This course is conducted in English. But you may ask questions in Korean. Then I will translate it into English.
+- This course is conducted in English. But you may ask questions in Korean. Then I will translate it to English.
 
 ## Ignore
 
