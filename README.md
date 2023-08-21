@@ -65,11 +65,12 @@ systems. This course aims to help such students to:
 ### Textbook
 
 - [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
-
-- Classical papers and libraries
-    + [Promising semantics](https://sf.snu.ac.kr/promise-concurrency/): programming language & architecture semantics for shared-memory concurrency
-    + [Crossbeam](https://github.com/crossbeam-rs/crossbeam): concurrent data structure library written in [Rust](https://www.rust-lang.org/)
-
+- References
+    + [The Art of Multiprocessor Programming](https://dl.acm.org/doi/book/10.5555/2385452)
+    + [The Crossbeam library documentation](https://docs.rs/crossbeam/latest/crossbeam/)
+    + [C++ Concurrency in Action](https://www.manning.com/books/c-plus-plus-concurrency-in-action-second-edition)
+    + [Rust Atomics and Locks](https://marabos.nl/atomics/)
+    + [The Promising Semantics paper](https://sf.snu.ac.kr/promise-concurrency/)
 
 ### Prerequisites
 
