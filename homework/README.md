@@ -6,7 +6,7 @@
   section](https://doc.rust-lang.org/book/ch01-00-getting-started.html) for learning how to build
   and test the development.
 
-- Use [Visual Studio Code](https://code.visualstudio.com/) of
+- Use [Visual Studio Code](https://code.visualstudio.com/) or
   [CLion](https://www.jetbrains.com/clion/) for interactive debugging.  The former is free of charge
   for everyone, and The latter is [free of charge for students](https://www.jetbrains.com/student/).
     + [Manual for debugging rust code in
