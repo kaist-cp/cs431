@@ -3,7 +3,7 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time: Mon & Wed 13:00pm-14:15pm
+- Time: Mon & Wed 13:00-14:15
 - Place
   + Rm. 2443, Bldg. E3-1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
@@ -13,8 +13,8 @@
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository.
 - TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-  + Office Hour: Fri 9:15am-10:15am, Rm. 4432, Bldg. E3-1. If you want to come, do so by 9:30am. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
-    <!-- Fri 9:00am-12:00pm, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30am. See [below](#communication) for office hour policy. -->
+  + Office Hour: Fri 9:15-10:15, Rm. 4432, Bldg. E3-1. If you want to come, do so by 9:30. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+    <!-- Fri 9:00-12:00, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30. See [below](#communication) for office hour policy. -->
 - **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
   the [upstream](https://github.com/kaist-cp/cs431) and push there.
 
@@ -189,7 +189,7 @@ Make sure you're capable of using the following development tools:
 
 ### Midterm and final exams (40%)
 
-- Date & Time: TBA (midterm) and TBA (final), 13:00pm-15:45pm (or shorter, TBA)
+- Date & Time: TBA (midterm) and TBA (final), 13:00-15:45 (or shorter, TBA)
 
 - Place: Rm. 2443, Bldg. E3-1, KAIST
 
