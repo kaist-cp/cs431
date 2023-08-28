@@ -18,7 +18,7 @@ pub struct Node<K, V> {
 /// Sorted singly linked list.
 ///
 /// Use-after-free will be caused when an unprotected guard is used, as the lifetime of returned
-/// elments are linked to that of the guard in the same way a `Shared<'g,T>` is.
+/// elements are linked to that of the guard in the same way a `Shared<'g,T>` is.
 #[derive(Debug)]
 pub struct List<K, V> {
     head: Atomic<Node<K, V>>,
@@ -248,8 +248,8 @@ where
         // SAFETY: curr was found, hence cannot be null.
         let curr_node = unsafe { self.curr.deref() };
 
-        // Release: to relase current view of the deleting thread on this mark.
-        // Acquire: to ensure that if the latter CAS succeds, then the thread that reads `next` through `prev` will be safe.
+        // Release: to release current view of the deleting thread on this mark.
+        // Acquire: to ensure that if the latter CAS succeeds, then the thread that reads `next` through `prev` will be safe.
         let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
         if next.tag() == 1 {
             return Err(());

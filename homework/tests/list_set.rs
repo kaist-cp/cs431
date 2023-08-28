@@ -149,7 +149,7 @@ fn stress_concurrent() {
 
     thread::scope(|s| {
         for _ in 0..THREADS {
-            let _ununsed = s.spawn(|| {
+            let _unused = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let op = ops.choose(&mut rng).unwrap();
