@@ -56,7 +56,7 @@ Specifically, make sure that you understand the following topics.
 * Interrupt handler: just follow the comments.
 * Thread pool: Ignore `ThreadPoolInner` first (it's used for `ThreadPool::join`), and implement the changes discussed above.
 * If you have questions, try looking up the [issue tracker](https://github.com/kaist-cp/cs431/issues).
-  There are many Q&A's from the previous iterations of this course and they are labeled by the topic.
+  There are many Q&A's from the previous iterations of this course, and they are labeled by the topic.
   For example, ["homework - cache" label](https://github.com/kaist-cp/cs431/issues?q=label%3A%22homework+-+cache%22+) lists the questions about `cache.rs`.
   Here are some Q&A's you may find useful for this homework:
     * https://github.com/kaist-cp/cs431/issues/339
@@ -73,4 +73,4 @@ cargo test --test thread_pool
 We will use those tests for grading, too. We may add some more tests for grading, but if your solution passes all the given tests, you will likely get the full score.
 
 Also, try running tests with the [LLVM sanitizers](https://github.com/kaist-cp/cs431/tree/main/homework#using-llvm-sanitizers) enabled.
-They are not that useful for HW1 but they will be very helpful for upcoming homework assignments.
+They are not that useful for HW1, but they will be very helpful for upcoming homework assignments.

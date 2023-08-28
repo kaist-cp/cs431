@@ -43,7 +43,8 @@ pub trait SequentialMap<K: ?Sized, V> {
     fn lookup<'a>(&'a self, key: &'a K) -> Option<&'a V>;
 
     /// Inserts a key-value pair.
-    fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)>;
+    // fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)>;
+    fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<(), V>;
 
     /// Delets a key, returning the value.
     fn delete(&mut self, key: &K) -> Result<V, ()>;
@@ -78,27 +79,6 @@ pub trait NonblockingMap<K: ?Sized, V> {
     fn delete<'a>(&'a self, key: &K, guard: &'a Guard) -> Result<&'a V, ()>;
 }
 
-/// Converts str sequential map into string sequential map
-#[derive(Default, Debug)]
-pub struct StrStringMap<V, M: SequentialMap<str, V>> {
-    inner: M,
-    _marker: PhantomData<V>,
-}
-
-impl<V, M: SequentialMap<str, V>> SequentialMap<String, V> for StrStringMap<V, M> {
-    fn lookup<'a>(&'a self, key: &'a String) -> Option<&'a V> {
-        self.inner.lookup(key)
-    }
-
-    fn insert<'a>(&'a mut self, key: &'a String, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
-        self.inner.insert(key, value)
-    }
-
-    fn delete(&mut self, key: &String) -> Result<V, ()> {
-        self.inner.delete(key)
-    }
-}
-
 impl<K: ?Sized, V, L: RawLock, M> ConcurrentMap<K, V> for Lock<L, M>
 where
     M: SequentialMap<K, V>,
@@ -111,10 +91,7 @@ where
     }
 
     fn insert<'a>(&'a self, key: &'a K, value: V, _guard: &'a Guard) -> Result<(), V> {
-        self.lock()
-            .insert(key, value)
-            .map(|_| ())
-            .map_err(|(_, v)| v)
+        self.lock().insert(key, value)
     }
 
     fn delete(&self, key: &K, _guard: &Guard) -> Result<V, ()> {

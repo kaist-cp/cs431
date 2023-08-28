@@ -88,15 +88,8 @@ impl<K: ?Sized, V, M: Default + ConcurrentMap<K, V>> Default for Sequentialize<K
 }
 
 impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize<K, V, M> {
-    fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)> {
-        #[allow(invalid_reference_casting)]
-        unsafe {
-            let hack = (&value as *const V).cast_mut();
-            self.inner
-                .insert(key, value, &pin())
-                .map(|_| &mut *hack)
-                .map_err(|v| (&mut *hack, v))
-        }
+    fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<(), V> {
+        self.inner.insert(key, value, &pin())
     }
 
     fn delete(&mut self, key: &K) -> Result<V, ()> {

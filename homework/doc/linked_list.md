@@ -8,7 +8,7 @@ We already provided implementation for several methods e.g. `push_front_node`.
 Your job is to implement their symmetric counterparts
 e.g. `push_back_node` and some methods of `IterMut` struct (see `todo!()`s).
 
-You can look up its implementation from the standard library
+You can look up its implementation from the standard library,
 but we encourage you do it yourself
 so that you can build enough skill set for upcoming homeworks.
 We also recommend you to play around with AddressSanitizer and debugger.
