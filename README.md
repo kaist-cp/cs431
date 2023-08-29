@@ -147,22 +147,23 @@ Make sure you're capable of using the following development tools:
 
 - [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
 
+- [Single Sign On (SSO)](https://auth.fearless.systems/)
+
+  You can log in to [gg](https://gg.kaist.ac.kr) and [development server](https://cloud.fearless.systems) using the following SSO account:
+  + id: KAIST student id (8-digit number)
+  + email: KAIST email address (@kaist.ac.kr)
+  + password: please reset it here: <https://auth.fearless.systems/if/flow/default-recovery-flow/>
+
+  For [gg](https://gg.kaist.ac.kr), please log in with the "kaist-cp-class" option.
+  For [development server](https://cloud.fearless.systems), please log in with the "OpenID Connect" option.
+
 - [Development server](https://cloud.fearless.systems/)
 
     + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
 
-    + Now you can [use it as a VSCode remote server as in the video](https://www.youtube.com/watch?v=TTVuUIhdn_g&list=PL5aMzERQ_OZ8RWqn-XiZLXm1IJuaQbXp0&index=3).
+    + You can create and connect to a workspace to open terminal or VSCode (after installing it).
 
-    + [NOTE: We recommend the `rust-analyzer` plugin instead of `rls`](https://github.com/rust-analyzer/rust-analyzer).
-
-    + [NOTE: If permission denied error occurs when trying to install `CodeLLDB Extension` into the 
-      remote server](https://github.com/kaist-cp/cs420/issues/5), please follow the steps: 
-      1. Download [this file](https://github.com/vadimcn/vscode-lldb/releases/download/v1.5.0/codelldb-x86_64-linux.vsix) at the remote server.
-      1. Follow [the instructions](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) to install it.
-
-    + [NOTE: If you cannot connect to the remote server via VSCode with `fail to create hard link` error message](https://github.com/kaist-cp/cs420/issues/91), please follow the steps:
-      1. Close VSCode window and try to connect to the remote server via terminal(or cmd). If you encounter `Connection timed out` error message, try again after a few minutes.
-      1. Delete all the files in `~/.vscode-server/bin/`.
+    + We recommend you to use VSCode and its "Rust Analyzer" and "CodeLLDB" plugins.
 
 
 ## Grading & honor code
