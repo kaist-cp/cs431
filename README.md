@@ -145,6 +145,10 @@ Make sure you're capable of using the following development tools:
 
   We recommend you to read [this page](https://cp.kaist.ac.kr/helpdesk#technical-expertise) that describes how to study Rust.
 
+- [ChatGPT](https://chat.openai.com/) or other LLMs (optional): for your homework.
+  - In the era of AI, we believe that it is crucial to learn how to wisely use AI in programming.
+  - So we adjusted the difficulty of homework assuming that you'll use ChatGPT 3.5 (or equivalent) to solve it.
+
 - [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
 
 - [Single Sign On (SSO)](https://auth.fearless.systems/)
