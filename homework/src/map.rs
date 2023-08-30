@@ -46,7 +46,7 @@ pub trait SequentialMap<K: ?Sized, V> {
     // fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<&'a mut V, (&'a mut V, V)>;
     fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<(), V>;
 
-    /// Delets a key, returning the value.
+    /// Deletes a key, returning the value.
     fn delete(&mut self, key: &K) -> Result<V, ()>;
 }
 
@@ -72,7 +72,7 @@ pub trait NonblockingMap<K: ?Sized, V> {
     /// Inserts a key-value pair.
     fn insert(&self, key: &K, value: V, guard: &Guard) -> Result<(), V>;
 
-    /// Deletes the given key and retruns a reference to its value.
+    /// Deletes the given key and returns a reference to its value.
     ///
     /// Unlike stack or queue's pop that can return `Option<V>`, since a `delete`d
     /// value may also be `lookup`ed, we can only return a reference, not full ownership.

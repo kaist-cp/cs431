@@ -34,9 +34,9 @@ fn main() -> io::Result<()> {
     let listener = Arc::new(CancellableTcpListener::bind(ADDR)?);
 
     // Installs a Ctrl-C handler.
-    let ctrlc_listner_handle = listener.clone();
+    let ctrlc_listener_handle = listener.clone();
     ctrlc::set_handler(move || {
-        ctrlc_listner_handle.cancel().unwrap();
+        ctrlc_listener_handle.cancel().unwrap();
     })
     .expect("Error setting Ctrl-C handler");
 

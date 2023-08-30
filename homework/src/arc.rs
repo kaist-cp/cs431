@@ -1,6 +1,6 @@
-//! Simplified `Arc`.
+//! Thread-safe reference-counting pointers.
 //!
-//! See the `Arc` documentation for more details and specification.
+//! See the [`Arc<T>`][Arc] documentation for more details.
 
 use std::fmt;
 use std::marker::PhantomData;
@@ -15,26 +15,140 @@ use std::sync::atomic::{fence, AtomicUsize, Ordering};
 
 const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 
-/// Simplified `Arc` without `Weak` support.
+/// A thread-safe reference-counting pointer. 'Arc' stands for 'Atomically
+/// Reference Counted'.
 ///
-/// The main correctness guarantee of `Arc` is that the deallocation of its data and counter field
-/// happens-after all accesses to those fields.  An access (by `Deref::deref`, `get_mut`, ...) to an
-/// `Arc` happen between the construction of that `Arc` (by `new` or `clone`) and its destruction (by
-/// `drop`).  The fields are deallocated when the last `Arc` pointing to the same fields is
-/// `drop`ped.  Therefore, the correctness guarantee translates to making sure that the
-/// deallocation done by the last `drop` happens-after all previous `drop`'s.
+/// The type `Arc<T>` provides shared ownership of a value of type `T`,
+/// allocated in the heap. Invoking [`clone`][clone] on `Arc` produces
+/// a new `Arc` instance, which points to the same allocation on the heap as the
+/// source `Arc`, while increasing a reference count. When the last `Arc`
+/// pointer to a given allocation is destroyed, the value stored in that allocation (often
+/// referred to as "inner value") is also dropped.
 ///
-/// `get_mut` and `make_mut`, the methods that obtain a temporary exclusive reference (`&mut`) to
-/// the underlying data, provide an additional guarantee that the returned reference is indeed
-/// exclusive.  In the concurrent setting, this means that obtaining the exclusive reference
-/// happens-after all the other accesses to the content. Since all those accesses can only happen
-/// between the construction and the destruction of an `Arc`, it follows that the creation of the
-/// exclusive reference happens-after `drop`s of all the other `Arc`s pointing to the same content.
-/// `try_unwrap` also provides a similar guarantee as it returns the exclusive ownership of the
-/// data.
+/// Shared references in Rust disallow mutation by default, and `Arc` is no
+/// exception: you cannot generally obtain a mutable reference to something
+/// inside an `Arc`. If you need to mutate through an `Arc`, use
+/// [`Mutex`][mutex], [`RwLock`][rwlock], or one of the [`Atomic`][atomic]
+/// types.
 ///
-/// The above explanation is based on the paper [RustBelt Meets Relaxed Memory by Dang et
-/// al.](https://plv.mpi-sws.org/rustbelt/rbrlx/).
+/// ## Thread Safety
+///
+/// Unlike [`Rc<T>`], `Arc<T>` uses atomic operations for its reference
+/// counting. This means that it is thread-safe. The disadvantage is that
+/// atomic operations are more expensive than ordinary memory accesses. If you
+/// are not sharing reference-counted allocations between threads, consider using
+/// [`Rc<T>`] for lower overhead. [`Rc<T>`] is a safe default, because the
+/// compiler will catch any attempt to send an [`Rc<T>`] between threads.
+/// However, a library might choose `Arc<T>` in order to give library consumers
+/// more flexibility.
+///
+/// `Arc<T>` will implement [`Send`] and [`Sync`] as long as the `T` implements
+/// [`Send`] and [`Sync`]. Why can't you put a non-thread-safe type `T` in an
+/// `Arc<T>` to make it thread-safe? This may be a bit counter-intuitive at
+/// first: after all, isn't the point of `Arc<T>` thread safety? The key is
+/// this: `Arc<T>` makes it thread safe to have multiple ownership of the same
+/// data, but it  doesn't add thread safety to its data. Consider
+/// <code>Arc<[RefCell\<T>]></code>. [`RefCell<T>`] isn't [`Sync`], and if `Arc<T>` was always
+/// [`Send`], <code>Arc<[RefCell\<T>]></code> would be as well. But then we'd have a problem:
+/// [`RefCell<T>`] is not thread safe; it keeps track of the borrowing count using
+/// non-atomic operations.
+///
+/// In the end, this means that you may need to pair `Arc<T>` with some sort of
+/// [`std::sync`] type, usually [`Mutex<T>`][mutex].
+///
+/// # Cloning references
+///
+/// Creating a new reference from an existing reference-counted pointer is done using the
+/// `Clone` trait implemented for [`Arc<T>`][Arc].
+///
+/// ```
+/// use cs431_homework::Arc;
+/// let foo = Arc::new(vec![1.0, 2.0, 3.0]);
+/// // The two syntaxes below are equivalent.
+/// let a = foo.clone();
+/// let b = Arc::clone(&foo);
+/// // a, b, and foo are all Arcs that point to the same memory location
+/// ```
+///
+/// ## `Deref` behavior
+///
+/// `Arc<T>` automatically dereferences to `T` (via the [`Deref`][deref] trait),
+/// so you can call `T`'s methods on a value of type `Arc<T>`. To avoid name
+/// clashes with `T`'s methods, the methods of `Arc<T>` itself are associated
+/// functions, called using [fully qualified syntax].
+///
+/// `Arc<T>`'s implementations of traits like `Clone` may also be called using
+/// fully qualified syntax. Some people prefer to use fully qualified syntax,
+/// while others prefer using method-call syntax.
+///
+/// ```
+/// use cs431_homework::Arc;
+///
+/// let arc = Arc::new(());
+/// // Method-call syntax
+/// let arc2 = arc.clone();
+/// // Fully qualified syntax
+/// let arc3 = Arc::clone(&arc);
+/// ```
+///
+/// [`Rc<T>`]: std::rc::Rc
+/// [clone]: Clone::clone
+/// [mutex]: ../../std/sync/struct.Mutex.html
+/// [rwlock]: ../../std/sync/struct.RwLock.html
+/// [atomic]: core::sync::atomic
+/// [`Send`]: core::marker::Send
+/// [`Sync`]: core::marker::Sync
+/// [deref]: core::ops::Deref
+/// [RefCell\<T>]: core::cell::RefCell
+/// [`RefCell<T>`]: core::cell::RefCell
+/// [`std::sync`]: ../../std/sync/index.html
+/// [`Arc::clone(&from)`]: Arc::clone
+/// [fully qualified syntax]: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#fully-qualified-syntax-for-disambiguation-calling-methods-with-the-same-name
+///
+/// # Examples
+///
+/// Sharing some immutable data between threads:
+///
+/// ```no_run
+/// use cs431_homework::Arc;
+/// use std::thread;
+///
+/// let five = Arc::new(5);
+///
+/// for _ in 0..10 {
+///     let five = Arc::clone(&five);
+///
+///     thread::spawn(move || {
+///         println!("{five:?}");
+///     });
+/// }
+/// ```
+///
+/// Sharing a mutable [`AtomicUsize`]:
+///
+/// [`AtomicUsize`]: core::sync::atomic::AtomicUsize "sync::atomic::AtomicUsize"
+///
+/// ```no_run
+/// use cs431_homework::Arc;
+/// use std::sync::atomic::{AtomicUsize, Ordering};
+/// use std::thread;
+///
+/// let val = Arc::new(AtomicUsize::new(5));
+///
+/// for _ in 0..10 {
+///     let val = Arc::clone(&val);
+///
+///     thread::spawn(move || {
+///         let v = val.fetch_add(1, Ordering::Relaxed);
+///         println!("{v:?}");
+///     });
+/// }
+/// ```
+///
+/// See the [`rc` documentation][rc_examples] for more examples of reference
+/// counting in general.
+///
+/// [rc_examples]: std::rc#examples
 pub struct Arc<T> {
     ptr: NonNull<ArcInner<T>>,
     phantom: PhantomData<ArcInner<T>>,

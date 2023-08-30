@@ -134,7 +134,7 @@ impl HazardBag {
         }
     }
 
-    /// Acquires a slot in the hazard set, either by recyling an inactive slot or allocating a new
+    /// Acquires a slot in the hazard set, either by recycling an inactive slot or allocating a new
     /// slot.
     fn acquire_slot(&self) -> &HazardSlot {
         todo!()

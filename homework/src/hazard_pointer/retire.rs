@@ -37,6 +37,10 @@ impl<'s> RetiredSet<'s> {
     /// * `pointer` must be removed from shared memory before calling this function, and must be
     ///   valid.
     /// * The same `pointer` should only be retired once.
+    ///
+    /// # Note
+    ///
+    /// `T: Send` is not required because the retired pointers are not sent to other threads.
     pub unsafe fn retire<T>(&mut self, pointer: *mut T) {
         /// Frees a pointer. This function is defined here instead of `collect()` as we know about
         /// the type of `pointer` only at the time of retiring it.

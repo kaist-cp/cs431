@@ -5,7 +5,7 @@ use core::marker::PhantomData;
 use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::sync::atomic::{AtomicUsize, Ordering};
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Pointer, Shared};
+use crossbeam_epoch::{Atomic, Guard, Owned, Pointer, Shared};
 
 /// Growable array of `Atomic<T>`.
 ///

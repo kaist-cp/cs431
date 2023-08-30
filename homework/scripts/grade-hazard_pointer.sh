@@ -88,7 +88,7 @@ done
 # NOTE: We only accept optimal and correct solution.
 # So, if SeqCst > 2, no need to run check-loom test.
 # - This prevents running check-loom on the SC version
-#   (to avoid confusion caused by loom's inability to handle SeqCst acceses.)
+#   (to avoid confusion caused by loom's inability to handle SeqCst accesses.)
 # - This assumes that there is no solution with SeqCst accesses ≤ 2.
 loom_failed=$performance_failed
 if [ "$performance_failed" = false ]; then

@@ -198,7 +198,7 @@ Make sure you're capable of using the following development tools:
 
 - Place: Rm. 2443, Bldg. E3-1, KAIST
 
-- Your physical apperance is required. If online participation is **absolutely necessary**, we'll use Zoom.
+- Your physical appearance is required. If online participation is **absolutely necessary**, we'll use Zoom.
 
 - You'll bring your own laptop. (You can also borrow one from School of Computing Admin Team.)
 

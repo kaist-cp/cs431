@@ -9,9 +9,6 @@ struct Node<T> {
     next: Mutex<*mut Node<T>>,
 }
 
-unsafe impl<T: Send> Send for Node<T> {}
-unsafe impl<T: Sync> Sync for Node<T> {}
-
 /// Concurrent sorted singly linked list using lock-coupling.
 #[derive(Debug)]
 pub struct OrderedListSet<T> {
@@ -19,7 +16,7 @@ pub struct OrderedListSet<T> {
 }
 
 unsafe impl<T: Send> Send for OrderedListSet<T> {}
-unsafe impl<T: Sync> Sync for OrderedListSet<T> {}
+unsafe impl<T: Send> Sync for OrderedListSet<T> {}
 
 // reference to the `next` field of previous node which points to the current node
 struct Cursor<'l, T>(MutexGuard<'l, *mut Node<T>>);
@@ -33,7 +30,7 @@ impl<T> Node<T> {
     }
 }
 
-impl<'l, T: Ord> Cursor<'l, T> {
+impl<T: Ord> Cursor<'_, T> {
     /// Move the cursor to the position of key in the sorted list. If the key is found in the list,
     /// return `true`.
     fn find(&mut self, key: &T) -> bool {
