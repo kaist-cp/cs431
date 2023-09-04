@@ -175,13 +175,12 @@ impl<T> Drop for Queue<T> {
         // Destroy and deallocate `data` for the rest of the nodes.
 
         // SAFETY: `pop()` never dropped the sentinel node so it is still valid.
-        let mut curr = unsafe { sentinel.into_owned() }.into_box().next;
+        let mut o_curr = unsafe { sentinel.into_owned() }.into_box().next;
         // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
-        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
-            let curr_ref = curr_ref.into_box();
+        while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
             // SAFETY: Not sentinel node, so `data` is valid.
-            drop(unsafe { curr_ref.data.assume_init() });
-            curr = curr_ref.next;
+            drop(unsafe { curr.data.assume_init() });
+            o_curr = curr.next;
         }
     }
 }

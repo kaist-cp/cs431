@@ -99,13 +99,12 @@ impl<T> Stack<T> {
 
 impl<T> Drop for Stack<T> {
     fn drop(&mut self) {
-        let mut curr = mem::take(&mut self.head);
+        let mut o_curr = mem::take(&mut self.head);
 
         // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
-        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
-            let curr_ref = curr_ref.into_box();
-            drop(ManuallyDrop::into_inner(curr_ref.data));
-            curr = curr_ref.next.into();
+        while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
+            drop(ManuallyDrop::into_inner(curr.data));
+            o_curr = curr.next.into();
         }
     }
 }

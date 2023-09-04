@@ -132,6 +132,11 @@ impl<T> SeqLock<T> {
         }
     }
 
+    /// Consumes this seqlock, returning the underlying data.
+    pub fn into_inner(self) -> T {
+        self.data
+    }
+
     /// Dereferences the inner value.
     pub fn get_mut(&mut self) -> &mut T {
         &mut self.data

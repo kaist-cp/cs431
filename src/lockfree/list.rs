@@ -35,11 +35,11 @@ where
 
 impl<K, V> Drop for List<K, V> {
     fn drop(&mut self) {
-        let mut curr = mem::take(&mut self.head);
+        let mut o_curr = mem::take(&mut self.head);
         // SAFETY: since we have `&mut self`, any references from `lookup()` must have finished.
         // Hence, we have sole ownership of `self` and its `Node`s.
-        while let Some(curr_ref) = unsafe { curr.try_into_owned() } {
-            curr = curr_ref.into_box().next;
+        while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
+            o_curr = curr.next;
         }
     }
 }
