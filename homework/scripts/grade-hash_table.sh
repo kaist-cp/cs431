@@ -18,6 +18,7 @@ fi
 
 export RUST_TEST_THREADS=1
 
+REPS=3
 TEST_NAMES=(
     "stress_sequential"
     "lookup_concurrent"
@@ -28,15 +29,16 @@ TEST_NAMES=(
 RUNNERS=(
     "cargo --release"
     "cargo_asan"
-    "cargo_tsan"
+    "cargo_asan --release"
+    "cargo_tsan --release"
 )
 # timeout for each (TEST_NAME, RUNNER).
 TIMEOUTS=(
-    10s 10s  10s
-    10s 10s  10s
-    10s 10s  10s
-    10s 120s 180s
-    10s 120s 180s
+    10s 10s  10s 10s
+    10s 10s  10s 10s
+    10s 10s  10s 10s
+    10s 120s 15s 60s
+    10s 120s 15s 60s
 )
 # the index of the last failed test
 growable_array_fail=${#TEST_NAMES[@]}
@@ -52,16 +54,22 @@ for r in "${!RUNNERS[@]}"; do
         if [ $t -lt $growable_array_fail ]; then
             echo "Testing growable_array $TEST_NAME with $RUNNER, timeout $TIMEOUT..."
             TESTS=("--test growable_array $TEST_NAME")
-            if [ $(run_tests) -ne 0 ]; then
-                growable_array_fail=$t
-            fi
+            for ((i = 0; i < REPS; i++)); do
+                if [ $(run_tests) -ne 0 ]; then
+                    growable_array_fail=$t
+                    break
+                fi
+            done
         fi
         if [ $t -lt $split_ordered_list_fail ]; then
             echo "Testing split_ordered_list $TEST_NAME with $RUNNER, timeout $TIMEOUT..."
             TESTS=("--test split_ordered_list $TEST_NAME")
-            if [ $(run_tests) -ne 0 ]; then
-                split_ordered_list_fail=$t
-            fi
+            for ((i = 0; i < REPS; i++)); do
+                if [ $(run_tests) -ne 0 ]; then
+                    split_ordered_list_fail=$t
+                    break
+                fi
+            done
         fi
     done
 done
@@ -93,7 +101,7 @@ fi
 
 
 SCORES=( 0 5 10 20 40 70 )
-SCORE=$(( ${SCORES[growable_array_fail]} + ${SCORES[split_ordered_list_fail]} ))
+SCORE=$(( SCORES[growable_array_fail] + SCORES[split_ordered_list_fail] ))
 if [ "$growable_array_performance_ok" = true ]; then
     SCORE=$((SCORE + 20))
 fi

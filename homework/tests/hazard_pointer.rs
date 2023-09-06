@@ -161,15 +161,13 @@ fn stack_queue() {
     assert!(stack.try_pop().is_none());
 }
 
-mod mock;
-
 mod sync {
-    use super::mock::model;
-    use super::mock::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
-    use super::mock::sync::Arc;
-    use super::mock::thread;
     use core::ptr;
     use cs431_homework::hazard_pointer::*;
+    use cs431_homework::test::mock::model;
+    use cs431_homework::test::mock::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
+    use cs431_homework::test::mock::sync::Arc;
+    use cs431_homework::test::mock::thread;
 
     #[test]
     fn try_protect_collect_sync() {

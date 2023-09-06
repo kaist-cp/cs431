@@ -1,7 +1,7 @@
 use crossbeam_epoch as epoch;
-use cs431_homework::{NonblockingConcurrentMap, NonblockingMap, SplitOrderedList};
 
-pub mod map;
+use cs431_homework::test::adt::map;
+use cs431_homework::{NonblockingConcurrentMap, NonblockingMap, SplitOrderedList};
 
 #[test]
 pub fn smoke() {

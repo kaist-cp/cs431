@@ -3,20 +3,22 @@ use std::mem;
 use std::ptr;
 use std::sync::{Mutex, MutexGuard};
 
+use crate::ConcurrentSet;
+
 #[derive(Debug)]
 struct Node<T> {
     data: T,
     next: Mutex<*mut Node<T>>,
 }
 
-/// Concurrent sorted singly linked list using lock-coupling.
+/// Concurrent sorted singly linked list using fine-grained lock-coupling.
 #[derive(Debug)]
-pub struct OrderedListSet<T> {
+pub struct FineGrainedListSet<T> {
     head: Mutex<*mut Node<T>>,
 }
 
-unsafe impl<T: Send> Send for OrderedListSet<T> {}
-unsafe impl<T: Send> Sync for OrderedListSet<T> {}
+unsafe impl<T: Send> Send for FineGrainedListSet<T> {}
+unsafe impl<T: Send> Sync for FineGrainedListSet<T> {}
 
 // reference to the `next` field of previous node which points to the current node
 struct Cursor<'l, T>(MutexGuard<'l, *mut Node<T>>);
@@ -31,14 +33,14 @@ impl<T> Node<T> {
 }
 
 impl<T: Ord> Cursor<'_, T> {
-    /// Move the cursor to the position of key in the sorted list. If the key is found in the list,
-    /// return `true`.
+    /// Moves the cursor to the position of key in the sorted list.
+    /// Returns whether the value was found.
     fn find(&mut self, key: &T) -> bool {
         todo!()
     }
 }
 
-impl<T> OrderedListSet<T> {
+impl<T> FineGrainedListSet<T> {
     /// Creates a new list.
     pub fn new() -> Self {
         Self {
@@ -47,34 +49,33 @@ impl<T> OrderedListSet<T> {
     }
 }
 
-impl<T: Ord> OrderedListSet<T> {
+impl<T: Ord> FineGrainedListSet<T> {
     fn find(&self, key: &T) -> (bool, Cursor<'_, T>) {
         todo!()
     }
+}
 
-    /// Returns `true` if the set contains the key.
-    pub fn contains(&self, key: &T) -> bool {
+impl<T: Ord> ConcurrentSet<T> for FineGrainedListSet<T> {
+    fn contains(&self, key: &T) -> bool {
+        self.find(key).0
+    }
+
+    fn insert(&self, key: T) -> bool {
         todo!()
     }
 
-    /// Insert a key to the set. If the set already has the key, return the provided key in `Err`.
-    pub fn insert(&self, key: T) -> Result<(), T> {
-        todo!()
-    }
-
-    /// Remove the key from the set and return it.
-    pub fn remove(&self, key: &T) -> Result<T, ()> {
+    fn remove(&self, key: &T) -> bool {
         todo!()
     }
 }
 
 #[derive(Debug)]
-pub struct Iter<'l, T>(Option<MutexGuard<'l, *mut Node<T>>>);
+pub struct Iter<'l, T>(MutexGuard<'l, *mut Node<T>>);
 
-impl<T> OrderedListSet<T> {
+impl<T> FineGrainedListSet<T> {
     /// An iterator visiting all elements.
     pub fn iter(&self) -> Iter<'_, T> {
-        Iter(Some(self.head.lock().unwrap()))
+        Iter(self.head.lock().unwrap())
     }
 }
 
@@ -86,13 +87,13 @@ impl<'l, T> Iterator for Iter<'l, T> {
     }
 }
 
-impl<T> Drop for OrderedListSet<T> {
+impl<T> Drop for FineGrainedListSet<T> {
     fn drop(&mut self) {
         todo!()
     }
 }
 
-impl<T> Default for OrderedListSet<T> {
+impl<T> Default for FineGrainedListSet<T> {
     fn default() -> Self {
         Self::new()
     }

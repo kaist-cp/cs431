@@ -1,6 +1,4 @@
-mod mock;
-
-use mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+use cs431_homework::test::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
 /// Used for testing if `T` of `Arc<T>` is dropped exactly once.
 struct Canary(*const AtomicUsize);
@@ -18,10 +16,10 @@ impl Drop for Canary {
 mod basic {
     use cs431_homework::Arc;
 
-    use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
-    use super::mock::sync::mpsc::channel;
-    use super::mock::thread;
     use super::Canary;
+    use cs431_homework::test::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+    use cs431_homework::test::mock::sync::mpsc::channel;
+    use cs431_homework::test::mock::thread;
 
     #[test]
     fn manually_share_arc() {
@@ -148,10 +146,10 @@ mod basic {
 }
 
 mod correctness {
-    use super::mock::model;
-    use super::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
-    use super::mock::thread;
     use super::Canary;
+    use cs431_homework::test::mock::model;
+    use cs431_homework::test::mock::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+    use cs431_homework::test::mock::thread;
     use cs431_homework::Arc;
 
     #[test]

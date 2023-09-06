@@ -29,6 +29,8 @@ if [ "$(echo -n "$lines" | grep -c '^')" -gt 2 ]; then
     performance_failed=true
 fi
 
+
+echo "2. Running basic tests..."
 RUNNERS=(
     "cargo"
     "cargo --release"
@@ -44,7 +46,6 @@ hazard_failed=false
 retire_failed=false
 integration_failed=false
 
-echo "2. Running basic tests..."
 for RUNNER in "${RUNNERS[@]}"; do
     if [ "$hazard_failed" = false ]; then
         echo "Running basic tests in hazard.rs with $RUNNER..."
@@ -77,9 +78,13 @@ for RUNNER in "${RUNNERS[@]}"; do
             "--test hazard_pointer -- --exact queue"
             "--test hazard_pointer -- --exact stack_queue"
         )
-        if [ $(run_tests) -ne 0 ]; then
-            integration_failed=true
-        fi
+        REPS=5
+        for ((i = 0; i < REPS; i++)); do
+            if [ $(run_tests) -ne 0 ]; then
+                integration_failed=true
+                break
+            fi
+        done
     fi
 done
 

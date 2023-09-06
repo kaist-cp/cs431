@@ -3,40 +3,6 @@ use crossbeam_epoch::Guard;
 use cs431::lock::{Lock, RawLock};
 use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
 
-/// Types that has random generator
-pub trait RandGen {
-    /// Randomly generates a value.
-    fn rand_gen(rng: &mut ThreadRng) -> Self;
-}
-
-const KEY_MAX_LENGTH: usize = 4;
-
-impl RandGen for String {
-    fn rand_gen(rng: &mut ThreadRng) -> Self {
-        let length = rng.gen::<usize>() % KEY_MAX_LENGTH;
-        rng.sample_iter(&Alphanumeric)
-            .take(length)
-            .map(|x| x as char)
-            .collect()
-    }
-}
-
-impl RandGen for usize {
-    /// pick only 16 bits, MSB=0
-    fn rand_gen(rng: &mut ThreadRng) -> Self {
-        const MASK: usize = 0x4004004004007777usize;
-        rng.gen::<usize>() & MASK
-    }
-}
-
-impl RandGen for u32 {
-    /// pick only 16 bits
-    fn rand_gen(rng: &mut ThreadRng) -> Self {
-        const MASK: u32 = 0x66666666u32;
-        rng.gen::<u32>() & MASK
-    }
-}
-
 /// Trait for a sequential key-value map.
 pub trait SequentialMap<K: ?Sized, V> {
     /// Lookups a key.
@@ -123,4 +89,16 @@ impl<K: ?Sized, V: Clone, M: NonblockingMap<K, V>> ConcurrentMap<K, V>
     fn delete(&self, key: &K, guard: &Guard) -> Result<V, ()> {
         self.inner.delete(key, guard).map(|v| v.clone())
     }
+}
+
+/// Trait for a concurrent set
+pub trait ConcurrentSet<T> {
+    /// Returns `true` iff the set contains the value.
+    fn contains(&self, value: &T) -> bool;
+
+    /// Adds the value to the set. Returns whether the value was newly inserted.
+    fn insert(&self, value: T) -> bool;
+
+    /// Removes the value from the set. Returns whether the value was present in the set.
+    fn remove(&self, value: &T) -> bool;
 }

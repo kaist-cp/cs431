@@ -2,9 +2,9 @@ use core::mem::{self, ManuallyDrop};
 use core::ptr;
 use core::sync::atomic::Ordering;
 use crossbeam_epoch::{pin, Atomic, Guard, Owned, Shared};
-use cs431_homework::{GrowableArray, NonblockingConcurrentMap, NonblockingMap};
 
-mod map;
+use cs431_homework::test::adt::map;
+use cs431_homework::{GrowableArray, NonblockingConcurrentMap, NonblockingMap};
 
 #[derive(Debug, Default)]
 struct ArrayMap<V> {

@@ -6,7 +6,7 @@ use crossbeam_epoch::{Guard, Owned};
 use cs431::lockfree::list::{Cursor, List, Node};
 
 use super::growable_array::GrowableArray;
-use crate::map::NonblockingMap;
+use crate::NonblockingMap;
 
 /// Lock-free map from `usize` in range [0, 2^63-1] to `V`.
 ///

@@ -1,16 +1,17 @@
-use core::fmt;
+use core::fmt::Debug;
 use core::hash::Hash;
 use core::marker::PhantomData;
-use cs431_homework::{ConcurrentMap, RandGen, SequentialMap};
 use std::collections::HashMap;
+use std::thread;
 
+use crate::test::RandGen;
+use crate::{ConcurrentMap, SequentialMap};
 use rand::prelude::*;
 
 use crossbeam_epoch::pin;
-use std::thread;
 
 pub fn stress_sequential<
-    K: fmt::Debug + Clone + Eq + Hash + RandGen,
+    K: Debug + Clone + Eq + Hash + RandGen,
     M: Default + SequentialMap<K, usize>,
 >(
     steps: usize,
@@ -73,6 +74,7 @@ pub fn stress_sequential<
     }
 }
 
+#[derive(Debug)]
 pub struct Sequentialize<K: ?Sized, V, M: ConcurrentMap<K, V>> {
     inner: M,
     _marker: PhantomData<(*const K, V)>,
@@ -103,7 +105,7 @@ impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize
 }
 
 pub fn stress_concurrent_sequential<
-    K: fmt::Debug + Clone + Eq + Hash + RandGen,
+    K: Debug + Clone + Eq + Hash + RandGen,
     M: Default + ConcurrentMap<K, usize>,
 >(
     steps: usize,
@@ -112,7 +114,7 @@ pub fn stress_concurrent_sequential<
 }
 
 pub fn lookup_concurrent<
-    K: fmt::Debug + Eq + Hash + RandGen + Send + Sync,
+    K: Debug + Eq + Hash + RandGen + Send + Sync,
     M: Default + Sync + ConcurrentMap<K, usize>,
 >(
     threads: usize,
@@ -168,7 +170,7 @@ pub fn lookup_concurrent<
 }
 
 pub fn insert_concurrent<
-    K: fmt::Debug + Eq + Hash + RandGen,
+    K: Debug + Eq + Hash + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
 >(
     threads: usize,
@@ -217,7 +219,7 @@ impl<K, V> Log<K, V> {
 }
 
 pub fn stress_concurrent<
-    K: fmt::Debug + Eq + Hash + RandGen,
+    K: Debug + Eq + Hash + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
 >(
     threads: usize,
@@ -301,7 +303,7 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
 }
 
 pub fn log_concurrent<
-    K: fmt::Debug + Clone + Eq + Hash + Send + RandGen,
+    K: Debug + Clone + Eq + Hash + Send + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
 >(
     threads: usize,

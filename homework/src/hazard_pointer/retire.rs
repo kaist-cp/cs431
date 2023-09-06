@@ -71,7 +71,7 @@ impl Default for RetiredSet<'static> {
     }
 }
 
-// TODO(@tomtomjhj): this triggers loom internal bug
+// this triggers loom internal bug
 #[cfg(not(feature = "check-loom"))]
 impl Drop for RetiredSet<'_> {
     fn drop(&mut self) {

@@ -13,9 +13,9 @@ This homework is in 2 parts:
 1. Fully understand the following reading materials.
     + [The original paper on the split-ordered list](https://dl.acm.org/doi/abs/10.1145/1147954.1147958).
       You can skip the correctness proof and performance evaluation section.
-    + Chapter 13.3 of [The Art of Multiprocessor Programming](https://www.amazon.com/Art-Multiprocessor-Programming-Revised-Reprint/dp/0123973376):
-      Presents the same stuff, but is more readable.
-      [pdf](https://dl.acm.org/doi/book/10.5555/2385452) of the book can be downloaded for free in KAIST.
+      Alternatively, read the chapter 13.3 of [The Art of Multiprocessor Programming](https://www.amazon.com/Art-Multiprocessor-Programming-Revised-Reprint/dp/0123973376).
+      It presents the same stuff, but is more readable.
+      [The PDF file](https://dl.acm.org/doi/book/10.5555/2385452) of the book can be downloaded for free in KAIST.
     + The [lock-free linked list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) interface and implementation.
 1. Implement `GrowableArray` in [`hash_table/growable_array.rs`](../src/hash_table/growable_array.rs). (about 100 LOC)
     * You'll need to perform integer-pointer casts because `AtomicUsize` in `Segment` can be interpreted as both `Atomic<T>` and `Atomic<Segment>`.
