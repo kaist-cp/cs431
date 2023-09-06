@@ -2,6 +2,7 @@
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
+#![warn(unreachable_pub)]
 #![allow(clippy::result_unit_err)]
 // Allow lints for homework.
 #![allow(dead_code)]
@@ -28,6 +29,4 @@ pub use arc::Arc;
 pub use elim_stack::ElimStack;
 pub use hash_table::{GrowableArray, SplitOrderedList};
 pub use linked_list::LinkedList;
-pub use list_set::{
-    fine_grained::FineGrainedListSet, optimistic_fine_grained::OptimisticFineGrainedListSet,
-};
+pub use list_set::{FineGrainedListSet, OptimisticFineGrainedListSet};
