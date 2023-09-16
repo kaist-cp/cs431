@@ -64,7 +64,6 @@ mod basic {
     }
 
     #[test]
-    #[allow(clippy::redundant_clone)]
     fn test_cowarc_clone_unique2() {
         let mut cow0 = Arc::new(75);
         let cow1 = cow0.clone();
@@ -97,7 +96,6 @@ mod basic {
     }
 
     #[test]
-    #[allow(clippy::redundant_clone)]
     fn test_count() {
         let a = Arc::new(0);
         assert!(Arc::count(&a) == 1);
@@ -107,7 +105,6 @@ mod basic {
     }
 
     #[test]
-    #[allow(clippy::redundant_clone)]
     fn test_ptr_eq() {
         let five = Arc::new(5);
         let same_five = five.clone();

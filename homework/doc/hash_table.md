@@ -37,7 +37,7 @@ Use release-acquire synchronization for atomic accesses, just like many other da
 
 
 ## Testing
-Tests in `tests/{growable_array,hash_table}.rs` use the map test functions defined in `tests/map/mod.rs`.
+Tests in `tests/{growable_array,hash_table}.rs` use the map test functions defined in `src/test/adt/map.rs`.
 * `smoke`:
   Simple test case that tries a few operations. Useful for debugging.
 * `stress_sequential`:

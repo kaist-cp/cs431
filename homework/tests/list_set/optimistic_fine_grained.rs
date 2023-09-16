@@ -129,7 +129,7 @@ fn iter_consistent() {
                 }
                 // sorted
                 assert!(snapshot.windows(2).all(|k| k[0] <= k[1]));
-                let max = snapshot.last().map(|&x| x).unwrap_or(0);
+                let max = snapshot.last().copied().unwrap_or(0);
                 let evens = evens
                     .iter()
                     .copied()

@@ -17,12 +17,12 @@ because that version is more complex.
 Follow [the Arc section of the Rustnomicon (the book on unsafe Rust)][nomicon-arc].
 
 Some food for thought on Rustnomicon's description:
-* Quiz: why does `Arc<T> : Sync` require `T : Send`?
+* Quiz: Why does `Arc<T> : Sync` require `T : Send`?
 * The [Layout section](https://doc.rust-lang.org/nomicon/arc-mutex/arc-layout.html) explains
   why [`NonNull`](https://doc.rust-lang.org/std/ptr/struct.NonNull.html) and `PhantomData` are necessary.
   We don't care about them in this course and will not ask about them in the exams
   (it's quite interesting, though).
-* Their implementation uses `fence(Acquire)`, which we didn't cover in the lecture.
+* Their implementation uses `fence(Acquire)`, which we may not be able cover in the lecture due to time constraints.
   You can implement (a slightly inefficient version of) Arc only with `AtomicUsize`'s methods and the concepts we covered in the lecture
   (you will need to use `Ordering::AcqRel` in some places).
   Using `fence(Acquire)` is not required in the homework and exam.
