@@ -164,10 +164,10 @@ fn stack_queue() {
 mod sync {
     use core::ptr;
     use cs431_homework::hazard_pointer::*;
-    use cs431_homework::test::mock::model;
-    use cs431_homework::test::mock::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
-    use cs431_homework::test::mock::sync::Arc;
-    use cs431_homework::test::mock::thread;
+    use cs431_homework::test::loom::model;
+    use cs431_homework::test::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
+    use cs431_homework::test::loom::sync::Arc;
+    use cs431_homework::test::loom::thread;
 
     #[test]
     fn try_protect_collect_sync() {

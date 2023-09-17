@@ -26,6 +26,7 @@ fn smoke() {
     assert!(set.remove(&3));
 }
 
+/// Read should not block other operations
 #[test]
 fn read_no_block() {
     let set = &OptimisticFineGrainedListSet::new();
@@ -50,6 +51,7 @@ fn read_no_block() {
     });
 }
 
+/// Cursor should be invalidated when necessary
 #[test]
 fn iter_invalidate_end() {
     let set = &OptimisticFineGrainedListSet::new();
@@ -57,9 +59,24 @@ fn iter_invalidate_end() {
     assert!(set.insert(2));
     let guard = pin();
     let mut iter = set.iter(&guard);
-    iter.next();
-    iter.next();
+    assert_eq!(iter.next(), Some(Ok(&1)));
+    assert_eq!(iter.next(), Some(Ok(&2)));
     assert!(set.insert(3));
+    assert_eq!(iter.next(), Some(Err(())));
+}
+
+/// Cursor should be invalidated when necessary
+#[test]
+fn iter_invalidate_deleted() {
+    let set = &OptimisticFineGrainedListSet::new();
+    assert!(set.insert(1));
+    assert!(set.insert(2));
+    assert!(set.insert(3));
+    let guard = pin();
+    let mut iter = set.iter(&guard);
+    assert_eq!(iter.next(), Some(Ok(&1)));
+    assert!(set.remove(&1));
+    assert!(set.remove(&2));
     assert_eq!(iter.next(), Some(Err(())));
 }
 
@@ -83,6 +100,7 @@ fn log_concurrent() {
     set::log_concurrent::<u8, OptimisticFineGrainedListSet<u8>>(THREADS, STEPS);
 }
 
+/// Check the consistency of iterator while other operations are running concurrently.
 #[test]
 fn iter_consistent() {
     const THREADS: usize = 15;

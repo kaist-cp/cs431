@@ -19,18 +19,28 @@ You will implement two variants.
   they do not block other operations.
   However, you need to take more care to get it correct.
     * You need to validate read operations and handle the failure.
-    * Since reads and writes can run concurrently, you should use atomic operations to avoid data race.
-      Specifically, you will use `crossbeam_epoch`'s `Atomic<T>` type.
+        * Do not use `ReadGuard::restart()`.
+          Using this correctly requires some extra synchronization
+          (to be covered in lock-free list lecture),
+          which makes `SeqLock` somewhat pointless.
+          The tests assume that `ReadGuard::restart()` is not used.
+    * Since each node can be read and modified to concurrently,
+      you should use atomic operations to avoid data race.
+      Specifically, you will use `crossbeam_epoch`'s `Atomic<T>` type
+      (instead of `std::sync::AtomicPtr<T>`, due to the next issue).
       For `Ordering`, use `SeqCst` everywhere.
-      In the later part of this course, you will learn that `Relaxed` is sufficient.
-      But don't use `Relaxed` in this homework, because that would break `cargo_tsan`.
+      (In the later part of this course, you will learn that `Relaxed` is sufficient.
+      But don't use `Relaxed` in this homework, because that would break `cargo_tsan`.)
     * Since a node can be removed while another thread is reading,
       reclamation of the node should be deferred.
-      Again, you will need to use `crossbeam_epoch`.
+      You can handle this semi-automatically with `crossbeam_epoch`.
 
 Fill in the `todo!()`s in `list_set/{fine_grained,optimistic_fine_grained}.rs` (about 40 + 80 lines of code).
 As in the [Linked List homework](./linked_list.md), you will need to use some unsafe operations.
 
+## Testing
+Tests are defined in `tests/list_set/{fine_grained,optimistic_fine_grained}.rs`.
+Some of them use the common set test functions defined in `src/test/adt/set.rs`.
 
 ## Grading (100 points)
 Run
@@ -39,15 +49,20 @@ Run
 ```
 
 For each module `fine_grained` and `optimistic_fine_grained`,
-the grader runs the following tests with `cargo`, `cargo_asan`, and `cargo_tsan` in the following order.
+the grader runs the tests
+with `cargo`, `cargo_asan`, and `cargo_tsan` in the following order.
 1. `stress_sequential` (5 points)
 1. `stress_concurrent` (10 points)
 1. `log_concurrent` (15 points)
 1. `iter_consistent` (15 points)
 
-For `optimistic_fine_grained`, the grade additionally runs
-1. `read_no_block` (5 points)
-1. `iter_invalidate_end` (5 points)
+For the above tests, if a test fails in a module, then the later tests in the same module will not be run.
+
+For `optimistic_fine_grained`, the grader additionally runs the following tests
+(10 points if all of them passes, otherwise 0).
+* `read_no_block`
+* `iter_invalidate_end`
+* `iter_invalidate_deleted`
 
 ## Submission
 ```sh

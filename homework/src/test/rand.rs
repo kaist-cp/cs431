@@ -1,3 +1,5 @@
+//! Utilities for random value generator
+
 use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
 
 /// Types that has random generator

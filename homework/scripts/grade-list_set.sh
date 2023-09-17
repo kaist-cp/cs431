@@ -13,8 +13,6 @@ TIMEOUT=1m
 export RUST_TEST_THREADS=1
 
 
-# 1. Common tests (45 + 45)
-echo "1. Running common tests"
 REPS=3
 COMMON_TESTS=(
     "stress_sequential"
@@ -31,11 +29,12 @@ RUNNERS=(
 # the index of the last failed test
 fine_grained_fail=${#COMMON_TESTS[@]}
 optimistic_fine_grained_fail=${#COMMON_TESTS[@]}
+others_failed=false
 
 for r in "${!RUNNERS[@]}"; do
+    RUNNER=${RUNNERS[r]}
     for t in "${!COMMON_TESTS[@]}"; do
         TEST_NAME=${COMMON_TESTS[t]}
-        RUNNER=${RUNNERS[r]}
         # run only if no test has failed yet
         if [ $t -lt $fine_grained_fail ]; then
             echo "Testing fine_grained $TEST_NAME with $RUNNER, timeout $TIMEOUT..."
@@ -58,24 +57,24 @@ for r in "${!RUNNERS[@]}"; do
             done
         fi
     done
+
+    if [ "$others_failed" == false ]; then
+        echo "Running additional tests for optimistic_fine_grained with $RUNNER, timeout $TIMEOUT..."
+        TESTS=(
+            "--test list_set -- --exact optimistic_fine_grained::read_no_block"
+            "--test list_set -- --exact optimistic_fine_grained::iter_invalidate_end"
+            "--test list_set -- --exact optimistic_fine_grained::iter_invalidate_deleted"
+        )
+        if [ $(run_tests) -ne 0 ]; then
+            others_failed=true
+        fi
+    fi
 done
 
 SCORES=( 0 5 15 30 45 )
 SCORE=$(( SCORES[fine_grained_fail] + SCORES[optimistic_fine_grained_fail] ))
-
-# 2. other tests (5 + 5)
-echo "2. Running other tests for optimistic_fine_grained"
-RUNNER="cargo"
-OTHER_TESTS=(
-    "--test list_set -- --exact optimistic_fine_grained::read_no_block"
-    "--test list_set -- --exact optimistic_fine_grained::iter_invalidate_end"
-)
-for TEST in "${OTHER_TESTS[@]}"; do
-    echo "Running with $RUNNER..."
-    TESTS=("$TEST")
-    if [ $(run_tests) -eq 0 ]; then
-        SCORE=$(( SCORE + 5 ))
-    fi
-done
+if [ "$others_failed" == false ]; then
+    SCORE=$(( SCORE + 10 ))
+fi
 
 echo "Score: $SCORE / 100"

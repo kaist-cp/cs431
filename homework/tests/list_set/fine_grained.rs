@@ -43,6 +43,7 @@ fn log_concurrent() {
     set::log_concurrent::<u8, FineGrainedListSet<u8>>(THREADS, STEPS);
 }
 
+/// Check the consistency of iterator while other operations are running concurrently.
 #[test]
 fn iter_consistent() {
     const THREADS: usize = 15;
@@ -73,7 +74,6 @@ fn iter_consistent() {
                 done.store(true, Release);
             });
         }
-        // iterator consistency check
         let _unused = s.spawn(|| {
             while !done.load(Acquire) {
                 let snapshot = set.iter().copied().collect::<Vec<_>>();

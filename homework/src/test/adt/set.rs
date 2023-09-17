@@ -1,3 +1,5 @@
+//! Testing utilities for set types
+
 use core::fmt::Debug;
 use core::hash::Hash;
 use rand::prelude::*;
@@ -7,6 +9,8 @@ use std::thread;
 use crate::test::RandGen;
 use crate::ConcurrentSet;
 
+/// Runs many operations in a single thread and tests if it works like a set data structure using
+/// `std::collections::HashSet` as reference.
 pub fn stress_sequential<K: Debug + Clone + Eq + Hash + RandGen, S: Default + ConcurrentSet<K>>(
     steps: usize,
 ) {
@@ -90,6 +94,7 @@ impl<K> Log<K> {
     }
 }
 
+/// Randomly runs many operations concurrently.
 pub fn stress_concurrent<K: Debug + Clone + Eq + RandGen, S: Default + Sync + ConcurrentSet<K>>(
     threads: usize,
     steps: usize,
@@ -160,6 +165,9 @@ fn assert_logs_consistent<K: Clone + Eq + Hash>(logs: &Vec<Vec<Log<K>>>) {
     }
 }
 
+/// Randomly runs many operations concurrently and logs the operations & results per thread. Then
+/// checks the consistency of the log. For example, if the key `k` was successfully deleted twice,
+/// then `k` must have been inserted at least twice.
 pub fn log_concurrent<
     K: Debug + Clone + Eq + Hash + Send + RandGen,
     S: Default + Sync + ConcurrentSet<K>,

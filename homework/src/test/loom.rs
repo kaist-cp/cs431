@@ -1,3 +1,5 @@
+//! Re-exports loom if `feature = "check-loom"`. Otherwise, std.
+
 #[cfg(not(feature = "check-loom"))]
 pub use std::*;
 

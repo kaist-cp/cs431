@@ -8,6 +8,7 @@ This homework is in 2 parts:
 2. (40 points) Performance:
    After you learn about relaxed memory semantics,
    optimize the implementation by relaxing the ordering on the atomic accesses.
+   We recommend working on this part after finishing the [Arc homework](./arc.md).
 
 ## Part 1: Split-ordered list in sequentially consistent memory model
 1. Fully understand the following reading materials.
@@ -37,22 +38,8 @@ Use release-acquire synchronization for atomic accesses, just like many other da
 
 
 ## Testing
-Tests in `tests/{growable_array,hash_table}.rs` use the map test functions defined in `src/test/adt/map.rs`.
-* `smoke`:
-  Simple test case that tries a few operations. Useful for debugging.
-* `stress_sequential`:
-  Runs many operations in a single thread and tests if it works like a map data structure using `std::collections::HashMap` as reference.
-* `lookup_concurrent`:
-  Inserts keys sequentially, then concurrently run lookup in multiple threads.
-* `insert_concurrent`:
-  Inserts concurrently.
-* `stress_concurrent`:
-  Randomly runs many operations concurrently.
-* `log_concurrent`:
-  Randomly runs many operations concurrently and logs the operations & results per thread.
-  Then checks the consistency of the log.
-  For example, if the key `k` was successfully deleted twice, then `k` must have been inserted at least twice.
-  Unlike `stress_sequential`, this test doesn't guarantee complete correctness.
+Tests are defined in `tests/{growable_array,hash_table}.rs`.
+They use the common map test functions defined in `src/test/adt/map.rs`.
 
 ## Grading (180 points)
 Run `./scripts/grade-hash_table.sh`.

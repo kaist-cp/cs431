@@ -1,3 +1,5 @@
+//! Testing utilities for map types
+
 use core::fmt::Debug;
 use core::hash::Hash;
 use core::marker::PhantomData;
@@ -10,7 +12,7 @@ use rand::prelude::*;
 
 use crossbeam_epoch::pin;
 
-pub fn stress_sequential<
+fn stress_sequential<
     K: Debug + Clone + Eq + Hash + RandGen,
     M: Default + SequentialMap<K, usize>,
 >(
@@ -74,6 +76,7 @@ pub fn stress_sequential<
     }
 }
 
+/// Provides `SequentialMap` interface for `ConcurrentMap`.
 #[derive(Debug)]
 pub struct Sequentialize<K: ?Sized, V, M: ConcurrentMap<K, V>> {
     inner: M,
@@ -104,6 +107,8 @@ impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize
     }
 }
 
+/// Runs many operations in a single thread and tests if it works like a set data structure using
+/// `std::collections::HashMap` as reference.
 pub fn stress_concurrent_sequential<
     K: Debug + Clone + Eq + Hash + RandGen,
     M: Default + ConcurrentMap<K, usize>,
@@ -113,6 +118,7 @@ pub fn stress_concurrent_sequential<
     stress_sequential::<K, Sequentialize<K, usize, M>>(steps);
 }
 
+/// Runs random lookup operations concurrently.
 pub fn lookup_concurrent<
     K: Debug + Eq + Hash + RandGen + Send + Sync,
     M: Default + Sync + ConcurrentMap<K, usize>,
@@ -169,6 +175,7 @@ pub fn lookup_concurrent<
     });
 }
 
+/// Runs random insert operations concurrently.
 pub fn insert_concurrent<
     K: Debug + Eq + Hash + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
@@ -218,6 +225,7 @@ impl<K, V> Log<K, V> {
     }
 }
 
+/// Randomly runs many operations concurrently.
 pub fn stress_concurrent<
     K: Debug + Eq + Hash + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,
@@ -302,6 +310,9 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
     }
 }
 
+/// Randomly runs many operations concurrently and logs the operations & results per thread. Then
+/// checks the consistency of the log. For example, if the key `k` was successfully deleted twice,
+/// then `k` must have been inserted at least twice.
 pub fn log_concurrent<
     K: Debug + Clone + Eq + Hash + Send + RandGen,
     M: Default + Sync + ConcurrentMap<K, usize>,

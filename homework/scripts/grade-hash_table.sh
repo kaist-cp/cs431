@@ -46,9 +46,9 @@ split_ordered_list_fail=${#TEST_NAMES[@]}
 
 echo "1. Running tests..."
 for r in "${!RUNNERS[@]}"; do
+    RUNNER=${RUNNERS[r]}
     for t in "${!TEST_NAMES[@]}"; do
         TEST_NAME=${TEST_NAMES[t]}
-        RUNNER=${RUNNERS[r]}
         TIMEOUT=${TIMEOUTS[ t * ${#RUNNERS[@]} + r ]}
         # run only if no test has failed yet
         if [ $t -lt $growable_array_fail ]; then

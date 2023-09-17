@@ -13,6 +13,7 @@ This homework is in 2 parts:
 2. (30 points) Performance:
    After you learn about relaxed memory semantics,
    optimize the implementation by relaxing the ordering.
+   We recommend working on this part after finishing the [Arc homework](./arc.md).
 
 
 ## Part 1: Hazard pointers in the sequentially consistent memory model
