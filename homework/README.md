@@ -18,23 +18,32 @@
 
 - Use rustfmt and clippy:
 
-  ```
+  ```sh
   cargo fmt
   cargo clippy
   ```
 
 - Running individual tests
 
-  ```
+  ```sh
   # Run all tests in a module
   cargo test --test <module name>
-  # For example, run all tests in the hazard_pointer module
+  # For example, run all tests in tests/hazard_pointer.rs
   cargo test --test hazard_pointer
-  # Run all tests in a module
+
+  # Run all tests in a module that matches (substring) the name
   cargo test --test <module name> <test name>
   # For example, run the stack_queue test in the hazard_pointer module
   cargo test --test hazard_pointer stack_queue
+
+  # Run the test that exactly matches the name
+  cargo test --test <module name> -- --exact <test name>
   ```
+
+- Running grading scripts in Mac: [#338](https://github.com/kaist-cp/cs431/issues/338).
+
+- Q: Sanitizer output is not readable.
+  A: Make sure that `llvm-symbolizer` is under `$PATH`. This should be already set up in our server.
 
 ## Using LLVM Sanitizers
 
