@@ -93,7 +93,7 @@ _run_tests_with() {
     local FAILED=0
     for TEST in "${TESTS[@]}"; do
         local TEST_CMD="$CARGO test $* $TEST"
-        timeout ${TIMEOUT:-20s} bash -c "$TEST_CMD 2>/dev/null" 1>&2
+        timeout ${TIMEOUT:-20s} bash -c "$TEST_CMD" 1>&2
         case $? in
             0) ;;
             124) echo_err "Test timed out: $TEST_CMD"; FAILED=$((FAILED + 1));;

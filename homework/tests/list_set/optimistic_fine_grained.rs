@@ -90,14 +90,14 @@ fn stress_sequential() {
 
 #[test]
 fn stress_concurrent() {
-    const THREADS: usize = 16;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
     const STEPS: usize = 4096 * 16;
     set::stress_concurrent::<u8, OptimisticFineGrainedListSet<u8>>(THREADS, STEPS);
 }
 
 #[test]
 fn log_concurrent() {
-    const THREADS: usize = 16;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
     const STEPS: usize = 4096 * 16;
     set::log_concurrent::<u8, OptimisticFineGrainedListSet<u8>>(THREADS, STEPS);
 }
@@ -105,7 +105,7 @@ fn log_concurrent() {
 /// Check the consistency of iterator while other operations are running concurrently.
 #[test]
 fn iter_consistent() {
-    const THREADS: usize = 15;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 3 } else { 15 };
     const STEPS: usize = 4096 * 16;
 
     let set = OptimisticFineGrainedListSet::new();
