@@ -35,7 +35,7 @@ fn read_no_block() {
 
     let guard = pin();
     let mut iter = set.iter(&guard);
-    assert_eq!(*iter.next().unwrap().unwrap(), 1);
+    assert_eq!(iter.next(), Some(Ok(&1)));
 
     let (done_sender, done_receiver) = bounded(0);
     thread::scope(|s| {
@@ -49,6 +49,8 @@ fn read_no_block() {
             .recv_timeout(Duration::from_secs(3))
             .expect("Read should not block other operations");
     });
+
+    assert_eq!(iter.next(), Some(Ok(&2)));
 }
 
 /// Cursor should be invalidated when necessary
