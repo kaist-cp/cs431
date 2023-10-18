@@ -57,7 +57,7 @@ impl<T> OptimisticFineGrainedListSet<T> {
 
     fn head<'g>(&'g self, guard: &'g Guard) -> Cursor<'g, T> {
         let prev = unsafe { self.head.read_lock() };
-        let curr = prev.load(Ordering::Relaxed, guard);
+        let curr = prev.load(Ordering::SeqCst, guard);
         Cursor { prev, curr }
     }
 }
