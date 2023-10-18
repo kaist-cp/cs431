@@ -51,9 +51,7 @@ impl RawLock for McsParkingLock {
         }
 
         // SAFETY: See safety of McsLock::lock().
-        unsafe {
-            (*prev).next.store(node, Ordering::Release);
-        }
+        unsafe { (*prev).next.store(node, Ordering::Release) };
 
         // SAFETY: See safety of McsLock::lock().
         while unsafe { (*node).locked.load(Ordering::Acquire) } {

@@ -54,7 +54,7 @@ pub struct Cursor<'g, K, V> {
 }
 
 // Manual implementation as deriving `Clone` leads to unnecessary trait bounds.
-impl<'g, K, V> Clone for Cursor<'g, K, V> {
+impl<K, V> Clone for Cursor<'_, K, V> {
     fn clone(&self) -> Self {
         Self {
             prev: self.prev,

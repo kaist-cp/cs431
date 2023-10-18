@@ -44,12 +44,14 @@ impl<T> Default for Queue<T> {
             head: CachePadded::new(Atomic::null()),
             tail: CachePadded::new(Atomic::null()),
         };
+
+        // SAFETY: We are creating a new queue, hence have sole ownership of it.
         let sentinel = Owned::new(Node {
             data: MaybeUninit::uninit(),
             next: Atomic::null(),
-        });
-        // SAFETY: We are creating a new queue, hence have sole ownership of it.
-        let sentinel = sentinel.into_shared(unsafe { unprotected() });
+        })
+        .into_shared(unsafe { unprotected() });
+
         q.head.store(sentinel, Ordering::Relaxed);
         q.tail.store(sentinel, Ordering::Relaxed);
         q
@@ -67,8 +69,8 @@ impl<T> Queue<T> {
         let new = Owned::new(Node {
             data: MaybeUninit::new(t),
             next: Atomic::null(),
-        });
-        let new = new.into_shared(guard);
+        })
+        .into_shared(guard);
 
         loop {
             // We push onto the tail, so we'll start optimistically by looking there first.

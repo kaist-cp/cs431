@@ -173,7 +173,6 @@ impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
 
 #[cfg(test)]
 pub mod tests {
-    use core::ops::Deref;
 
     use std::thread::scope;
 
@@ -193,8 +192,8 @@ pub mod tests {
             }
         });
 
-        let mut d = d.lock();
-        d.sort();
-        assert_eq!(d.deref(), &(1..LENGTH).collect::<Vec<usize>>());
+        let mut d = d.into_inner();
+        d.sort_unstable();
+        assert_eq!(d, (1..LENGTH).collect::<Vec<usize>>());
     }
 }

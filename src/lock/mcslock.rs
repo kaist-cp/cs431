@@ -50,9 +50,7 @@ impl RawLock for McsLock {
         // SAFETY: `prev` is valid, so is not the initial pointer. Hence, it is a pointer from
         // `swap()` by another thread's `lock()`, and that thread guarantees that `prev` will not be
         // freed until this store is complete.
-        unsafe {
-            (*prev).next.store(node, Ordering::Release);
-        }
+        unsafe { (*prev).next.store(node, Ordering::Release) };
 
         let backoff = Backoff::new();
         // SAFETY: `node` was made valid above. Since other threads will not free `node`, it still
