@@ -12,6 +12,11 @@ The skeleton code is a heavily modified version of `Arc` from the standard libra
 We don't recommend reading the original source code before finishing this homework
 because that version is more complex.
 
+## ***2023 fall semester notice: Use `SeqCst`***
+Due to lack of time, we cannot cover the weak memory semantics.
+So you may ignore the instructions on `Ordering` stuff below and
+use `Ordering::SeqCst` for `ordering: Ordering` parameters for `std::sync::atomic` functions.
+
 ## Guide
 
 Follow [the Arc section of the Rustnomicon (the book on unsafe Rust)][nomicon-arc].
@@ -41,7 +46,8 @@ add enough synchronization operations to the Arc implementation:
   More strictly, `&mut T` to the data must not concurrently coexist with `&T` (Rust's aliasing rule).
 
 
-## Grading (50 points)
+<!-- ## Grading (50 points) -->
+## Grading (40 points)
 Run `./scripts/grade-arc.sh`.
 
 1. Functionality (25):
@@ -55,22 +61,27 @@ Run `./scripts/grade-arc.sh`.
     cargo_asan test --test arc
     cargo_asan test --doc arc
     ```
-1. Correctness (25):
+<!-- 1. Correctness (25): -->
+1. Correctness (15):
    Then the grader runs the tests with
    [the Loom model checker](https://github.com/tokio-rs/loom)
    to check all possible executions (interleaving & reordering) in the memory model.
+   <!--
    If your code doesn't pass these tests,
    then you need to add more synchronization operations or
    fix the memory ordering of them.
+   -->
    You can manually re-run the tests with this command.
     ```
     cargo test --features check-loom --test arc -- --nocapture --test-threads 1
     ```
+<!--
 1. Efficiency:
    Make sure that you don't use `SeqCst` ordering.
    No points will be given if your solution contains `SeqCst`.
    We will not check if your implementation is optimal in terms of synchronization,
    but we encourage you to find the minimal set of synchronization operations.
+-->
 
 
 ## Submission

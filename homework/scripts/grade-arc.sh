@@ -18,15 +18,16 @@ fi
 
 SCORE=0
 
-# 1. SeqCst is not allowed.
-echo "1. Checking uses of SeqCst"
-lines=$(grep_skip_comment SeqCst "$BASEDIR/../src/arc.rs")
-if [ -n "$lines" ]; then
-    echo "You used SeqCst!"
-    echo "$lines"
-    echo "Score: 0 / 50"
-    exit
-fi
+echo "1. Checking uses of SeqCst... skipped"
+# # 1. SeqCst is not allowed.
+# echo "1. Checking uses of SeqCst"
+# lines=$(grep_skip_comment SeqCst "$BASEDIR/../src/arc.rs")
+# if [ -n "$lines" ]; then
+#     echo "You used SeqCst!"
+#     echo "$lines"
+#     echo "Score: 0 / 50"
+#     exit
+# fi
 
 # 2. Basic arc functionality
 echo "2. Running basic functionality tests"
@@ -59,7 +60,9 @@ RUNNER="cargo --features check-loom"
 TESTS=("--test arc")
 echo "Running with $RUNNER..."
 if [ $(run_tests) -eq 0 ]; then
-    SCORE=$((SCORE + 25))
+    # SCORE=$((SCORE + 25))
+    SCORE=$((SCORE + 15))
 fi
 
-echo "Score: $SCORE / 50"
+# echo "Score: $SCORE / 50"
+echo "Score: $SCORE / 40"

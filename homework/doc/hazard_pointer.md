@@ -15,6 +15,9 @@ This homework is in 2 parts:
    optimize the implementation by relaxing the ordering.
    We recommend working on this part after finishing the [Arc homework](./arc.md).
 
+## ***2023 fall semester notice: Part 2 is cancelled***
+We won't cover the weak memory semantics in this semester.
+To ensure that the grader works properly, you must use `Ordering:SeqCst` for all operations.
 
 ## Part 1: Hazard pointers in the sequentially consistent memory model
 

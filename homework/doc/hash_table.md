@@ -10,6 +10,9 @@ This homework is in 2 parts:
    optimize the implementation by relaxing the ordering on the atomic accesses.
    We recommend working on this part after finishing the [Arc homework](./arc.md).
 
+## ***2023 fall semester notice: Part 2 is cancelled***
+We won't cover the weak memory semantics in this semester.
+
 ## Part 1: Split-ordered list in sequentially consistent memory model
 1. Fully understand the following reading materials.
     + [The original paper on the split-ordered list](https://dl.acm.org/doi/abs/10.1145/1147954.1147958).

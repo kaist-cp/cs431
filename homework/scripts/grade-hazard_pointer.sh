@@ -18,16 +18,17 @@ if [ -n "$lines" ]; then
     exit 1
 fi
 
-# 1. Check uses of SeqCst
-performance_failed=false
+echo "1. Checking uses of SeqCst... skipped"
+# # 1. Check uses of SeqCst
+# performance_failed=false
 
-echo "1. Checking uses of SeqCst..."
-lines=$(grep_skip_comment SeqCst "$BASEDIR"/../src/hazard_pointer/{retire,hazard}.rs)
-if [ "$(echo -n "$lines" | grep -c '^')" -gt 2 ]; then
-    echo "You used SeqCst more than 2 times!"
-    echo "$lines"
-    performance_failed=true
-fi
+# echo "1. Checking uses of SeqCst..."
+# lines=$(grep_skip_comment SeqCst "$BASEDIR"/../src/hazard_pointer/{retire,hazard}.rs)
+# if [ "$(echo -n "$lines" | grep -c '^')" -gt 2 ]; then
+#     echo "You used SeqCst more than 2 times!"
+#     echo "$lines"
+#     performance_failed=true
+# fi
 
 
 echo "2. Running basic tests..."
@@ -37,11 +38,12 @@ RUNNERS=(
     "cargo_asan"
     "cargo_asan --release"
 )
-# Use tsan for non-optimal solution.
-# In this case, we expect SeqCst for all accesses, which tsan understands.
-if [ "$performance_failed" = true ]; then
-    RUNNERS+=("cargo_tsan")
-fi
+# # Use tsan for non-optimal solution.
+# # In this case, we expect SeqCst for all accesses, which tsan understands.
+# if [ "$performance_failed" = true ]; then
+#     RUNNERS+=("cargo_tsan")
+# fi
+RUNNERS+=("cargo_tsan")
 hazard_failed=false
 retire_failed=false
 integration_failed=false
@@ -89,26 +91,26 @@ for RUNNER in "${RUNNERS[@]}"; do
 done
 
 
-# 3. Check relaxed memory synchronization
-# NOTE: We only accept optimal and correct solution.
-# So, if SeqCst > 2, no need to run check-loom test.
-# - This prevents running check-loom on the SC version
-#   (to avoid confusion caused by loom's inability to handle SeqCst accesses.)
-# - This assumes that there is no solution with SeqCst accesses ≤ 2.
-loom_failed=$performance_failed
-if [ "$performance_failed" = false ]; then
-    echo "3. Running synchronization tests..."
-    RUNNER="cargo --features check-loom"
-    TIMEOUT=2m
-    TESTS=(
-        "--test hazard_pointer sync::try_protect_collect_sync -- --nocapture"
-        "--test hazard_pointer sync::protect_collect_sync -- --nocapture"
-        "--test hazard_pointer sync::shield_drop_all_hazards_sync -- --nocapture"
-    )
-    if [ $(run_tests) -ne 0 ]; then
-        loom_failed=true
-    fi
-fi
+# # 3. Check relaxed memory synchronization
+# # NOTE: We only accept optimal and correct solution.
+# # So, if SeqCst > 2, no need to run check-loom test.
+# # - This prevents running check-loom on the SC version
+# #   (to avoid confusion caused by loom's inability to handle SeqCst accesses.)
+# # - This assumes that there is no solution with SeqCst accesses ≤ 2.
+# loom_failed=$performance_failed
+# if [ "$performance_failed" = false ]; then
+#     echo "3. Running synchronization tests..."
+#     RUNNER="cargo --features check-loom"
+#     TIMEOUT=2m
+#     TESTS=(
+#         "--test hazard_pointer sync::try_protect_collect_sync -- --nocapture"
+#         "--test hazard_pointer sync::protect_collect_sync -- --nocapture"
+#         "--test hazard_pointer sync::shield_drop_all_hazards_sync -- --nocapture"
+#     )
+#     if [ $(run_tests) -ne 0 ]; then
+#         loom_failed=true
+#     fi
+# fi
 
 
 SCORE=0
@@ -121,7 +123,8 @@ fi
 if [ "$integration_failed" = false ]; then
     SCORE=$((SCORE + 40))
 fi
-if [ "$loom_failed" = false ]; then
-    SCORE=$((SCORE + 30))
-fi
-echo "Score: $SCORE / 100"
+# if [ "$loom_failed" = false ]; then
+#     SCORE=$((SCORE + 30))
+# fi
+# echo "Score: $SCORE / 100"
+echo "Score: $SCORE / 70"
