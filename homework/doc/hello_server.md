@@ -41,6 +41,8 @@ Specifically, make sure that you understand the following topics.
 * [Channels](https://doc.rust-lang.org/std/sync/mpsc/index.html).
 <!-- * The fact that there is no non-trivial way to break out of `TcpListener::incoming` loop. -->
 
+See also: Rust book with quiz. <https://rust-book.cs.brown.edu/>
+
 ### Major differences between HW1 thread pool and Rust book §20 thread pool
 1. We use [`crossbeam_channel`](https://docs.rs/crossbeam-channel/) instead of [<code>std::sync::<strong>mpsc</strong></code>](https://doc.rust-lang.org/std/sync/mpsc/index.html). Since crossbeam's channels are **mpmc**, you don't need to wrap the `Receiver` inside a `Mutex`.
 1. We do not use explicit exit messages for the thread pool. Instead, we disconnect the channel by `drop`ping the receiver/sender.

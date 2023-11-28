@@ -11,6 +11,10 @@ run_linters || exit 1
 
 export RUST_TEST_THREADS=1
 
+TEMPLATE_REV=HEAD
+check_diff ./src/hazard_pointer/hazard.rs 89
+check_diff ./src/hazard_pointer/retire.rs 27
+
 lines=$(grep_skip_comment transmute "$BASEDIR"/../src/hazard_pointer/{retire,hazard}.rs)
 if [ -n "$lines" ]; then
     echo "transmute() is not allowed."

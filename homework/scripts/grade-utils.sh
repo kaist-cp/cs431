@@ -20,8 +20,10 @@ export -f echo_err
 check_diff() {
     local FILE=$1
     local TAIL_N=$2
-    diff <(tail -n $TAIL_N <(git show $TEMPLATE_REV:$FILE)) <(tail -n $TAIL_N $FILE) \
-        || (echo_err "You modified tests for ${FILE}!"; exit 1)
+    if ! diff -u <(tail -n "$TAIL_N" <(git show "$TEMPLATE_REV:$FILE")) <(tail -n "$TAIL_N" "$FILE"); then
+        echo_err "You modified tests for ${FILE}!"
+        exit 1
+    fi
 }
 export -f check_diff
 
