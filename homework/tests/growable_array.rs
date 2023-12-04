@@ -1,3 +1,5 @@
+#![feature(cfg_sanitize)]
+
 use core::mem::{self, ManuallyDrop};
 use core::ptr;
 use core::sync::atomic::Ordering;
@@ -163,14 +165,14 @@ fn insert_concurrent() {
 
 #[test]
 fn stress_concurrent() {
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096 * 512;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
+    const STEPS: usize = 4096 * if cfg!(sanitize = "thread") { 128 } else { 512 };
     map::stress_concurrent::<u32, NonblockingConcurrentMap<_, _, ArrayMap<usize>>>(THREADS, STEPS);
 }
 
 #[test]
 fn log_concurrent() {
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096 * 12;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
+    const STEPS: usize = 4096 * if cfg!(sanitize = "thread") { 16 } else { 64 };
     map::log_concurrent::<u32, NonblockingConcurrentMap<_, _, ArrayMap<usize>>>(THREADS, STEPS);
 }

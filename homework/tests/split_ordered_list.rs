@@ -1,3 +1,5 @@
+#![feature(cfg_sanitize)]
+
 use crossbeam_epoch as epoch;
 
 use cs431_homework::test::adt::map;
@@ -55,8 +57,8 @@ fn insert_concurrent() {
 
 #[test]
 fn stress_concurrent() {
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096 * 512;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
+    const STEPS: usize = 4096 * if cfg!(sanitize = "thread") { 128 } else { 512 };
     map::stress_concurrent::<usize, NonblockingConcurrentMap<_, _, SplitOrderedList<usize>>>(
         THREADS, STEPS,
     );
@@ -64,8 +66,8 @@ fn stress_concurrent() {
 
 #[test]
 fn log_concurrent() {
-    const THREADS: usize = 16;
-    const STEPS: usize = 4096 * 64;
+    const THREADS: usize = if cfg!(sanitize = "thread") { 4 } else { 16 };
+    const STEPS: usize = 4096 * if cfg!(sanitize = "thread") { 16 } else { 64 };
     map::log_concurrent::<usize, NonblockingConcurrentMap<_, _, SplitOrderedList<usize>>>(
         THREADS, STEPS,
     );
