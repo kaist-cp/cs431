@@ -3,104 +3,116 @@
 ## Logistics
 
 - Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
-- Time: Mon & Wed 13:00-14:15
+- Time: Mon & Wed 13:00-14:15 (2024 Spring)
 - Place
-  + Rm. 2443, Bldg. E3-1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
-  + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary). The passcode is announced at KLMS.
-  + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4). Turn on English subtitle at YouTube, if necessary.
-- Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/16>
+  + Rm. 1101, Bldg. E3-1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
+  + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary).
+    The passcode is announced at KLMS.
+  + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
+    Turn on English subtitle at YouTube, if necessary.
+- Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/19>
 - Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
   + We assume you read each announcement within 24 hours.
   + We strongly recommend you to watch the repository.
-- TA: [Jaehwang Jung](https://cp.kaist.ac.kr/jaehwang.jung)
-  + Office Hour: Fri 9:15-10:15, Rm. 4432, Bldg. E3-1. If you want to come, do so by 9:30. See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+- TA: TBA
+  + Office Hour: Fri 9:15-10:15, Rm. 4432, Bldg. E3-1. 
+    If you want to come, do so by 9:30.
+    See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
     <!-- Fri 9:00-12:00, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30. See [below](#communication) for office hour policy. -->
-- **IMPORTANT**: you should not expose your work to others. In particular, you should not fork
-  the [upstream](https://github.com/kaist-cp/cs431) and push there.
+- **IMPORTANT**: you should not expose your work to others. In particular, you should not fork the [upstream](https://github.com/kaist-cp/cs431) and push there.
 
 
 ## Course description
 
 ### Context
 
-I expect computers in the next 700 years will be **massively parallel**. We the humankind want to
-improve the performance of computers in the era of big data. But it is becoming more and more
-challenging after the breakdown of [Dennard scaling](https://en.wikipedia.org/wiki/Dennard_scaling)
-around 2005, which means the performance of sequential computers will not be improved. Thus not only
-servers but also personal computers have been multi-core systems since then. The problem is only
-worsened by the ending of the [Moore's law](https://en.wikipedia.org/wiki/Moore%27s_law), which
-means we are no longer able to benefit from denser electrical circuit. It seems the only remaining
-way to optimize performance is specialization, which aims to better exploit parallelism of
-workloads. Because of these technology trends, I expect computers in the future will be massively
-parallel.
+I anticipate that in the next 700 years, computers will be **massively parallel**.
+Humankind seeks to enhance computer performance in the era of big data.
+This goal has become increasingly challenging following the breakdown of [Dennard scaling](https://en.wikipedia.org/wiki/Dennard_scaling) around 2005, indicating that the performance of sequential computers is unlikely to improve further.
+Consequently, both servers and personal computers have adopted multi-core systems.
+This challenge is compounded by the end of [Moore's Law](https://en.wikipedia.org/wiki/Moore%27s_law), which signifies our diminishing ability to benefit from denser electronic circuits.
+It appears that the primary pathway to optimizing performance now lies in specialization, focusing on exploiting the parallelism in workloads.
+Due to these technological trends, I foresee that future computers will be massively parallel.
 
-But we are not ready yet for the era of massive parallelism. The main difficulty lies on handling
-**shared mutable states**, which is the main topic of concurrency. To coordinate multiple cores and
-other resources, their inputs and outputs should be somehow properly synchronized with each other
-via shared mutable states like memory. But handling shared mutable states is inherently challenging,
-both theoretically and practically. For example, in the presence of thousands and millions of cores,
-how to efficiently synchronize concurrent accesses to shared memory? In the presence of
-nondeterministic interleaving of thread executions, how to make sure the safety of a concurrent
-program? In the presence of compiler and hardware optimizations, what is the right specification of
-a concurrent data structure?
+However, we are not yet fully equipped for the era of massive parallelism.
+The principal challenge is managing **shared mutable states**, a key aspect of concurrency.
+Coordinating multiple cores and resources requires their inputs and outputs to be synchronized through shared mutable states like memory.
+Yet, managing these states is inherently difficult, both in theory and practice.
+For instance, with thousands or millions of cores, how can we efficiently synchronize concurrent access to shared memory?
+In the face of nondeterministic thread execution interleaving, how can we ensure the safety of a concurrent program?
+And considering compiler and hardware optimizations, what constitutes the correct specification of a concurrent data structure?
 
-Fortunately, the theory of shared mutable states has advanced quite impressively in the past ten
-years, which makes it greatly more comfortable in designing and analyzing practical systems with
-shared mutable states. So in this course, we will discuss the recent theory of shared mutable states
-and its application to real-world practical systems.
+Fortunately, in the past ten years, the theory of shared mutable states has made significant advances, greatly facilitating the design and analysis of practical systems utilizing these states.
+Therefore, in this course, we will explore recent theories of shared mutable states and their application in real-world systems.
 
 
 ### Goal
 
-This course is geared towards senior undergraduate (or graduate) students in computer science (or
-related disciplines) who are interested in the modern theory and practice of parallel computer
-systems. This course aims to help such students to:
+This course is designed for senior undergraduate or graduate students in computer science and related disciplines who have an interest in the contemporary theory and practice of parallel computer systems.
+The course aims to equip students with the ability to:
 
-- Understand the motivations and challenges in concurrent programming
-- Learn design patterns and reasoning principles of concurrent programming
-- Design, implement, and evaluate concurrent programs
-- Apply the understanding to real-world parallel systems
-
+- Understand the motivations and challenges of concurrent programming.
+- Learn design patterns and principles for reasoning in concurrent programming.
+- Design, implement, and evaluate concurrent programs.
+- Apply their knowledge to real-world parallel systems.
 
 ### Textbook
 
 - [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
 - References
     + [The Art of Multiprocessor Programming](https://dl.acm.org/doi/book/10.5555/2385452)
-    + [The Crossbeam library documentation](https://docs.rs/crossbeam/latest/crossbeam/)
+    + [The Crossbeam Library Documentation](https://docs.rs/crossbeam/latest/crossbeam/)
+    + Concurrent reference counting algorithm (TBA)
+    + [Behaviour-Oriented Concurrency](https://dl.acm.org/doi/10.1145/3622852)
     + [C++ Concurrency in Action](https://www.manning.com/books/c-plus-plus-concurrency-in-action-second-edition)
     + [Rust Atomics and Locks](https://marabos.nl/atomics/)
-    + [The Promising Semantics paper](https://sf.snu.ac.kr/promise-concurrency/)
 
 ### Prerequisites
 
-- It is **strongly recommended** that students already took courses on:
+- It is **strongly recommended** that students have completed courses in:
 
-    + Mathematics (MAS101): proposition statement and proof
-    + Data structures (CS206): linked list, stack, queue
-    + Systems programming (CS230) or Operating systems (CS330): memory layout, cache, lock
-    + Programming principles (CS220) or Programming languages (CS320): lambda calculus, interpreter
+    + Mathematics (MAS101): Propositional logic and proof techniques.
+    + Data Structures (CS206): Understanding of linked lists, stacks, queues.
+    + Systems Programming (CS230) or Operating Systems (CS330): Familiarity with memory layout, caching, and locking mechanisms.
+    + Programming Principles (CS220) or Programming Languages (CS320): Knowledge of lambda calculus and interpreters.
 
-  Without a proper understanding of these topics, you will likely struggle in this course.
+  A solid foundation in these areas is crucial for success in this course.
 
-- Other recommendations which would help you in this course:
+- Other recommended knowledge that will be beneficial:
 
-    + Basic understanding of computer architecture (CS311)
-    + Programming experience in [Rust](https://www.rust-lang.org/)
+    + Basic understanding of Computer Architecture (CS311).
+    + Programming experience in [Rust](https://www.rust-lang.org/).
+
+
+### Schedule
+
+- week 1: CS230/CS330 review on concurrent programming
+- week 2: Rust
+- week 3: lock-based concurrency (API)
+- week 4: lock-based concurrency (implementation 1)
+- week 5: lock-based concurrency (implementation 2)
+- week 6: lock-based concurrency (application)
+- week 7: behavior-oriented concurrency (API)
+- week 8: midterm exam
+- week 9: lock-free concurrency (concept)
+- week 10: lock-free concurrency (data structures 1)
+- week 11: lock-free concurrency (data structures 2)
+- week 12: lock-free concurrency (data structures 3)
+- week 13: lock-free concurrency (specification)
+- week 14: lock-free concurrency (garbage collection)
+- week 15: behavior-oriented concurrency (implementation)
+- week 16: final exam
 
 
 ### Tools
 
-Make sure you're capable of using the following development tools:
+Ensure you are proficient with the following development tools:
 
-- [Git](https://git-scm.com/): for downloading the homework skeleton and version-controlling your
-  development. If you're not familiar with Git, walk through [this
-  tutorial](https://www.atlassian.com/git/tutorials).
+- [Git](https://git-scm.com/): Essential for downloading homework templates and managing your development process.
+  If you're new to Git, please complete [this tutorial](https://www.atlassian.com/git/tutorials).
 
-    + Please do the following steps to set up your repository:
-
-        * Directly clone the upstream without forking it.
-
+    + Follow these steps to set up your repository:
+        * Clone the upstream repository directly without forking it:
           ```bash
           $ git clone --origin upstream git@github.com:kaist-cp/cs431.git
           $ cd cs431
@@ -108,22 +120,16 @@ Make sure you're capable of using the following development tools:
           upstream	git@github.com:kaist-cp/cs431.git (fetch)
           upstream	git@github.com:kaist-cp/cs431.git (push)
           ```
-
-        * To get updates from the upstream, fetch and merge `upstream/main`.
-
+        * To receive updates from the upstream, fetch and merge `upstream/main`:
           ```bash
           $ git fetch upstream
           $ git merge upstream/main
           ```
 
-    + If you want to manage your development in a Git server, please create your own private
-      repository.
-
-        * You may upgrade your GitHub account to "PRO", which is free of charge.
-          Refer to the [documentation](https://education.github.com/students).
-
-        * Set up your repository as a remote.
-
+    + For managing your development on a Git server, create a private repository:
+        * Upgrade to a "PRO" GitHub account, available at no cost.
+          See the [documentation](https://education.github.com/students).
+        * Configure your repository as a remote:
           ```bash
           $ git remote add origin git@github.com:<github-id>/cs431.git
           $ git remote -v
@@ -132,137 +138,121 @@ Make sure you're capable of using the following development tools:
           upstream git@github.com:kaist-cp/cs431.git (fetch)
           upstream git@github.com:kaist-cp/cs431.git (push)
           ```
-
-        * Push to your repository.
-
+        * Push your work to your repository:
           ```bash
           $ git push -u origin main
           ```
 
-- [Rust](https://www.rust-lang.org/): as the language of homework implementation. We chose Rust
-  because its ownership type system greatly simplifies the development of large-scale system
-  software.
+- [Rust](https://www.rust-lang.org/): The programming language for homework assignments.
+  Rust's ownership type system significantly simplifies the development of large-scale system software.
+  Familiarize yourself with Rust by visiting [this page](https://cp.kaist.ac.kr/helpdesk#technical-expertise).
 
-  We recommend you to read [this page](https://cp.kaist.ac.kr/helpdesk#technical-expertise) that describes how to study Rust.
+- [ChatGPT](https://chat.openai.com/) or other Large Language Models (LLMs) (optional): Useful for completing your homework.
+    + In an AI-driven era, learning to effectively utilize AI in programming is crucial.
+      Homework difficulty is adjusted assuming the use of ChatGPT 3.5 or an equivalent tool.
 
-- [ChatGPT](https://chat.openai.com/) or other LLMs (optional): for your homework.
-  - In the era of AI, we believe that it is crucial to learn how to wisely use AI in programming.
-  - So we adjusted the difficulty of homework assuming that you'll use ChatGPT 3.5 (or equivalent) to solve it.
+- [Visual Studio Code](https://code.visualstudio.com/) (optional): Recommended for developing your homework, although you may use any editor of your preference.
 
-- [Visual Studio Code](https://code.visualstudio.com/) (optional): for developing your homework. If you prefer other editors, you're good to go.
+- [Single Sign On (SSO)](https://auth.fearless.systems/): Use the following SSO credentials to access [gg](https://gg.kaist.ac.kr) and the [development server](https://cloud.fearless.systems):
+    + id: KAIST student id (8-digit number)
+    + email: KAIST email address (@kaist.ac.kr)
+    + password: Reset it here: <https://auth.fearless.systems/if/flow/default-recovery-flow/>
+    + Log in to [gg](https://gg.kaist.ac.kr) using the "kaist-cp-class" option, and to the [development server](https://cloud.fearless.systems) using the "OpenID Connect" option.
 
-- [Single Sign On (SSO)](https://auth.fearless.systems/)
-
-  You can log in to [gg](https://gg.kaist.ac.kr) and [development server](https://cloud.fearless.systems) using the following SSO account:
-  + id: KAIST student id (8-digit number)
-  + email: KAIST email address (@kaist.ac.kr)
-  + password: please reset it here: <https://auth.fearless.systems/if/flow/default-recovery-flow/>
-
-  For [gg](https://gg.kaist.ac.kr), please log in with the "kaist-cp-class" option.
-  For [development server](https://cloud.fearless.systems), please log in with the "OpenID Connect" option.
-
-- [Development server](https://cloud.fearless.systems/)
-
-    + **IMPORTANT: Don't try to hack. Don't try to freeze the server. Please be nice.**
-
-    + You can create and connect to a workspace to open terminal or VSCode (after installing it).
-
-    + We recommend you to use VSCode and its "Rust Analyzer" and "CodeLLDB" plugins.
+- [Development Server](https://cloud.fearless.systems/):
+    + **IMPORTANT: Do not attempt to hack or overload the server. Please use it responsibly.**
+    + Create and connect to a workspace to use the terminal or VSCode (after installation).
+    + We recommend using VSCode with the "Rust Analyzer" and "CodeLLDB" plugins.
 
 
-## Grading & honor code
+## Grading & Honor Code
 
 ### Cheating
 
-**IMPORTANT: PAY CLOSE ATTENTION. VERY SERIOUS.**
+**IMPORTANT: READ CAREFULLY. THIS IS A SERIOUS MATTER.**
 
-- Please sign the KAIST CS Honor Code for this semester.
-  Otherwise, you may be expelled from the course.
+- Sign the KAIST CS Honor Code for this semester.
+  Failure to do so may lead to expulsion from the course.
 
-- We will use sophisticated tools for detecting code plagiarism​.
+- We will employ sophisticated tools to detect code plagiarism.
+    + Search for "code plagiarism detector" on Google Images to understand how these tools can identify advanced forms of plagiarism.
+      Do not attempt plagiarism in any form.
 
-    + [Google "code plagiarism detector" for images](https://www.google.com/search?q=code+plagiarism+detector&tbm=isch) and see how these tools can detect "sophisticated" plagiarisms.
-      You really cannot escape my catch. Just don't try plagiarism in any form.
+### Programming Assignments (60%)
 
-### Programming assignments (60%)
-
-- We'll announce **all** assignments before the semester begins.
-- Submit your solution to <https://gg.kaist.ac.kr/course/16>.
-- Read the documentation at <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
-- You're **allowed** to use ChatGPT or other LLMs.
+- All assignments will be announced at the start of the semester.
+- Submit your solutions to <https://gg.kaist.ac.kr/course/16>.
+- Refer to the documentation at <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
+- You are **permitted** to use ChatGPT or other LLMs.
 
 
-### Midterm and final exams (40%)
+### Midterm and Final Exams (40%)
 
-- Date & Time: TBA (midterm) and TBA (final), 13:00-15:45 (or shorter, TBA)
+- Dates & Times: To be announced (midterm and final), 13:00-15:45 (or shorter, to be confirmed)
 
-- Place: Rm. 2443, Bldg. E3-1, KAIST
+- Location: Room 2443, Building E3-1, KAIST
 
-- Your physical appearance is required. If online participation is **absolutely necessary**, we'll use Zoom.
+- Physical attendance is required.
+  If necessary, online participation via Zoom will be accommodated.
 
-- You'll bring your own laptop. (You can also borrow one from School of Computing Admin Team.)
+- You are expected to bring your own laptop.
+  Laptops can also be borrowed from the School of Computing Administration Team.
 
 ### Attendance (?%)
 
-- You should solve a quiz on the [Course Management](https://gg.kaist.ac.kr/course/16) website for each session. **You should answer the quiz by the end of the day.**
+- A quiz must be completed on the [Course Management](https://gg.kaist.ac.kr/course/16) website for each session.
+  **Quizzes should be completed by the end of the day.**
 
-- If you miss a significant number of sessions, you'll automatically get an F.
+- Failing to attend a significant number of sessions will result in an automatic grade of F.
 
 
 ## Communication
 
 ### Registration
 
-- Make sure you can log in the [lab submission website](https://gg.kaist.ac.kr).
-
-    + Log in with your `kaist-cp-class` account.
-
-    + Your id is your `@kaist.ac.kr` email address.
-
-    + Reset your password here: https://auth.fearless.systems/if/flow/default-recovery-flow/
-
-    + If you cannot log in, please contact the instructor.
+- Ensure your ability to log into the [lab submission website](https://gg.kaist.ac.kr).
+    + Use your `kaist-cp-class` account for login.
+    + Your ID is your `@kaist.ac.kr` email address.
+    + Reset your password here: [https://auth.fearless.systems/if/flow/default-recovery-flow/](https://auth.fearless.systems/if/flow/default-recovery-flow/)
+    + Contact the instructor if login issues arise.
 
 ### Rules
 
-- Course-related announcements and information will be posted on the
-  [website](https://github.com/kaist-cp/cs431) as well as on the [GitHub issue
-  tracker](https://github.com/kaist-cp/cs431/issues).  You are expected to read all
-  announcements within 24 hours of their being posted.  It is highly recommended to watch the
-  repository so that new announcements will automatically be delivered to your email address.
+- Course-related announcements and information will be posted on the [course website](https://github.com/kaist-cp/cs431) and the [GitHub issue tracker](https://github.com/kaist-cp/cs431/issues).
+  It is expected that you read all announcements within 24 hours of their posting.
+  Watching the repository is highly recommended for automatic email notifications of new announcements.
 
-- Ask questions on course materials and assignments in [this repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
-    + Don't send emails to the instructor or TAs for course materials and assignments.
-    + Before asking a question, search for it in Google and Stack Overflow.
-    + Describe your question in as much detail as possible. It should include the following things:
-      * Environment (OS, gcc, g++ version, and any other related program information).
-      * Command(s) that you used and the result. Any logs should be formatted in code. Refer to [this](https://guides.github.com/features/mastering-markdown/).
-      * Any directory or file changes you've made. If it is the solution file, just describe which part of the code is modified.
-      * Googling result. Search before asking, and share the keyword used for searching and what you've learned from it.
-    + Give a proper title to your issue.
-    + Read [this](https://github.com/kaist-cp/cs431#communication) for more instructions.
+- Questions about course materials and assignments should be posted in [the course repository's issue tracker](https://github.com/kaist-cp/cs431/issues).
+    + Avoid sending emails to the instructor or TAs regarding course materials and assignments.
+    + Research your question using Google and Stack Overflow before posting.
+    + Describe your question in detail, including:
+        * Environment (OS, gcc, g++ version, and other relevant program information).
+        * Used commands and their results, with logs formatted in code.
+          See [this guide](https://guides.github.com/features/mastering-markdown/).
+        * Any changes made to directories or files.
+          For solution files, describe the modified code sections.
+        * Your Google search results, including search terms and learned information.
+    + Use a clear and descriptive title for your issue.
+    + For further instructions, read [this section](https://github.com/kaist-cp/cs431#communication) on the course website.
+    + The requirement to ask questions online first is twofold: It ensures clarity in your query and allows everyone to benefit from shared questions and answers.
 
-    + I'm requiring you to ask questions online first for two reasons. First, clearly writing a
-      question is the first step to reaching an answer. Second, you can benefit from the questions and answers of other students.
+- Email inquiries should be reserved for confidential or personal matters.
+  Questions not adhering to this guideline (e.g., course material queries via email) will not be addressed.
 
-- Ask your questions via email **only if** they are either confidential or personal. Any questions
-   failing to do so (e.g. email questions on course materials) will not be answered.
+- Office hours will not cover *new* questions.
+  Check the issue tracker for similar questions before attending.
+  If your question is not listed, post it as a new issue for discussion.
+  Office hour discussions will focus on unresolved issues.
 
-- We are NOT going to discuss *new* questions during office hours. Before coming to the office
-  hour, please check if there is a similar question on the issue tracker. If there isn't, file a new
-  issue and start discussion there. The agenda of the office hour will be the issues that are not
-  resolved yet.
+- Emails to the instructor or head TA should start with "CS431:" in the subject line, followed by a brief description.
+  Include your name and student number in the email.
+  Emails lacking this information (e.g., those without a student number) will not receive a response.
 
-- Emails to the instructor or the head TA should begin with "CS431:" in the subject line, followed
-  by a brief description of the purpose of your email. The content should at least contain your name
-  and student number. Any emails failing to do so (e.g. emails without student number) will not be
-  answered.
+- If attending remotely via Zoom (https://kaist.zoom.us/my/jeehoon.kang), set your Zoom name to `<your student number> <your name>` (e.g., `20071163 강지훈`).
+  Instructions for changing your Zoom name can be found [here](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
 
-- If you join the session remotely from Zoom (https://kaist.zoom.us/my/jeehoon.kang),
-  your Zoom name should be `<your student number> <your name>` (e.g., `20071163 강지훈`).
-  Change your name by referring to [this](https://support.zoom.us/hc/en-us/articles/201363203-Customizing-your-profile).
-
-- This course is conducted in English. But you may ask questions in Korean. Then I will translate it to English.
+- The course is conducted in English.
+  However, you may ask questions in Korean, which will be translated into English.
 
 ## Ignore
 
