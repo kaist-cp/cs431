@@ -2,7 +2,7 @@
 
 ## Logistics
 
-- Instructor: [Jeehoon Kang](https://cp.kaist.ac.kr/jeehoon.kang)
+- Instructor: [Jeehoon Kang](https://www.fearless.systems/jeehoon.kang)
 - Time: Mon & Wed 13:00-14:15 (2024 Spring)
 - Place
   + Rm. 1101, Bldg. E3-1. **YOUR PHYSICAL ATTENDANCE IS REQUIRED** unless announced otherwise.
@@ -145,7 +145,6 @@ Ensure you are proficient with the following development tools:
 
 - [Rust](https://www.rust-lang.org/): The programming language for homework assignments.
   Rust's ownership type system significantly simplifies the development of large-scale system software.
-  Familiarize yourself with Rust by visiting [this page](https://cp.kaist.ac.kr/helpdesk#technical-expertise).
 
 - [ChatGPT](https://chat.openai.com/) or other Large Language Models (LLMs) (optional): Useful for completing your homework.
     + In an AI-driven era, learning to effectively utilize AI in programming is crucial.
@@ -182,7 +181,7 @@ Ensure you are proficient with the following development tools:
 
 - All assignments will be announced at the start of the semester.
 - Submit your solutions to <https://gg.kaist.ac.kr/course/16>.
-- Refer to the documentation at <https://cp.kaist.ac.kr/cs431/cs431_homework/>.
+- Refer to the documentation at <https://www.fearless.systems/cs431/cs431_homework/>.
 - You are **permitted** to use ChatGPT or other LLMs.
 
 
