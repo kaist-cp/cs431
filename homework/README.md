@@ -43,7 +43,11 @@
 - Running grading scripts in Mac: [#338](https://github.com/kaist-cp/cs431/issues/338).
 
 - Q: Sanitizer output is not readable.
-  A: Make sure that `llvm-symbolizer` is under `$PATH`. This should be already set up in our server.
+  A: Make sure that `llvm-symbolizer` is under `$PATH`.
+  ```
+  sudo ln -s /usr/bin/llvm-symbolizer-14 /usr/bin/llvm-symbolizer
+  ```
+  (Adjust "-14" part based on the llvm version installed on your system.)
 
 ## Using LLVM Sanitizers
 
