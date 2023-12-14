@@ -45,7 +45,7 @@ impl<K, V> Drop for List<K, V> {
 }
 
 /// Linked list cursor.
-#[derive(Debug, Copy)]
+#[derive(Debug)]
 pub struct Cursor<'g, K, V> {
     prev: &'g Atomic<Node<K, V>>,
     // Tag of `curr` should always be zero so when `curr` is stored in a `prev`, we don't store a
@@ -383,15 +383,5 @@ where
     /// Omitted
     pub fn harris_herlihy_shavit_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.lookup(key, Cursor::find_harris_herlihy_shavit, guard)
-    }
-
-    /// Omitted
-    pub fn harris_herlihy_shavit_insert(&self, key: K, value: V, guard: &Guard) -> bool {
-        self.insert(key, value, Cursor::find_harris_michael, guard)
-    }
-
-    /// Omitted
-    pub fn harris_herlihy_shavit_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
-        self.delete(key, Cursor::find_harris_michael, guard)
     }
 }
