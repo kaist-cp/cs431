@@ -20,7 +20,7 @@ fi
 
 export RUST_TEST_THREADS=1
 
-REPS=3
+REPS=5
 TEST_NAMES=(
     "stress_sequential"
     "lookup_concurrent"
@@ -30,17 +30,16 @@ TEST_NAMES=(
 )
 RUNNERS=(
     "cargo --release"
-    "cargo_asan"
     "cargo_asan --release"
     "cargo_tsan --release"
 )
 # timeout for each (TEST_NAME, RUNNER).
 TIMEOUTS=(
-    10s 10s  10s 10s
-    10s 10s  10s 10s
-    10s 10s  10s 10s
-    10s 120s 15s 60s
-    10s 120s 15s 60s
+    10s 10s 10s
+    10s 10s 10s
+    10s 10s 10s
+    10s 15s 15s
+    10s 15s 15s
 )
 # the index of the last failed test
 growable_array_fail=${#TEST_NAMES[@]}
