@@ -3,6 +3,8 @@
 set -uo pipefail
 IFS=$'\n\t'
 
+time {
+
 # Imports library.
 BASEDIR=$(dirname "$0")
 source $BASEDIR/grade-utils.sh
@@ -99,6 +101,7 @@ done
 #     fi
 # fi
 
+}
 
 SCORES=( 0 5 10 20 40 70 )
 SCORE=$(( SCORES[growable_array_fail] + SCORES[split_ordered_list_fail] ))
