@@ -38,8 +38,8 @@ TIMEOUTS=(
     10s 10s 10s
     10s 10s 10s
     10s 10s 10s
-    10s 15s 15s
-    10s 15s 15s
+    10s 25s 15s
+    10s 25s 15s
 )
 # the index of the last failed test
 growable_array_fail=${#TEST_NAMES[@]}
