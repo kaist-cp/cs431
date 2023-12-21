@@ -1,8 +1,8 @@
 //! Lock-free singly linked list.
 
-use core::cmp::Ordering::{Equal, Greater, Less};
+use core::cmp::Ordering::*;
 use core::mem;
-use core::sync::atomic::Ordering;
+use core::sync::atomic::Ordering::*;
 
 use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
@@ -108,7 +108,7 @@ where
             let Some(curr_node) = (unsafe { self.curr.as_ref() }) else {
                 break false;
             };
-            let next = curr_node.next.load(Ordering::Acquire, guard);
+            let next = curr_node.next.load(Acquire, guard);
 
             // - finding stage is done if cursor.curr advancement stops
             // - advance cursor.curr if (.next is marked) || (cursor.curr < key)
@@ -139,20 +139,14 @@ where
 
         // cleanup marked nodes between prev and curr
         self.prev
-            .compare_exchange(
-                prev_next,
-                self.curr,
-                Ordering::Release,
-                Ordering::Relaxed,
-                guard,
-            )
+            .compare_exchange(prev_next, self.curr, Release, Relaxed, guard)
             .map_err(|_| ())?;
 
         // defer_destroy from cursor.prev.load() to cursor.curr (exclusive)
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
-            let next = unsafe { node.deref() }.next.load(Ordering::Relaxed, guard);
+            let next = unsafe { node.deref() }.next.load(Relaxed, guard);
             // SAFETY: we unlinked the chain with above CAS.
             unsafe { guard.defer_destroy(node) };
             node = next;
@@ -170,12 +164,12 @@ where
             let Some(curr_node) = (unsafe { self.curr.as_ref() }) else {
                 return Ok(false);
             };
-            let mut next = curr_node.next.load(Ordering::Acquire, guard);
+            let mut next = curr_node.next.load(Acquire, guard);
 
             if next.tag() != 0 {
                 next = next.with_tag(0);
                 self.prev
-                    .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
+                    .compare_exchange(self.curr, next, Release, Relaxed, guard)
                     .map_err(|_| ())?;
                 unsafe { guard.defer_destroy(self.curr) };
                 self.curr = next;
@@ -202,21 +196,25 @@ where
             };
             match curr_node.key.cmp(key) {
                 Less => {
-                    self.curr = curr_node.next.load(Ordering::Acquire, guard);
+                    self.curr = curr_node.next.load(Acquire, guard);
                     // NOTE: unnecessary (this function is expected to be used only for `lookup`)
                     self.prev = &curr_node.next;
                     continue;
                 }
-                Equal => break curr_node.next.load(Ordering::Relaxed, guard).tag() == 0,
+                Equal => break curr_node.next.load(Relaxed, guard).tag() == 0,
                 Greater => break false,
             }
         })
     }
 
     /// Lookups the value.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the cursor's current value is a null.
     #[inline]
-    pub fn lookup(&self) -> Option<&'g V> {
-        unsafe { self.curr.as_ref() }.map(|n| &n.value)
+    pub fn lookup(&self) -> &'g V {
+        &unsafe { self.curr.as_ref() }.unwrap().value
     }
 
     /// Inserts a value.
@@ -226,14 +224,11 @@ where
         node: Owned<Node<K, V>>,
         guard: &'g Guard,
     ) -> Result<(), Owned<Node<K, V>>> {
-        node.next.store(self.curr, Ordering::Relaxed);
-        match self.prev.compare_exchange(
-            self.curr,
-            node,
-            Ordering::Release,
-            Ordering::Relaxed,
-            guard,
-        ) {
+        node.next.store(self.curr, Relaxed);
+        match self
+            .prev
+            .compare_exchange(self.curr, node, Release, Relaxed, guard)
+        {
             Ok(node) => {
                 self.curr = node;
                 Ok(())
@@ -250,14 +245,14 @@ where
 
         // Release: to release current view of the deleting thread on this mark.
         // Acquire: to ensure that if the latter CAS succeeds, then the thread that reads `next` through `prev` will be safe.
-        let next = curr_node.next.fetch_or(1, Ordering::AcqRel, guard);
+        let next = curr_node.next.fetch_or(1, AcqRel, guard);
         if next.tag() == 1 {
             return Err(());
         }
 
         if self
             .prev
-            .compare_exchange(self.curr, next, Ordering::Release, Ordering::Relaxed, guard)
+            .compare_exchange(self.curr, next, Release, Relaxed, guard)
             .is_ok()
         {
             // SAFETY: we are unlinker of curr. As the lifetime of the guard extends to the return
@@ -283,7 +278,7 @@ where
     /// Creates the head cursor.
     #[inline]
     pub fn head<'g>(&'g self, guard: &'g Guard) -> Cursor<'g, K, V> {
-        Cursor::new(&self.head, self.head.load(Ordering::Acquire, guard))
+        Cursor::new(&self.head, self.head.load(Acquire, guard))
     }
 
     /// Finds a key using the given find strategy.
@@ -307,7 +302,8 @@ where
     {
         let (found, cursor) = self.find(key, &find, guard);
         if found {
-            cursor.lookup()
+            // `found` means current node cannot be null, so lookup won't panic.
+            Some(cursor.lookup())
         } else {
             None
         }

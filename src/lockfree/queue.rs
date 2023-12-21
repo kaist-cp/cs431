@@ -6,15 +6,14 @@
 //! Algorithms.  PODC 1996.  <http://dl.acm.org/citation.cfm?id=248106>
 
 use core::mem::{self, MaybeUninit};
-use core::sync::atomic::Ordering;
+use core::sync::atomic::Ordering::*;
 
 use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
 use crossbeam_utils::CachePadded;
 
 /// Michael-Scott queue.
 // The representation here is a singly-linked list, with a sentinel node at the front. In general
-// the `tail` pointer may lag behind the actual tail. Non-sentinel nodes are either all `Data` or
-// all `Blocked` (requests for data from blocked threads).
+// the `tail` pointer may lag behind the actual tail.
 #[derive(Debug)]
 pub struct Queue<T> {
     head: CachePadded<Atomic<Node<T>>>,
@@ -23,12 +22,12 @@ pub struct Queue<T> {
 
 #[derive(Debug)]
 struct Node<T> {
-    /// The slot in which a value of type `T` can be stored.
+    /// The place in which a value of type `T` can be stored.
     ///
     /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a `T`.
-    /// For example, the sentinel node in a queue never contains a value: its slot is always empty.
-    /// Other nodes start their life with a push operation and contain a value until it gets popped
-    /// out. After that such empty nodes get added to the collector for destruction.
+    /// For example, the initial sentinel node in a queue never contains a value: its data is always
+    /// uninitialized. Other nodes start their life with a push operation and contain a value until
+    /// it gets popped out.
     data: MaybeUninit<T>,
 
     next: Atomic<Node<T>>,
@@ -52,8 +51,8 @@ impl<T> Default for Queue<T> {
         })
         .into_shared(unsafe { unprotected() });
 
-        q.head.store(sentinel, Ordering::Relaxed);
-        q.tail.store(sentinel, Ordering::Relaxed);
+        q.head.store(sentinel, Relaxed);
+        q.tail.store(sentinel, Relaxed);
         q
     }
 }
@@ -74,44 +73,30 @@ impl<T> Queue<T> {
 
         loop {
             // We push onto the tail, so we'll start optimistically by looking there first.
-            let tail = self.tail.load(Ordering::Acquire, guard);
+            let tail = self.tail.load(Acquire, guard);
 
             // Attempt to push onto the `tail` snapshot; fails if `tail.next` has changed.
             let tail_ref = unsafe { tail.deref() };
-            let next = tail_ref.next.load(Ordering::Acquire, guard);
+            let next = tail_ref.next.load(Acquire, guard);
 
             // If `tail` is not the actual tail, try to "help" by moving the tail pointer forward.
             if !next.is_null() {
-                let _ = self.tail.compare_exchange(
-                    tail,
-                    next,
-                    Ordering::Release,
-                    Ordering::Relaxed,
-                    guard,
-                );
+                let _ = self
+                    .tail
+                    .compare_exchange(tail, next, Release, Relaxed, guard);
                 continue;
             }
 
             // looks like the actual tail; attempt to link at `tail.next`.
             if tail_ref
                 .next
-                .compare_exchange(
-                    Shared::null(),
-                    new,
-                    Ordering::Release,
-                    Ordering::Relaxed,
-                    guard,
-                )
+                .compare_exchange(Shared::null(), new, Release, Relaxed, guard)
                 .is_ok()
             {
                 // try to move the tail pointer forward.
-                let _ = self.tail.compare_exchange(
-                    tail,
-                    new,
-                    Ordering::Release,
-                    Ordering::Relaxed,
-                    guard,
-                );
+                let _ = self
+                    .tail
+                    .compare_exchange(tail, new, Release, Relaxed, guard);
                 break;
             }
         }
@@ -122,27 +107,23 @@ impl<T> Queue<T> {
     /// Returns `None` if the queue is observed to be empty.
     pub fn try_pop(&self, guard: &Guard) -> Option<T> {
         loop {
-            let head = self.head.load(Ordering::Acquire, guard);
-            let next = unsafe { head.deref() }.next.load(Ordering::Acquire, guard);
+            let head = self.head.load(Acquire, guard);
+            let next = unsafe { head.deref() }.next.load(Acquire, guard);
 
             let next_ref = unsafe { next.as_ref() }?;
 
             // Moves `tail` if it's stale. Relaxed load is enough because if tail == head, then the
             // messages for that node are already acquired.
-            let tail = self.tail.load(Ordering::Relaxed, guard);
+            let tail = self.tail.load(Relaxed, guard);
             if tail == head {
-                let _ = self.tail.compare_exchange(
-                    tail,
-                    next,
-                    Ordering::Release,
-                    Ordering::Relaxed,
-                    guard,
-                );
+                let _ = self
+                    .tail
+                    .compare_exchange(tail, next, Release, Relaxed, guard);
             }
 
             if self
                 .head
-                .compare_exchange(head, next, Ordering::Release, Ordering::Relaxed, guard)
+                .compare_exchange(head, next, Release, Relaxed, guard)
                 .is_ok()
             {
                 // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
@@ -211,8 +192,8 @@ mod test {
 
         pub fn is_empty(&self) -> bool {
             let guard = &pin();
-            let head = self.queue.head.load(Ordering::Acquire, guard);
-            let next = unsafe { head.deref() }.next.load(Ordering::Acquire, guard);
+            let head = self.queue.head.load(Acquire, guard);
+            let next = unsafe { head.deref() }.next.load(Acquire, guard);
             next.is_null()
         }
 
@@ -425,7 +406,6 @@ mod test {
         let q: Queue<i64> = Queue::new();
         q.push(20);
         q.push(20);
-        assert!(!q.is_empty());
         assert!(!q.is_empty());
         assert!(q.try_pop().is_some());
     }

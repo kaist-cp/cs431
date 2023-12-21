@@ -1,6 +1,6 @@
 use core::mem::{self, ManuallyDrop};
 use core::ptr;
-use core::sync::atomic::Ordering;
+use core::sync::atomic::Ordering::*;
 
 use crossbeam_epoch::{Atomic, Owned, Shared};
 
@@ -46,12 +46,12 @@ impl<T> Stack<T> {
         let guard = crossbeam_epoch::pin();
 
         loop {
-            let head = self.head.load(Ordering::Relaxed, &guard);
+            let head = self.head.load(Relaxed, &guard);
             n.next = head.as_raw();
 
             match self
                 .head
-                .compare_exchange(head, n, Ordering::Release, Ordering::Relaxed, &guard)
+                .compare_exchange(head, n, Release, Relaxed, &guard)
             {
                 Ok(_) => break,
                 Err(e) => n = e.new,
@@ -65,13 +65,13 @@ impl<T> Stack<T> {
     pub fn pop(&self) -> Option<T> {
         let guard = crossbeam_epoch::pin();
         loop {
-            let head = self.head.load(Ordering::Acquire, &guard);
+            let head = self.head.load(Acquire, &guard);
             let h = unsafe { head.as_ref() }?;
             let next = Shared::from(h.next);
 
             if self
                 .head
-                .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, &guard)
+                .compare_exchange(head, next, Relaxed, Relaxed, &guard)
                 .is_ok()
             {
                 // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
@@ -93,7 +93,7 @@ impl<T> Stack<T> {
     /// Returns `true` if the stack is empty.
     pub fn is_empty(&self) -> bool {
         let guard = crossbeam_epoch::pin();
-        self.head.load(Ordering::Acquire, &guard).is_null()
+        self.head.load(Acquire, &guard).is_null()
     }
 }
 
@@ -129,6 +129,6 @@ mod test {
             }
         });
 
-        assert!(stack.pop().is_none());
+        assert!(stack.is_empty());
     }
 }

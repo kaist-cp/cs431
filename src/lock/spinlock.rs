@@ -1,4 +1,4 @@
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, Ordering::*};
 
 use crossbeam_utils::Backoff;
 
@@ -26,7 +26,7 @@ impl RawLock for SpinLock {
 
         while self
             .inner
-            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .compare_exchange(false, true, Acquire, Relaxed)
             .is_err()
         {
             backoff.snooze();
@@ -34,14 +34,14 @@ impl RawLock for SpinLock {
     }
 
     unsafe fn unlock(&self, _token: ()) {
-        self.inner.store(false, Ordering::Release);
+        self.inner.store(false, Release);
     }
 }
 
 impl RawTryLock for SpinLock {
     fn try_lock(&self) -> Result<(), ()> {
         self.inner
-            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .compare_exchange(false, true, Acquire, Relaxed)
             .map(|_| ())
             .map_err(|_| ())
     }

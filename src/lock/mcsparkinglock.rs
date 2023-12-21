@@ -1,5 +1,5 @@
 use core::ptr;
-use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering::*};
 use std::thread::{self, Thread};
 
 use crossbeam_utils::CachePadded;
@@ -44,17 +44,17 @@ impl RawLock for McsParkingLock {
 
     fn lock(&self) -> Self::Token {
         let node = Box::into_raw(Box::new(CachePadded::new(Node::new())));
-        let prev = self.tail.swap(node, Ordering::AcqRel);
+        let prev = self.tail.swap(node, AcqRel);
 
         if prev.is_null() {
             return Token(node);
         }
 
         // SAFETY: See safety of McsLock::lock().
-        unsafe { (*prev).next.store(node, Ordering::Release) };
+        unsafe { (*prev).next.store(node, Release) };
 
         // SAFETY: See safety of McsLock::lock().
-        while unsafe { (*node).locked.load(Ordering::Acquire) } {
+        while unsafe { (*node).locked.load(Acquire) } {
             thread::park();
         }
 
@@ -63,12 +63,12 @@ impl RawLock for McsParkingLock {
 
     unsafe fn unlock(&self, token: Self::Token) {
         let node = token.0;
-        let mut next = (*node).next.load(Ordering::Acquire);
+        let mut next = (*node).next.load(Acquire);
 
         if next.is_null() {
             if self
                 .tail
-                .compare_exchange(node, ptr::null_mut(), Ordering::Release, Ordering::Relaxed)
+                .compare_exchange(node, ptr::null_mut(), Release, Relaxed)
                 .is_ok()
             {
                 // SAFETY: See safety of McsLock::unlock().
@@ -77,7 +77,7 @@ impl RawLock for McsParkingLock {
             }
 
             while {
-                next = (*node).next.load(Ordering::Acquire);
+                next = (*node).next.load(Acquire);
                 next.is_null()
             } {}
         }
@@ -85,7 +85,7 @@ impl RawLock for McsParkingLock {
         // SAFETY: See safety of McsLock::unlock().
         drop(Box::from_raw(node));
         let thread = (*next).thread.clone();
-        (*next).locked.store(false, Ordering::Release);
+        (*next).locked.store(false, Release);
         thread.unpark();
     }
 }

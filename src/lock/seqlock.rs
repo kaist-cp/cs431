@@ -2,7 +2,7 @@
 
 use core::mem;
 use core::ops::Deref;
-use core::sync::atomic::{fence, AtomicUsize, Ordering};
+use core::sync::atomic::{fence, AtomicUsize, Ordering::*};
 
 use crossbeam_utils::Backoff;
 
@@ -25,19 +25,14 @@ impl RawSeqLock {
         let backoff = Backoff::new();
 
         loop {
-            let seq = self.seq.load(Ordering::Relaxed);
+            let seq = self.seq.load(Relaxed);
             if seq & 1 == 0
                 && self
                     .seq
-                    .compare_exchange(
-                        seq,
-                        seq.wrapping_add(1),
-                        Ordering::Acquire,
-                        Ordering::Relaxed,
-                    )
+                    .compare_exchange(seq, seq.wrapping_add(1), Acquire, Relaxed)
                     .is_ok()
             {
-                fence(Ordering::Release);
+                fence(Release);
                 return seq;
             }
 
@@ -47,7 +42,7 @@ impl RawSeqLock {
 
     /// Releases a writer's lock.
     pub fn write_unlock(&self, seq: usize) {
-        self.seq.store(seq.wrapping_add(2), Ordering::Release);
+        self.seq.store(seq.wrapping_add(2), Release);
     }
 
     /// Acquires a reader's lock.
@@ -55,7 +50,7 @@ impl RawSeqLock {
         let backoff = Backoff::new();
 
         loop {
-            let seq = self.seq.load(Ordering::Acquire);
+            let seq = self.seq.load(Acquire);
             if seq & 1 == 0 {
                 return seq;
             }
@@ -66,9 +61,9 @@ impl RawSeqLock {
 
     /// Releases a reader's lock and validates the read.
     pub fn read_validate(&self, seq: usize) -> bool {
-        fence(Ordering::Acquire);
+        fence(Acquire);
 
-        seq == self.seq.load(Ordering::Relaxed)
+        seq == self.seq.load(Relaxed)
     }
 
     /// # Safety
@@ -77,18 +72,13 @@ impl RawSeqLock {
     pub unsafe fn upgrade(&self, seq: usize) -> Result<(), ()> {
         if self
             .seq
-            .compare_exchange(
-                seq,
-                seq.wrapping_add(1),
-                Ordering::Acquire,
-                Ordering::Relaxed,
-            )
+            .compare_exchange(seq, seq.wrapping_add(1), Acquire, Relaxed)
             .is_err()
         {
             return Err(());
         }
 
-        fence(Ordering::Release);
+        fence(Release);
         Ok(())
     }
 }

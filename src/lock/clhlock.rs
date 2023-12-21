@@ -1,4 +1,4 @@
-use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering::*};
 
 use crossbeam_utils::{Backoff, CachePadded};
 
@@ -38,13 +38,13 @@ impl RawLock for ClhLock {
 
     fn lock(&self) -> Self::Token {
         let node = Box::into_raw(Box::new(CachePadded::new(Node::new(true))));
-        let prev = self.tail.swap(node, Ordering::AcqRel);
+        let prev = self.tail.swap(node, AcqRel);
         let backoff = Backoff::new();
 
         // SAFETY: `prev` is valid, as `self.tail` was valid at initialization and any `swap()` to
         // it by other `lock()`s. Hence, it points to valid memory as the thread that made `prev`
         // will not free it.
-        while unsafe { (*prev).locked.load(Ordering::Acquire) } {
+        while unsafe { (*prev).locked.load(Acquire) } {
             backoff.snooze();
         }
 
@@ -56,7 +56,7 @@ impl RawLock for ClhLock {
     }
 
     unsafe fn unlock(&self, token: Self::Token) {
-        (*token.0).locked.store(false, Ordering::Release);
+        (*token.0).locked.store(false, Release);
     }
 }
 

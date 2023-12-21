@@ -26,7 +26,7 @@ pub trait RawTryLock: RawLock {
 
 /// A type-safe lock.
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Lock<L: RawLock, T> {
     lock: L,
     data: UnsafeCell<T>,
@@ -111,17 +111,17 @@ pub struct LockGuard<'s, L: RawLock, T> {
     token: ManuallyDrop<L::Token>,
 }
 
-unsafe impl<'s, L: RawLock, T: Send> Send for LockGuard<'s, L, T> {}
-unsafe impl<'s, L: RawLock, T: Sync> Sync for LockGuard<'s, L, T> {}
+unsafe impl<L: RawLock, T: Send> Send for LockGuard<'_, L, T> {}
+unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
 
-impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
+impl<L: RawLock, T> LockGuard<'_, L, T> {
     /// Returns the address of the referenced lock.
     pub fn raw(&mut self) -> usize {
         self.lock as *const _ as usize
     }
 }
 
-impl<'s, L: RawLock, T> Drop for LockGuard<'s, L, T> {
+impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
     fn drop(&mut self) {
         // SAFETY: `self.token` is not used anymore in this function, and as we are `drop`ing
         // `self`, it is not used anymore.
@@ -133,7 +133,7 @@ impl<'s, L: RawLock, T> Drop for LockGuard<'s, L, T> {
     }
 }
 
-impl<'s, L: RawLock, T> Deref for LockGuard<'s, L, T> {
+impl<L: RawLock, T> Deref for LockGuard<'_, L, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -142,7 +142,7 @@ impl<'s, L: RawLock, T> Deref for LockGuard<'s, L, T> {
     }
 }
 
-impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
+impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Having a `LockGuard` means the underlying lock is held.
         //
@@ -151,7 +151,7 @@ impl<'s, L: RawLock, T> DerefMut for LockGuard<'s, L, T> {
     }
 }
 
-impl<'s, L: RawLock, T> LockGuard<'s, L, T> {
+impl<L: RawLock, T> LockGuard<'_, L, T> {
     /// Transforms a lock guard to an address.
     pub fn into_raw(self) -> usize {
         let ret = self.lock as *const _ as usize;
@@ -180,7 +180,7 @@ pub mod tests {
 
     pub fn smoke<L: RawLock>() {
         const LENGTH: usize = 1024;
-        let d = Lock::<L, Vec<usize>>::new(vec![]);
+        let d = Lock::<L, Vec<usize>>::default();
 
         scope(|s| {
             for i in 1..LENGTH {
