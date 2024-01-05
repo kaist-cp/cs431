@@ -8,7 +8,7 @@
 use core::mem::{self, MaybeUninit};
 use core::sync::atomic::Ordering::*;
 
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned, Shared};
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 use crossbeam_utils::CachePadded;
 
 /// Michael-Scott queue.
@@ -39,21 +39,16 @@ unsafe impl<T: Send> Send for Queue<T> {}
 
 impl<T> Default for Queue<T> {
     fn default() -> Self {
-        let q = Self {
-            head: CachePadded::new(Atomic::null()),
-            tail: CachePadded::new(Atomic::null()),
-        };
-
-        // SAFETY: We are creating a new queue, hence have sole ownership of it.
-        let sentinel = Owned::new(Node {
+        let sentinel = Box::into_raw(Box::new(Node {
             data: MaybeUninit::uninit(),
             next: Atomic::null(),
-        })
-        .into_shared(unsafe { unprotected() });
+        }))
+        .cast_const();
 
-        q.head.store(sentinel, Relaxed);
-        q.tail.store(sentinel, Relaxed);
-        q
+        Self {
+            head: CachePadded::new(sentinel.into()),
+            tail: CachePadded::new(sentinel.into()),
+        }
     }
 }
 

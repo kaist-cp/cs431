@@ -1,5 +1,5 @@
 use core::cell::UnsafeCell;
-use core::mem::{self, ManuallyDrop};
+use core::mem::ManuallyDrop;
 use core::ops::{Deref, DerefMut};
 
 /// Raw lock interface.
@@ -151,40 +151,18 @@ impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     }
 }
 
-impl<L: RawLock, T> LockGuard<'_, L, T> {
-    /// Transforms a lock guard to an address.
-    pub fn into_raw(self) -> usize {
-        let ret = self.lock as *const _ as usize;
-        mem::forget(self);
-        ret
-    }
-
-    /// # Safety
-    ///
-    /// The given arguments should be the data of a forgotten lock guard.
-    pub unsafe fn from_raw(data: usize, token: L::Token) -> Self {
-        Self {
-            // SAFETY: data is from a `lock` that was forgotten.
-            lock: &*(data as *const _),
-            token: ManuallyDrop::new(token),
-        }
-    }
-}
-
 #[cfg(test)]
 pub mod tests {
-
-    use std::thread::scope;
-
     use super::{Lock, RawLock};
+    use std::thread::scope;
 
     pub fn smoke<L: RawLock>() {
         const LENGTH: usize = 1024;
         let d = Lock::<L, Vec<usize>>::default();
 
         scope(|s| {
+            let d = &d;
             for i in 1..LENGTH {
-                let d = &d;
                 s.spawn(move || {
                     let mut d = d.lock();
                     d.push(i);

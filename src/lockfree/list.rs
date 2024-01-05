@@ -24,6 +24,11 @@ pub struct List<K, V> {
     head: Atomic<Node<K, V>>,
 }
 
+// Unlike stack and queue, we need `K` and `V` to be `Sync` for the list to be `Sync`,
+// as both `K` and `V` are accessed concurrently in `find` and `delete`, respectively.
+unsafe impl<K: Sync, V: Sync> Sync for List<K, V> {}
+unsafe impl<K: Send, V: Send> Send for List<K, V> {}
+
 impl<K, V> Default for List<K, V>
 where
     K: Ord,
