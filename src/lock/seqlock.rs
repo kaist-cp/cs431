@@ -69,24 +69,24 @@ impl RawSeqLock {
     /// # Safety
     ///
     /// `seq` must be even.
-    pub unsafe fn upgrade(&self, seq: usize) -> Result<(), ()> {
+    pub unsafe fn upgrade(&self, seq: usize) -> bool {
         if self
             .seq
             .compare_exchange(seq, seq.wrapping_add(1), Acquire, Relaxed)
             .is_err()
         {
-            return Err(());
+            return false;
         }
 
         fence(Release);
-        Ok(())
+        true
     }
 }
 
 /// A sequence lock.
 #[derive(Debug)]
 pub struct SeqLock<T> {
-    lock: RawSeqLock,
+    inner: RawSeqLock,
     data: T,
 }
 
@@ -107,17 +107,17 @@ pub struct ReadGuard<'s, T> {
 unsafe impl<T: Send> Send for SeqLock<T> {}
 unsafe impl<T: Send> Sync for SeqLock<T> {}
 
-unsafe impl<'s, T> Send for WriteGuard<'s, T> {}
-unsafe impl<'s, T: Send + Sync> Sync for WriteGuard<'s, T> {}
+unsafe impl<T> Send for WriteGuard<'_, T> {}
+unsafe impl<T: Send + Sync> Sync for WriteGuard<'_, T> {}
 
-unsafe impl<'s, T> Send for ReadGuard<'s, T> {}
-unsafe impl<'s, T: Send + Sync> Sync for ReadGuard<'s, T> {}
+unsafe impl<T> Send for ReadGuard<'_, T> {}
+unsafe impl<T: Send + Sync> Sync for ReadGuard<'_, T> {}
 
 impl<T> SeqLock<T> {
     /// Creates a new sequence lock.
     pub const fn new(data: T) -> Self {
         SeqLock {
-            lock: RawSeqLock::new(),
+            inner: RawSeqLock::new(),
             data,
         }
     }
@@ -134,7 +134,7 @@ impl<T> SeqLock<T> {
 
     /// Acquires a writer's lock.
     pub fn write_lock(&self) -> WriteGuard<T> {
-        let seq = self.lock.write_lock();
+        let seq = self.inner.write_lock();
         WriteGuard { lock: self, seq }
     }
 
@@ -142,7 +142,7 @@ impl<T> SeqLock<T> {
     ///
     /// All reads from the underlying data should be atomic.
     pub unsafe fn read_lock(&self) -> ReadGuard<T> {
-        let seq = self.lock.read_begin();
+        let seq = self.inner.read_begin();
         ReadGuard { lock: self, seq }
     }
 
@@ -164,7 +164,7 @@ impl<T> SeqLock<T> {
     }
 }
 
-impl<'s, T> Deref for WriteGuard<'s, T> {
+impl<T> Deref for WriteGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -172,13 +172,13 @@ impl<'s, T> Deref for WriteGuard<'s, T> {
     }
 }
 
-impl<'s, T> Drop for WriteGuard<'s, T> {
+impl<T> Drop for WriteGuard<'_, T> {
     fn drop(&mut self) {
-        self.lock.lock.write_unlock(self.seq);
+        self.lock.inner.write_unlock(self.seq);
     }
 }
 
-impl<'s, T> Deref for ReadGuard<'s, T> {
+impl<T> Deref for ReadGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -186,7 +186,7 @@ impl<'s, T> Deref for ReadGuard<'s, T> {
     }
 }
 
-impl<'s, T> Clone for ReadGuard<'s, T> {
+impl<T> Clone for ReadGuard<'_, T> {
     fn clone(&self) -> Self {
         Self {
             lock: self.lock,
@@ -195,7 +195,7 @@ impl<'s, T> Clone for ReadGuard<'s, T> {
     }
 }
 
-impl<'s, T> Drop for ReadGuard<'s, T> {
+impl<T> Drop for ReadGuard<'_, T> {
     fn drop(&mut self) {
         // HACK(@jeehoonkang): we really need linear type here:
         // https://github.com/rust-lang/rfcs/issues/814
@@ -206,24 +206,24 @@ impl<'s, T> Drop for ReadGuard<'s, T> {
 impl<'s, T> ReadGuard<'s, T> {
     /// Validates the read.
     pub fn validate(&self) -> bool {
-        self.lock.lock.read_validate(self.seq)
+        self.lock.inner.read_validate(self.seq)
     }
 
     /// Restarts the read critical section.
     pub fn restart(&mut self) {
-        self.seq = self.lock.lock.read_begin();
+        self.seq = self.lock.inner.read_begin();
     }
 
     /// Releases the reader's lock.
     pub fn finish(self) -> bool {
-        let result = self.lock.lock.read_validate(self.seq);
+        let result = self.validate();
         mem::forget(self);
         result
     }
 
     /// Tries to upgrade to a writer's lock.
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
-        let result = if unsafe { self.lock.lock.upgrade(self.seq) }.is_ok() {
+        let result = if unsafe { self.lock.inner.upgrade(self.seq) } {
             Ok(WriteGuard {
                 lock: self.lock,
                 seq: self.seq,

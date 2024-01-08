@@ -145,8 +145,6 @@ impl<L: RawLock, T> Deref for LockGuard<'_, L, T> {
 impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Having a `LockGuard` means the underlying lock is held.
-        //
-        // NOTE: Ideally, we would use `get_mut()` here, but `lock` is a `&`, not a `&mut`.
         unsafe { self.lock.get_mut_unchecked() }
     }
 }

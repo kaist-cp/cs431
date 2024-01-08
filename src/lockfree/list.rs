@@ -327,8 +327,8 @@ where
             }
 
             match cursor.insert(node, guard) {
-                Err(n) => node = n,
                 Ok(()) => return true,
+                Err(n) => node = n,
             }
         }
     }
@@ -344,9 +344,8 @@ where
                 return None;
             }
 
-            match cursor.delete(guard) {
-                Err(()) => continue,
-                Ok(value) => return Some(value),
+            if let Ok(value) = cursor.delete(guard) {
+                return Some(value);
             }
         }
     }
