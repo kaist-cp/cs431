@@ -63,7 +63,7 @@ impl RawLock for McsParkingLock {
 
     unsafe fn unlock(&self, token: Self::Token) {
         let node = token.0;
-        let mut next = (*node).next.load(Acquire);
+        let mut next = unsafe { (*node).next.load(Acquire) };
 
         if next.is_null() {
             if self
@@ -72,20 +72,21 @@ impl RawLock for McsParkingLock {
                 .is_ok()
             {
                 // SAFETY: See safety of McsLock::unlock().
-                drop(Box::from_raw(node));
+                drop(unsafe { Box::from_raw(node) });
                 return;
             }
 
             while {
-                next = (*node).next.load(Acquire);
+                next = unsafe { (*node).next.load(Acquire) };
                 next.is_null()
             } {}
         }
 
         // SAFETY: See safety of McsLock::unlock().
-        drop(Box::from_raw(node));
-        let thread = (*next).thread.clone();
-        (*next).locked.store(false, Release);
+        drop(unsafe { Box::from_raw(node) });
+        let next_ref = unsafe { &*next };
+        let thread = next_ref.thread.clone();
+        next_ref.locked.store(false, Release);
         thread.unpark();
     }
 }

@@ -64,7 +64,7 @@ impl RawLock for McsLock {
 
     unsafe fn unlock(&self, token: Self::Token) {
         let node = token.0;
-        let mut next = (*node).next.load(Acquire);
+        let mut next = unsafe { (*node).next.load(Acquire) };
 
         if next.is_null() {
             if self
@@ -74,20 +74,20 @@ impl RawLock for McsLock {
             {
                 // SAFETY: Since `node` was the `tail`, there is no other thread blocked by this
                 // lock. Hence we have unique access to it.
-                drop(Box::from_raw(node));
+                drop(unsafe { Box::from_raw(node) });
                 return;
             }
 
             while {
-                next = (*node).next.load(Acquire);
+                next = unsafe { (*node).next.load(Acquire) };
                 next.is_null()
             } {}
         }
 
         // SAFETY: Since `next` is not null, the thread that made `next` has finished access to
         // `node`, hence we have unique access to it.
-        drop(Box::from_raw(node));
-        (*next).locked.store(false, Release);
+        drop(unsafe { Box::from_raw(node) });
+        unsafe { (*next).locked.store(false, Release) };
     }
 }
 

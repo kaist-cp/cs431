@@ -28,7 +28,7 @@ pub trait RawTryLock: RawLock {
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct Lock<L: RawLock, T> {
-    lock: L,
+    inner: L,
     data: UnsafeCell<T>,
 }
 
@@ -39,7 +39,7 @@ impl<L: RawLock, T> Lock<L, T> {
     /// Creates a new lock.
     pub fn new(data: T) -> Self {
         Self {
-            lock: L::default(),
+            inner: L::default(),
             data: UnsafeCell::new(data),
         }
     }
@@ -51,7 +51,7 @@ impl<L: RawLock, T> Lock<L, T> {
 
     /// Acquires the lock and dereferences the inner value.
     pub fn lock(&self) -> LockGuard<L, T> {
-        let token = self.lock.lock();
+        let token = self.inner.lock();
         LockGuard {
             lock: self,
             token: ManuallyDrop::new(token),
@@ -62,7 +62,7 @@ impl<L: RawLock, T> Lock<L, T> {
 impl<L: RawTryLock, T> Lock<L, T> {
     /// Tries to acquire the lock and dereferences the inner value.
     pub fn try_lock(&self) -> Result<LockGuard<L, T>, ()> {
-        self.lock.try_lock().map(|token| LockGuard {
+        self.inner.try_lock().map(|token| LockGuard {
             lock: self,
             token: ManuallyDrop::new(token),
         })
@@ -75,7 +75,7 @@ impl<L: RawLock, T> Lock<L, T> {
     /// The underlying lock should be actually acquired.
     pub unsafe fn unlock_unchecked(&self, token: L::Token) {
         // SAFETY: Trivial from the safety contract.
-        self.lock.unlock(token);
+        unsafe { self.inner.unlock(token) };
     }
 
     /// # Safety
@@ -85,7 +85,7 @@ impl<L: RawLock, T> Lock<L, T> {
         // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
         // acquired, we have unique access to `data`. In particular, if we don't change it, it stays
         // immutable.
-        &*self.data.get()
+        unsafe { &*self.data.get() }
     }
 
     /// Dereferences the inner value.
@@ -100,7 +100,7 @@ impl<L: RawLock, T> Lock<L, T> {
     pub unsafe fn get_mut_unchecked(&self) -> &mut T {
         // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
         // acquired, we have unique access to `data`.
-        &mut *self.data.get()
+        unsafe { &mut *self.data.get() }
     }
 }
 
@@ -111,7 +111,7 @@ pub struct LockGuard<'s, L: RawLock, T> {
     token: ManuallyDrop<L::Token>,
 }
 
-unsafe impl<L: RawLock, T: Send> Send for LockGuard<'_, L, T> {}
+unsafe impl<L: RawLock, T: Sync> Send for LockGuard<'_, L, T> {}
 unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
 
 impl<L: RawLock, T> LockGuard<'_, L, T> {
@@ -129,7 +129,7 @@ impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
 
         // SAFETY: since `self` was created with `lock` and it's `token`, the `token` given to
         // `unlock()` is correct.
-        unsafe { self.lock.lock.unlock(token) };
+        unsafe { self.lock.inner.unlock(token) };
     }
 }
 

@@ -56,7 +56,7 @@ impl RawLock for ClhLock {
     }
 
     unsafe fn unlock(&self, token: Self::Token) {
-        (*token.0).locked.store(false, Release);
+        unsafe { (*token.0).locked.store(false, Release) };
     }
 }
 

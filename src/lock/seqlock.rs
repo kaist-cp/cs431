@@ -9,6 +9,9 @@ use crossbeam_utils::Backoff;
 /// A raw sequence lock.
 #[derive(Debug)]
 pub struct RawSeqLock {
+    // Even: unlocked or read-locked.
+    // Odd: write-locked.
+    // Is monotonically increasing. In particuler, large part of the API are unsafe to enforece this.
     seq: AtomicUsize,
 }
 
@@ -41,7 +44,12 @@ impl RawSeqLock {
     }
 
     /// Releases a writer's lock.
-    pub fn write_unlock(&self, seq: usize) {
+    ///
+    /// # Safety
+    ///
+    /// - `self` must be a an acquired writer's lock.
+    /// - `seq` must be the be the value returned from the corresponding of the `write_lock()`.
+    pub unsafe fn write_unlock(&self, seq: usize) {
         self.seq.store(seq.wrapping_add(2), Release);
     }
 
@@ -59,7 +67,10 @@ impl RawSeqLock {
         }
     }
 
-    /// Releases a reader's lock and validates the read.
+    /// Validates reads.
+    ///
+    /// If `self` is a read lock and `seq` is the corresponding sequence number,
+    /// then if the return value is `true`, the reads are valid.
     pub fn read_validate(&self, seq: usize) -> bool {
         fence(Acquire);
 
@@ -68,7 +79,7 @@ impl RawSeqLock {
 
     /// # Safety
     ///
-    /// `seq` must be even.
+    /// - `seq` must be even.
     pub unsafe fn upgrade(&self, seq: usize) -> bool {
         if self
             .seq
@@ -153,7 +164,7 @@ impl<T> SeqLock<T> {
     where
         F: FnOnce(&T) -> R,
     {
-        let guard = self.read_lock();
+        let guard = unsafe { self.read_lock() };
         let result = f(&guard);
 
         if guard.finish() {
@@ -174,7 +185,11 @@ impl<T> Deref for WriteGuard<'_, T> {
 
 impl<T> Drop for WriteGuard<'_, T> {
     fn drop(&mut self) {
-        self.lock.inner.write_unlock(self.seq);
+        // SAFETY:
+        //
+        // - A `WriteGuard` implies `self.lock.inner` is an acquired write lock.
+        // - `self.seq` is the proper sequence number of the write lock.
+        unsafe { self.lock.inner.write_unlock(self.seq) };
     }
 }
 
@@ -204,7 +219,7 @@ impl<T> Drop for ReadGuard<'_, T> {
 }
 
 impl<'s, T> ReadGuard<'s, T> {
-    /// Validates the read.
+    /// Validates reads.
     pub fn validate(&self) -> bool {
         self.lock.inner.read_validate(self.seq)
     }
@@ -223,6 +238,9 @@ impl<'s, T> ReadGuard<'s, T> {
 
     /// Tries to upgrade to a writer's lock.
     pub fn upgrade(self) -> Result<WriteGuard<'s, T>, ()> {
+        // SAFETY:
+        //
+        // - `self.seq` is the proper sequence number of the read lock, hence even.
         let result = if unsafe { self.lock.inner.upgrade(self.seq) } {
             Ok(WriteGuard {
                 lock: self.lock,
