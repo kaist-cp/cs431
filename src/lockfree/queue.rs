@@ -59,12 +59,11 @@ impl<T> Queue<T> {
     }
 
     /// Adds `t` to the back of the queue, possibly waking up threads blocked on `pop()`.
-    pub fn push(&self, t: T, guard: &Guard) {
-        let new = Owned::new(Node {
+    pub fn push(&self, t: T, guard: &mut Guard) {
+        let mut new = Owned::new(Node {
             data: MaybeUninit::new(t),
             next: Atomic::null(),
-        })
-        .into_shared(guard);
+        });
 
         loop {
             // We push onto the tail, so we'll start optimistically by looking there first.
@@ -79,28 +78,32 @@ impl<T> Queue<T> {
                 let _ = self
                     .tail
                     .compare_exchange(tail, next, Release, Relaxed, guard);
+                guard.repin();
                 continue;
             }
 
             // looks like the actual tail; attempt to link at `tail.next`.
-            if tail_ref
+            match tail_ref
                 .next
                 .compare_exchange(Shared::null(), new, Release, Relaxed, guard)
-                .is_ok()
             {
-                // try to move the tail pointer forward.
-                let _ = self
-                    .tail
-                    .compare_exchange(tail, new, Release, Relaxed, guard);
-                break;
+                Ok(new) => {
+                    // try to move the tail pointer forward.
+                    let _ = self
+                        .tail
+                        .compare_exchange(tail, new, Release, Relaxed, guard);
+                    break;
+                }
+                Err(e) => new = e.new,
             }
+            guard.repin();
         }
     }
 
     /// Attempts to dequeue from the front.
     ///
     /// Returns `None` if the queue is observed to be empty.
-    pub fn try_pop(&self, guard: &Guard) -> Option<T> {
+    pub fn try_pop(&self, guard: &mut Guard) -> Option<T> {
         loop {
             let head = self.head.load(Acquire, guard);
             let next = unsafe { head.deref() }.next.load(Acquire, guard);
@@ -140,6 +143,7 @@ impl<T> Queue<T> {
 
                 return Some(result);
             }
+            guard.repin();
         }
     }
 }
@@ -181,7 +185,7 @@ mod test {
         }
 
         pub fn push(&self, t: T) {
-            let guard = &pin();
+            let guard = &mut pin();
             self.queue.push(t, guard);
         }
 
@@ -193,7 +197,7 @@ mod test {
         }
 
         pub fn try_pop(&self) -> Option<T> {
-            let guard = &pin();
+            let guard = &mut pin();
             self.queue.try_pop(guard)
         }
 

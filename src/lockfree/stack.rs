@@ -43,7 +43,7 @@ impl<T> Stack<T> {
             next: ptr::null(),
         });
 
-        let guard = crossbeam_epoch::pin();
+        let mut guard = crossbeam_epoch::pin();
 
         loop {
             let head = self.head.load(Relaxed, &guard);
@@ -56,6 +56,9 @@ impl<T> Stack<T> {
                 Ok(_) => break,
                 Err(e) => n = e.new,
             }
+
+            // Repin to ensure the global epoch can make progress.
+            guard.repin();
         }
     }
 
@@ -63,7 +66,7 @@ impl<T> Stack<T> {
     ///
     /// Returns `None` if the stack is empty.
     pub fn pop(&self) -> Option<T> {
-        let guard = crossbeam_epoch::pin();
+        let mut guard = crossbeam_epoch::pin();
         loop {
             let head = self.head.load(Acquire, &guard);
             let h = unsafe { head.as_ref() }?;
@@ -87,6 +90,9 @@ impl<T> Stack<T> {
 
                 return Some(result);
             }
+
+            // Repin to ensure the global epoch can make progress.
+            guard.repin();
         }
     }
 
