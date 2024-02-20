@@ -58,7 +58,7 @@ impl<T> Queue<T> {
         Self::default()
     }
 
-    /// Adds `t` to the back of the queue, possibly waking up threads blocked on `pop()`.
+    /// Adds `t` to the back of the queue.
     pub fn push(&self, t: T, guard: &mut Guard) {
         let mut new = Owned::new(Node {
             data: MaybeUninit::new(t),
