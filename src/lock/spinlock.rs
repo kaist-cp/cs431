@@ -18,7 +18,7 @@ impl Default for SpinLock {
     }
 }
 
-impl RawLock for SpinLock {
+unsafe impl RawLock for SpinLock {
     type Token = ();
 
     fn lock(&self) {
@@ -38,7 +38,7 @@ impl RawLock for SpinLock {
     }
 }
 
-impl RawTryLock for SpinLock {
+unsafe impl RawTryLock for SpinLock {
     fn try_lock(&self) -> Result<(), ()> {
         self.inner
             .compare_exchange(false, true, Acquire, Relaxed)

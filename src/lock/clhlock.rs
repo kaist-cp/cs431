@@ -18,26 +18,26 @@ pub struct ClhLock {
 }
 
 impl Node {
-    const fn new(locked: bool) -> Self {
-        Self {
+    fn new(locked: bool) -> *mut CachePadded<Self> {
+        Box::into_raw(Box::new(CachePadded::new(Self {
             locked: AtomicBool::new(locked),
-        }
+        })))
     }
 }
 
 impl Default for ClhLock {
     fn default() -> Self {
-        let node = AtomicPtr::new(Box::into_raw(Box::new(CachePadded::new(Node::new(false)))));
+        let node = AtomicPtr::new(Node::new(false));
 
         Self { tail: node }
     }
 }
 
-impl RawLock for ClhLock {
+unsafe impl RawLock for ClhLock {
     type Token = Token;
 
     fn lock(&self) -> Self::Token {
-        let node = Box::into_raw(Box::new(CachePadded::new(Node::new(true))));
+        let node = Node::new(true);
         let prev = self.tail.swap(node, AcqRel);
         let backoff = Backoff::new();
 

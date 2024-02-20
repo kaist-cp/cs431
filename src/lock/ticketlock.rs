@@ -20,7 +20,7 @@ impl Default for TicketLock {
     }
 }
 
-impl RawLock for TicketLock {
+unsafe impl RawLock for TicketLock {
     type Token = usize;
 
     fn lock(&self) -> usize {

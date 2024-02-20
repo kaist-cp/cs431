@@ -20,11 +20,11 @@ pub struct McsLock {
 }
 
 impl Node {
-    const fn new() -> Self {
-        Self {
+    fn new() -> *mut CachePadded<Self> {
+        Box::into_raw(Box::new(CachePadded::new(Self {
             locked: AtomicBool::new(true),
             next: AtomicPtr::new(ptr::null_mut()),
-        }
+        })))
     }
 }
 
@@ -36,11 +36,11 @@ impl Default for McsLock {
     }
 }
 
-impl RawLock for McsLock {
+unsafe impl RawLock for McsLock {
     type Token = Token;
 
     fn lock(&self) -> Self::Token {
-        let node = Box::into_raw(Box::new(CachePadded::new(Node::new())));
+        let node = Node::new();
         let prev = self.tail.swap(node, AcqRel);
 
         if prev.is_null() {

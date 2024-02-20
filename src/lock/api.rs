@@ -3,7 +3,12 @@ use core::mem::ManuallyDrop;
 use core::ops::{Deref, DerefMut};
 
 /// Raw lock interface.
-pub trait RawLock: Default + Send + Sync {
+///
+/// # Safety
+///
+/// Implementations of this trait must ensure that the lock is actually
+/// exclusive: a lock can't be acquired while the lock is already locked.
+pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     type Token;
 
@@ -19,7 +24,13 @@ pub trait RawLock: Default + Send + Sync {
 }
 
 /// Raw lock interface for the try_lock API.
-pub trait RawTryLock: RawLock {
+///
+/// # Safety
+///
+/// Implementations of this trait must ensure that the lock is actually
+/// exclusive: a lock can't be acquired while the lock is already locked.
+/// Also, `try_lock()`, when successful, should return a token that can be used for `RawLock::unlock`.
+pub unsafe trait RawTryLock: RawLock {
     /// Tries to acquire the raw lock.
     fn try_lock(&self) -> Result<Self::Token, ()>;
 }
@@ -113,13 +124,6 @@ pub struct LockGuard<'s, L: RawLock, T> {
 
 unsafe impl<L: RawLock, T: Sync> Send for LockGuard<'_, L, T> {}
 unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
-
-impl<L: RawLock, T> LockGuard<'_, L, T> {
-    /// Returns the address of the referenced lock.
-    pub fn raw(&mut self) -> usize {
-        self.lock as *const _ as usize
-    }
-}
 
 impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
     fn drop(&mut self) {
