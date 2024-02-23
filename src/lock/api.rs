@@ -80,41 +80,6 @@ impl<L: RawTryLock, T> Lock<L, T> {
     }
 }
 
-impl<L: RawLock, T> Lock<L, T> {
-    /// # Safety
-    ///
-    /// The underlying lock should be actually acquired.
-    pub unsafe fn unlock_unchecked(&self, token: L::Token) {
-        // SAFETY: Trivial from the safety contract.
-        unsafe { self.inner.unlock(token) };
-    }
-
-    /// # Safety
-    ///
-    /// The underlying lock should be actually acquired.
-    pub unsafe fn get_unchecked(&self) -> &T {
-        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
-        // acquired, we have unique access to `data`. In particular, if we don't change it, it stays
-        // immutable.
-        unsafe { &*self.data.get() }
-    }
-
-    /// Dereferences the inner value.
-    pub fn get_mut(&mut self) -> &mut T {
-        self.data.get_mut()
-    }
-
-    /// # Safety
-    ///
-    /// The underlying lock should be actually acquired.
-    #[allow(clippy::mut_from_ref)]
-    pub unsafe fn get_mut_unchecked(&self) -> &mut T {
-        // SAFETY: `UnsafeCell::get()` will not return a null pointer. Since the lock is already
-        // acquired, we have unique access to `data`.
-        unsafe { &mut *self.data.get() }
-    }
-}
-
 /// A guard that holds the lock and dereferences the inner value.
 #[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
@@ -142,14 +107,14 @@ impl<L: RawLock, T> Deref for LockGuard<'_, L, T> {
 
     fn deref(&self) -> &Self::Target {
         // SAFETY: Having a `LockGuard` means the underlying lock is acquired.
-        unsafe { self.lock.get_unchecked() }
+        unsafe { &*self.lock.data.get() }
     }
 }
 
 impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Having a `LockGuard` means the underlying lock is held.
-        unsafe { self.lock.get_mut_unchecked() }
+        unsafe { &mut *self.lock.data.get() }
     }
 }
 
