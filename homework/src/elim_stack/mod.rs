@@ -18,13 +18,15 @@ mod test {
         let stack = ElimStack::default();
 
         scope(|scope| {
+            let mut handles = Vec::new();
             for _ in 0..10 {
-                let _unused = scope.spawn(|| {
+                let handle = scope.spawn(|| {
                     for i in 0..10_000 {
                         stack.push(i);
                         assert!(stack.pop().is_some());
                     }
                 });
+                handles.push(handle);
             }
         });
 

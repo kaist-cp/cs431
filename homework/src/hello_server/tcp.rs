@@ -52,7 +52,7 @@ impl CancellableTcpListener {
 impl Iterator for Incoming<'_> {
     type Item = io::Result<TcpStream>;
     /// Returns None if the listener is `cancel()`led.
-    fn next(&mut self) -> Option<io::Result<TcpStream>> {
+    fn next(&mut self) -> Option<Self::Item> {
         let stream = self.listener.inner.accept().map(|p| p.0);
         todo!()
     }

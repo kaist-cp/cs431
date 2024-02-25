@@ -52,7 +52,7 @@ impl<'s> RetiredSet<'s> {
         ///
         /// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
         unsafe fn free<T>(data: usize) {
-            drop(Box::from_raw(data as *mut T))
+            drop(unsafe { Box::from_raw(data as *mut T) })
         }
 
         todo!()

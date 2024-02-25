@@ -1,11 +1,10 @@
 //! Growable array.
 
 use core::fmt::Debug;
-use core::marker::PhantomData;
-use core::mem;
+use core::mem::{self, ManuallyDrop};
 use core::ops::{Deref, DerefMut};
-use core::sync::atomic::{AtomicUsize, Ordering};
-use crossbeam_epoch::{Atomic, Guard, Owned, Pointer, Shared};
+use core::sync::atomic::Ordering::*;
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
 /// Growable array of `Atomic<T>`.
 ///
@@ -129,43 +128,38 @@ use crossbeam_epoch::{Atomic, Guard, Owned, Pointer, Shared};
 /// example in `SplitOrderedList`, destruction of elements are handled by `List`.
 #[derive(Debug)]
 pub struct GrowableArray<T> {
-    root: Atomic<Segment>,
-    _marker: PhantomData<T>,
+    root: Atomic<Segment<T>>,
 }
 
 const SEGMENT_LOGSIZE: usize = 10;
 
-struct Segment {
-    /// `AtomicUsize` here means `Atomic<T>` or `Atomic<Segment>`.
-    inner: [AtomicUsize; 1 << SEGMENT_LOGSIZE],
+/// A fixed size array of atomic pointers to other `Segment<T>` or `T`.
+///
+/// Each segment is either a child segment with pointers to `Segment<T>` or an element segment with
+/// pointers to `T`. This is determined by the height of this segment in the main array, which one
+/// needs to track separately. For example, use the main array root's tag.
+///
+/// Since destructing `Segment<T>` requires its height information, it is not recommended to
+/// implement `Drop` for this trait. Rather, have a custom deallocate method that accounts for the
+/// height of the segment.
+union Segment<T> {
+    children: ManuallyDrop<[Atomic<Segment<T>>; 1 << SEGMENT_LOGSIZE]>,
+    elements: ManuallyDrop<[Atomic<T>; 1 << SEGMENT_LOGSIZE]>,
 }
 
-impl Segment {
-    fn new() -> Self {
-        Self {
-            inner: unsafe {
-                // SAFETY: `AtomicUsize` can be zero.
-                mem::zeroed()
-            },
-        }
+impl<T> Segment<T> {
+    /// Create a new segment filled with null pointers. It is up to the callee to whether to use
+    /// this as a children or an element segment.
+    fn new() -> Owned<Self> {
+        Owned::new(
+            // SAFETY: An array of null pointers can be interperted as either an element segment or
+            // an children segment.
+            unsafe { mem::zeroed() },
+        )
     }
 }
 
-impl Deref for Segment {
-    type Target = [AtomicUsize; 1 << SEGMENT_LOGSIZE];
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Segment {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
-    }
-}
-
-impl Debug for Segment {
+impl<T> Debug for Segment<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Segment")
     }
@@ -189,13 +183,12 @@ impl<T> GrowableArray<T> {
     pub fn new() -> Self {
         Self {
             root: Atomic::null(),
-            _marker: PhantomData,
         }
     }
 
     /// Returns the reference to the `Atomic` pointer at `index`. Allocates new segments if
     /// necessary.
-    pub fn get(&self, mut index: usize, guard: &Guard) -> &Atomic<T> {
+    pub fn get<'g>(&self, mut index: usize, guard: &'g Guard) -> &'g Atomic<T> {
         todo!()
     }
 }

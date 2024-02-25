@@ -5,7 +5,7 @@ Suppose you want a set data structure that supports concurrent operations.
 The simplest possible approach would be taking a non-concurrent set implementation and protecting it with a global lock.
 However, this is not a great idea if the set is accessed frequently because a thread's operation blocks all the other threads' operations.
 
-In this homework, you will write two implementations of the set data structures based on singly linked list protected by fine-grained locks.
+In this homework, you will write two implementations of the set data structure based on singly linked list protected by fine-grained locks.
 * The nodes in the list are sorted by their value, so that one can efficiently check if a value is in the set.
 * Each node has its own lock that protects its `next` field.
   When traversing the list, the locks are acquired and released in the hand-over-hand manner.
@@ -13,11 +13,11 @@ In this homework, you will write two implementations of the set data structures 
 
 You will implement two variants.
 * In `list_set/fine_grained.rs`, the lock is the usual `Mutex`.
-* In `list_set/optimistic_fine_grained.rs`, the lock is `SeqLock`.
+* In `list_set/optimistic_fine_grained.rs`, the lock is a `SeqLock`.
   This allows read operations to run optimistically without actually locking.
   Therefore, read operations are more efficient in read-most scenario, and
   they do not block other operations.
-  However, you need to take more care to get it correct.
+  However, more care must be taken to ensure correctness.
     * You need to validate read operations and handle the failure.
         * Do not use `ReadGuard::restart()`.
           Using this correctly requires some extra synchronization
@@ -25,7 +25,7 @@ You will implement two variants.
           which makes `SeqLock` somewhat pointless.
           The tests assume that `ReadGuard::restart()` is not used.
     * Since each node can be read and modified to concurrently,
-      you should use atomic operations to avoid data race.
+      you should use atomic operations to avoid data races.
       Specifically, you will use `crossbeam_epoch`'s `Atomic<T>` type
       (instead of `std::sync::AtomicPtr<T>`, due to the next issue).
       For `Ordering`, use `SeqCst` everywhere.
@@ -71,4 +71,4 @@ cd cs431/homework
 ls ./target/hw-list_set.zip
 ```
 
-Submit `list_set.zip` to gg.
+Submit `hw-list_set.zip` to gg.

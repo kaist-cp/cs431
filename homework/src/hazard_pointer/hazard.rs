@@ -1,4 +1,3 @@
-use core::marker::PhantomData;
 use core::ptr::{self, NonNull};
 use std::collections::HashSet;
 use std::fmt;
@@ -13,17 +12,13 @@ use super::HAZARDS;
 /// Represents the ownership of a hazard pointer slot.
 pub struct Shield {
     slot: NonNull<HazardSlot>,
-    _marker: PhantomData<*mut ()>, // !Send + !Sync
 }
 
 impl Shield {
     /// Creates a new shield for hazard pointer.
     pub fn new(hazards: &HazardBag) -> Self {
-        let slot = hazards.acquire_slot();
-        Self {
-            slot: slot.into(),
-            _marker: PhantomData,
-        }
+        let slot = hazards.acquire_slot().into();
+        Self { slot }
     }
 
     /// Store `pointer` to the hazard slot.

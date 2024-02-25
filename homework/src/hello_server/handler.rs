@@ -3,8 +3,7 @@
 use regex::bytes::Regex;
 use std::io::prelude::*;
 use std::net::TcpStream;
-use std::sync::Arc;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use std::thread;
 use std::time::Duration;
 

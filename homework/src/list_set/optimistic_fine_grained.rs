@@ -1,12 +1,10 @@
-use std::cmp;
-use std::mem;
-use std::mem::ManuallyDrop;
-use std::ptr;
+use std::cmp::Ordering::*;
+use std::mem::{self, ManuallyDrop};
 use std::sync::atomic::Ordering;
 
 use crate::ConcurrentSet;
-use crossbeam_epoch::{pin, unprotected, Atomic, Guard, Owned, Shared};
-use cs431::lock::seqlock::{ReadGuard, SeqLock, WriteGuard};
+use crossbeam_epoch::{pin, Atomic, Guard, Owned, Shared};
+use cs431::lock::seqlock::{ReadGuard, SeqLock};
 
 #[derive(Debug)]
 struct Node<T> {
@@ -14,7 +12,7 @@ struct Node<T> {
     next: SeqLock<Atomic<Node<T>>>,
 }
 
-/// Concurrent sorted singly linked list using fine-grained optimistic locking
+/// Concurrent sorted singly linked list using fine-grained optimistic locking.
 #[derive(Debug)]
 pub struct OptimisticFineGrainedListSet<T> {
     head: SeqLock<Atomic<Node<T>>>,
@@ -25,16 +23,16 @@ unsafe impl<T: Send> Sync for OptimisticFineGrainedListSet<T> {}
 
 #[derive(Debug)]
 struct Cursor<'g, T> {
-    // reference to the `next` field of previous node which points to the current node
+    // Reference to the `next` field of previous node which points to the current node.
     prev: ReadGuard<'g, Atomic<Node<T>>>,
     curr: Shared<'g, Node<T>>,
 }
 
 impl<T> Node<T> {
-    fn new(data: T, next: Shared<Self>) -> Owned<Self> {
+    fn new(data: T, next: Shared<'_, Self>) -> Owned<Self> {
         Owned::new(Self {
             data,
-            next: SeqLock::new(Atomic::from(next)),
+            next: SeqLock::new(next.into()),
         })
     }
 }
@@ -42,6 +40,8 @@ impl<T> Node<T> {
 impl<'g, T: Ord> Cursor<'g, T> {
     /// Moves the cursor to the position of key in the sorted list.
     /// Returns whether the value was found.
+    ///
+    /// Return `Err(())` if the cursor cannot move.
     fn find(&mut self, key: &T, guard: &'g Guard) -> Result<bool, ()> {
         todo!()
     }

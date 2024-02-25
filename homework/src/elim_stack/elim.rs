@@ -15,16 +15,15 @@ impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
         req: Owned<Self::PushReq>,
         guard: &Guard,
     ) -> Result<(), Owned<Self::PushReq>> {
-        let req = match self.inner.try_push(req, guard) {
-            Ok(()) => return Ok(()),
-            Err(req) => req,
+        let Err(req) = self.inner.try_push(req, guard) else {
+            return Ok(());
         };
 
         let index = get_random_elim_index();
         let slot_ref = unsafe { self.slots.get_unchecked(index) };
         let slot = slot_ref.load(Ordering::Acquire, guard);
 
-        unimplemented!()
+        todo!()
     }
 
     fn try_pop(&self, guard: &Guard) -> Result<Option<T>, ()> {
@@ -36,7 +35,7 @@ impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
         let slot_ref = unsafe { self.slots.get_unchecked(index) };
         let slot = slot_ref.load(Ordering::Acquire, guard);
 
-        unimplemented!()
+        todo!()
     }
 
     fn is_empty(&self, guard: &Guard) -> bool {

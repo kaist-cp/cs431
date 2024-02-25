@@ -1,17 +1,21 @@
-use core::mem::ManuallyDrop;
+use core::mem::{self, ManuallyDrop};
 use core::ops::Deref;
 use core::ptr;
 use core::sync::atomic::Ordering;
 
-use crossbeam_epoch::{unprotected, Atomic, Guard, Owned};
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
 use super::base::Stack;
 
 #[derive(Debug)]
 pub struct Node<T> {
     data: ManuallyDrop<T>,
-    next: Atomic<Node<T>>,
+    next: *const Node<T>,
 }
+
+// Any particular `T` should never be accessed concurrently, so no need for `Sync`.
+unsafe impl<T: Send> Send for Node<T> {}
+unsafe impl<T: Send> Sync for Node<T> {}
 
 /// Treiber's lock-free stack.
 ///
@@ -25,7 +29,7 @@ impl<T> From<T> for Node<T> {
     fn from(t: T) -> Self {
         Self {
             data: ManuallyDrop::new(t),
-            next: Atomic::null(),
+            next: ptr::null(),
         }
     }
 }
@@ -54,12 +58,17 @@ impl<T> Stack<T> for TreiberStack<T> {
         req: Owned<Self::PushReq>,
         guard: &Guard,
     ) -> Result<(), Owned<Self::PushReq>> {
+        let mut req = req;
         let head = self.head.load(Ordering::Relaxed, guard);
-        req.next.store(head, Ordering::Relaxed);
-        self.head
+        req.next = head.as_raw();
+
+        match self
+            .head
             .compare_exchange(head, req, Ordering::Release, Ordering::Relaxed, guard)
-            .map(|_| ())
-            .map_err(|e| e.new)
+        {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.new),
+        }
     }
 
     fn try_pop(&self, guard: &Guard) -> Result<Option<T>, ()> {
@@ -67,18 +76,16 @@ impl<T> Stack<T> for TreiberStack<T> {
         let Some(head_ref) = (unsafe { head.as_ref() }) else {
             return Ok(None);
         };
-        let next = head_ref.next.load(Ordering::Relaxed, guard);
+        let next = Shared::from(head_ref.next);
 
         let _ = self
             .head
             .compare_exchange(head, next, Ordering::Relaxed, Ordering::Relaxed, guard)
             .map_err(|_| ())?;
 
-        Ok(Some(unsafe {
-            let data = ptr::read(&head_ref.data);
-            guard.defer_destroy(head);
-            ManuallyDrop::into_inner(data)
-        }))
+        let data = ManuallyDrop::into_inner(unsafe { ptr::read(&head_ref.data) });
+        unsafe { guard.defer_destroy(head) };
+        Ok(Some(data))
     }
 
     fn is_empty(&self, guard: &Guard) -> bool {
@@ -88,9 +95,10 @@ impl<T> Stack<T> for TreiberStack<T> {
 
 impl<T> Drop for TreiberStack<T> {
     fn drop(&mut self) {
-        unsafe {
-            let guard = unprotected();
-            while let Ok(Some(_)) = self.try_pop(guard) {}
+        let mut o_curr = mem::take(&mut self.head);
+        while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
+            drop(ManuallyDrop::into_inner(curr.data));
+            o_curr = curr.next.into();
         }
     }
 }
@@ -105,13 +113,15 @@ mod test {
         let stack = TreiberStack::default();
 
         scope(|scope| {
+            let mut handles = Vec::new();
             for _ in 0..10 {
-                let _unused = scope.spawn(|| {
+                let handle = scope.spawn(|| {
                     for i in 0..10_000 {
                         stack.push(i);
                         assert!(stack.pop().is_some());
                     }
                 });
+                handles.push(handle);
             }
         });
 

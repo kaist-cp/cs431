@@ -11,9 +11,9 @@ const NUM_KEYS: usize = 128;
 #[test]
 fn cache_no_duplicate_sequential() {
     let cache = Cache::default();
-    let _ = cache.get_or_insert_with(1, |_| 1);
-    let _ = cache.get_or_insert_with(2, |_| 2);
-    let _ = cache.get_or_insert_with(3, |_| 3);
+    assert_eq!(cache.get_or_insert_with(1, |_| 1), 1);
+    assert_eq!(cache.get_or_insert_with(2, |_| 2), 2);
+    assert_eq!(cache.get_or_insert_with(3, |_| 3), 3);
     assert_eq!(cache.get_or_insert_with(1, |_| panic!()), 1);
     assert_eq!(cache.get_or_insert_with(2, |_| panic!()), 2);
     assert_eq!(cache.get_or_insert_with(3, |_| panic!()), 3);
@@ -28,7 +28,7 @@ fn cache_no_duplicate_concurrent() {
         let num_compute = AtomicUsize::new(0);
         scope(|s| {
             for _ in 0..NUM_THREADS {
-                let _unused = s.spawn(|| {
+                let _ = s.spawn(|| {
                     let _ = barrier.wait();
                     for key in 0..NUM_KEYS {
                         let _ = cache.get_or_insert_with(key, |k| {
@@ -50,7 +50,7 @@ fn cache_no_block_disjoint() {
     scope(|s| {
         // T1 blocks while inserting 1.
         let (t1_quit_sender, t1_quit_receiver) = bounded(0);
-        let _unused = s.spawn(move || {
+        let _ = s.spawn(move || {
             let _ = cache.get_or_insert_with(1, |k| {
                 // block T1
                 t1_quit_receiver.recv().unwrap();
@@ -60,7 +60,7 @@ fn cache_no_block_disjoint() {
 
         // T2 must not be blocked by T1 when inserting 2.
         let (t2_done_sender, t2_done_receiver) = bounded(0);
-        let _unused = s.spawn(move || {
+        let _ = s.spawn(move || {
             let _ = cache.get_or_insert_with(2, |k| k);
             t2_done_sender.send(()).unwrap();
         });
@@ -84,13 +84,13 @@ fn cache_no_reader_block() {
         let (t3_done_sender, t3_done_receiver) = bounded(0);
 
         // T1 blocks while inserting 1.
-        let _unused = s.spawn(move || {
+        let _ = s.spawn(move || {
             let _ = cache.get_or_insert_with(1, |k| {
                 // T2 is blocked by T1 when reading 1
-                let _unused = s.spawn(move || cache.get_or_insert_with(1, |_| panic!()));
+                let _ = s.spawn(move || cache.get_or_insert_with(1, |_| panic!()));
 
                 // T3 should not be blocked when inserting 3.
-                let _unused = s.spawn(move || {
+                let _ = s.spawn(move || {
                     let _ = cache.get_or_insert_with(3, |k| k);
                     t3_done_sender.send(()).unwrap();
                 });

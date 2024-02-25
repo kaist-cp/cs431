@@ -158,7 +158,7 @@ mod correctness {
             {
                 let flag = flag.clone();
                 let data = data.clone();
-                let _unused = thread::spawn(move || {
+                let _ = thread::spawn(move || {
                     data.store(123, Relaxed);
                     drop(flag)
                 });
@@ -176,7 +176,7 @@ mod correctness {
             let mut value = Arc::new(AtomicUsize::new(0));
             {
                 let value = value.clone();
-                let _unused = thread::spawn(move || {
+                let _ = thread::spawn(move || {
                     value.store(123, Relaxed);
                 });
             }
@@ -193,7 +193,7 @@ mod correctness {
             let value = Arc::new(AtomicUsize::new(0));
             {
                 let value = value.clone();
-                let _unused = thread::spawn(move || {
+                let _ = thread::spawn(move || {
                     value.store(123, Relaxed);
                 });
             }
@@ -217,7 +217,7 @@ mod correctness {
         model(|| {
             let arc1 = Arc::new(Counter(AtomicUsize::new(0)));
             let arc2 = arc1.clone();
-            let _unused = thread::spawn(move || {
+            let _ = thread::spawn(move || {
                 let _ = arc1.0.fetch_add(1, Relaxed);
             });
             let _ = arc2.0.fetch_add(1, Relaxed);

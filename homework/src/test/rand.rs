@@ -41,3 +41,7 @@ impl RandGen for u8 {
         rng.gen::<u8>()
     }
 }
+
+impl RandGen for () {
+    fn rand_gen(_rng: &mut ThreadRng) -> Self {}
+}

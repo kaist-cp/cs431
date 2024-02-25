@@ -1,8 +1,7 @@
-use crossbeam_channel::bounded;
 use cs431_homework::hello_server::CancellableTcpListener;
 use std::io::prelude::*;
-use std::net::TcpStream;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
+use std::sync::mpsc::channel;
 use std::thread::scope;
 use std::time::Duration;
 
@@ -17,9 +16,9 @@ fn cancellable_listener_cancel() {
         port += 1;
     };
 
-    let (done_sender, done_receiver) = bounded(0);
+    let (done_sender, done_receiver) = channel();
     scope(|s| {
-        let _unused = s.spawn(|| {
+        let _ = s.spawn(|| {
             for stream in listener.incoming() {
                 let mut stream = stream.unwrap();
                 let mut buf = [0];

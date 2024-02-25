@@ -1,24 +1,25 @@
-//! Testing utilities for map types
+//! Testing utilities for map types.
 
 use core::fmt::Debug;
 use core::hash::Hash;
-use core::marker::PhantomData;
-use std::collections::HashMap;
-use std::thread;
+use std::collections::{hash_map::Entry, HashMap};
+use std::thread::scope;
 
 use crate::test::RandGen;
-use crate::{ConcurrentMap, SequentialMap};
+use crate::ConcurrentMap;
 use rand::prelude::*;
 
 use crossbeam_epoch::pin;
 
-fn stress_sequential<
-    K: Debug + Clone + Eq + Hash + RandGen,
-    M: Default + SequentialMap<K, usize>,
+/// Runs many operations in a single thread and tests if it works like a map data structure using
+/// `std::collections::HashMap` as reference.
+pub fn stress_sequential<
+    K: Clone + Debug + Eq + Hash + RandGen,
+    V: Clone + Debug + Eq + RandGen,
+    M: Default + ConcurrentMap<K, V>,
 >(
     steps: usize,
 ) {
-    #[derive(Debug)]
     enum Ops {
         LookupSome,
         LookupNone,
@@ -26,286 +27,258 @@ fn stress_sequential<
         DeleteSome,
         DeleteNone,
     }
-
-    let ops = [
+    const OPS: [Ops; 5] = [
         Ops::LookupSome,
         Ops::LookupNone,
         Ops::Insert,
         Ops::DeleteSome,
         Ops::DeleteNone,
     ];
+
     let mut rng = thread_rng();
-    let mut map = M::default();
-    let mut hashmap = HashMap::<K, usize>::new();
+    let map = M::default();
+    let mut hashmap = HashMap::new();
 
     for i in 0..steps {
-        let op = ops.choose(&mut rng).unwrap();
+        let op = OPS.choose(&mut rng).unwrap();
 
         match op {
             Ops::LookupSome => {
-                if let Some(key) = hashmap.keys().choose(&mut rng) {
-                    println!("iteration {i}: lookup({key:?}) (existing)");
-                    assert_eq!(map.lookup(key), hashmap.get(key));
-                }
+                let Some(key) = hashmap.keys().choose(&mut rng) else {
+                    continue;
+                };
+
+                println!("iteration {i}: lookup({key:?}) (existing)");
+
+                assert_eq!(map.lookup(key, &pin()), hashmap.get(key));
             }
             Ops::LookupNone => {
                 let key = K::rand_gen(&mut rng);
-                println!("iteration {i}: lookup({key:?}) (non-existing)");
-                assert_eq!(map.lookup(&key), hashmap.get(&key));
+                let hmap_res = hashmap.get(&key);
+                let non = if hmap_res.is_some() { "" } else { "non-" };
+
+                println!("iteration {i}: lookup({key:?}) ({non}existing)");
+
+                assert_eq!(map.lookup(&key, &pin()), hmap_res);
             }
             Ops::Insert => {
                 let key = K::rand_gen(&mut rng);
-                let value = rng.gen::<usize>();
-                println!("iteration {i}: insert({key:?}, {value})");
-                let _ = map.insert(&key, value);
-                let _ = hashmap.entry(key).or_insert(value);
+                let value = V::rand_gen(&mut rng);
+
+                println!("iteration {i}: insert({key:?}, {value:?})");
+
+                let map_res = map.insert(key.clone(), value.clone(), &pin());
+                let hmap_res = if let Entry::Vacant(e) = hashmap.entry(key) {
+                    let _ = e.insert(value);
+                    Ok(())
+                } else {
+                    Err(value)
+                };
+                assert_eq!(map_res, hmap_res);
             }
             Ops::DeleteSome => {
-                let key = hashmap.keys().choose(&mut rng).cloned();
-                if let Some(key) = key {
-                    println!("iteration {i}: delete({key:?}) (existing)");
-                    assert_eq!(map.delete(&key), hashmap.remove(&key).ok_or(()));
-                }
+                let Some(key) = hashmap.keys().choose(&mut rng).cloned() else {
+                    continue;
+                };
+
+                println!("iteration {i}: delete({key:?}) (existing)");
+
+                assert_eq!(
+                    map.delete(&key, &pin()).cloned(),
+                    hashmap.remove(&key).ok_or(())
+                );
             }
             Ops::DeleteNone => {
                 let key = K::rand_gen(&mut rng);
-                println!("iteration {i}: delete({key:?}) (non-existing)");
-                assert_eq!(map.delete(&key), hashmap.remove(&key).ok_or(()));
+                let hmap_res = hashmap.remove(&key).ok_or(());
+                let non = if hmap_res.is_ok() { "" } else { "non-" };
+
+                println!("iteration {i}: delete({key:?}) ({non}existing)");
+
+                assert_eq!(map.delete(&key, &pin()).cloned(), hmap_res);
             }
         }
     }
-}
-
-/// Provides `SequentialMap` interface for `ConcurrentMap`.
-#[derive(Debug)]
-pub struct Sequentialize<K: ?Sized, V, M: ConcurrentMap<K, V>> {
-    inner: M,
-    _marker: PhantomData<(*const K, V)>,
-}
-
-impl<K: ?Sized, V, M: Default + ConcurrentMap<K, V>> Default for Sequentialize<K, V, M> {
-    fn default() -> Self {
-        Self {
-            inner: M::default(),
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<K: ?Sized, V, M: ConcurrentMap<K, V>> SequentialMap<K, V> for Sequentialize<K, V, M> {
-    fn insert<'a>(&'a mut self, key: &'a K, value: V) -> Result<(), V> {
-        self.inner.insert(key, value, &pin())
-    }
-
-    fn delete(&mut self, key: &K) -> Result<V, ()> {
-        self.inner.delete(key, &pin())
-    }
-
-    fn lookup<'a>(&'a self, key: &'a K) -> Option<&'a V> {
-        let ptr = self.inner.lookup(key, &pin(), |r| r.map(|v| v as *const _));
-        ptr.map(|v| unsafe { &*v })
-    }
-}
-
-/// Runs many operations in a single thread and tests if it works like a set data structure using
-/// `std::collections::HashMap` as reference.
-pub fn stress_concurrent_sequential<
-    K: Debug + Clone + Eq + Hash + RandGen,
-    M: Default + ConcurrentMap<K, usize>,
->(
-    steps: usize,
-) {
-    stress_sequential::<K, Sequentialize<K, usize, M>>(steps);
 }
 
 /// Runs random lookup operations concurrently.
 pub fn lookup_concurrent<
-    K: Debug + Eq + Hash + RandGen + Send + Sync,
-    M: Default + Sync + ConcurrentMap<K, usize>,
+    K: Clone + Debug + Eq + Hash + RandGen + Sync,
+    V: Clone + Debug + Eq + RandGen + Sync,
+    M: Default + Sync + ConcurrentMap<K, V>,
 >(
     threads: usize,
     steps: usize,
 ) {
-    #[derive(Debug)]
     enum Ops {
         LookupSome,
         LookupNone,
     }
-
-    let ops = [Ops::LookupSome, Ops::LookupNone];
+    const OPS: [Ops; 2] = [Ops::LookupSome, Ops::LookupNone];
 
     let mut rng = thread_rng();
     let map = M::default();
-    let mut hashmap = HashMap::<K, usize>::new();
+    let mut hashmap = HashMap::new();
 
     for _ in 0..steps {
         let key = K::rand_gen(&mut rng);
-        let value = rng.gen::<usize>();
-        let _ = map.insert(&key, value, &pin());
+        let value = V::rand_gen(&mut rng);
+        let _unused = map.insert(key.clone(), value.clone(), &pin());
         let _ = hashmap.entry(key).or_insert(value);
     }
 
-    thread::scope(|s| {
+    scope(|s| {
+        let mut handles = Vec::new();
         for _ in 0..threads {
-            let _unused = s.spawn(|| {
+            let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
-                    let op = ops.choose(&mut rng).unwrap();
+                    let op = OPS.choose(&mut rng).unwrap();
 
-                    match op {
-                        Ops::LookupSome => {
-                            if let Some(key) = hashmap.keys().choose(&mut rng) {
-                                assert_eq!(
-                                    map.lookup(key, &pin(), |r| r.copied()),
-                                    hashmap.get(key).copied()
-                                );
-                            }
-                        }
-                        Ops::LookupNone => {
-                            let key = K::rand_gen(&mut rng);
-                            assert_eq!(
-                                map.lookup(&key, &pin(), |r| r.copied()),
-                                hashmap.get(&key).copied()
-                            );
-                        }
-                    }
+                    let key = match op {
+                        Ops::LookupSome => hashmap.keys().choose(&mut rng).unwrap().clone(),
+                        Ops::LookupNone => K::rand_gen(&mut rng),
+                    };
+                    assert_eq!(map.lookup(&key, &pin()), hashmap.get(&key));
                 }
             });
+            handles.push(handle);
         }
     });
 }
 
 /// Runs random insert operations concurrently.
 pub fn insert_concurrent<
-    K: Debug + Eq + Hash + RandGen,
-    M: Default + Sync + ConcurrentMap<K, usize>,
+    K: Clone + Debug + Eq + Hash + RandGen,
+    V: Clone + Debug + Eq + RandGen,
+    M: Default + Sync + ConcurrentMap<K, V>,
 >(
     threads: usize,
     steps: usize,
 ) {
     let map = M::default();
 
-    thread::scope(|s| {
+    scope(|s| {
+        let mut handles = Vec::new();
         for _ in 0..threads {
-            let _unused = s.spawn(|| {
+            let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
                     let key = K::rand_gen(&mut rng);
-                    let value = rng.gen::<usize>();
-                    if map.insert(&key, value, &pin()).is_ok() {
-                        assert_eq!(map.lookup(&key, &pin(), |r| *r.unwrap()), value);
+                    let value = V::rand_gen(&mut rng);
+                    if map.insert(key.clone(), value.clone(), &pin()).is_ok() {
+                        assert_eq!(map.lookup(&key, &pin()).unwrap(), &value);
                     }
                 }
             });
+            handles.push(handle);
         }
     });
 }
 
-#[derive(Debug, Clone, Copy)]
 enum Ops {
     Lookup,
     Insert,
     Delete,
 }
+const OPS: [Ops; 3] = [Ops::Lookup, Ops::Insert, Ops::Delete];
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+/// Successful operations are logged as `Some`. Failed operations are `None`.
+///
+/// We currently only make use of the `Some` variant for `result`.
 enum Log<K, V> {
-    Lookup { key: K, value: Option<V> },
-    Insert { key: K, value: Result<V, ()> },
-    Delete { key: K, value: Result<V, ()> },
+    Lookup { key: K, result: Option<V> },
+    Insert { key: K, result: Option<V> },
+    Delete { key: K, result: Option<V> },
 }
 
 impl<K, V> Log<K, V> {
     fn key(&self) -> &K {
         match self {
-            Self::Lookup { key, .. } => key,
-            Self::Insert { key, .. } => key,
-            Self::Delete { key, .. } => key,
+            Self::Lookup { key, .. } | Self::Insert { key, .. } | Self::Delete { key, .. } => key,
         }
     }
 }
 
 /// Randomly runs many operations concurrently.
 pub fn stress_concurrent<
-    K: Debug + Eq + Hash + RandGen,
-    M: Default + Sync + ConcurrentMap<K, usize>,
+    K: Debug + Eq + RandGen,
+    V: Debug + Eq + RandGen,
+    M: Default + Sync + ConcurrentMap<K, V>,
 >(
     threads: usize,
     steps: usize,
 ) {
-    let ops = [Ops::Lookup, Ops::Insert, Ops::Delete];
-
     let map = M::default();
 
-    thread::scope(|s| {
+    scope(|s| {
+        let mut handles = Vec::new();
         for _ in 0..threads {
-            let _unused = s.spawn(|| {
+            let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..steps {
-                    let op = ops.choose(&mut rng).unwrap();
+                    let op = OPS.choose(&mut rng).unwrap();
+                    let key = K::rand_gen(&mut rng);
 
                     match op {
                         Ops::Lookup => {
-                            let key = K::rand_gen(&mut rng);
-                            map.lookup(&key, &pin(), |_v| {});
+                            let _ = map.lookup(&key, &pin());
                         }
                         Ops::Insert => {
-                            let key = K::rand_gen(&mut rng);
-                            let value = rng.gen::<usize>();
-                            let _ = map.insert(&key, value, &pin());
+                            let _ = map.insert(key, V::rand_gen(&mut rng), &pin());
                         }
                         Ops::Delete => {
-                            let key = K::rand_gen(&mut rng);
                             let _ = map.delete(&key, &pin());
                         }
                     }
                 }
             });
+            handles.push(handle);
         }
     });
 }
 
-fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec<Vec<Log<K, V>>>) {
-    let mut per_key_logs = HashMap::<K, Vec<Log<K, V>>>::new();
-    for ls in logs {
-        for l in ls {
-            per_key_logs
-                .entry(l.key().clone())
-                .or_default()
-                .push(l.clone());
-        }
+fn assert_logs_consistent<K: Debug + Eq + Hash, V: Debug + Eq + Hash>(logs: &[Log<K, V>]) {
+    let mut per_key_logs = HashMap::new();
+    for l in logs {
+        per_key_logs.entry(l.key()).or_insert(vec![]).push(l);
     }
 
-    for logs in per_key_logs.values() {
-        let mut inserts = HashMap::<V, usize>::new();
-        let mut deletes = HashMap::<V, usize>::new();
+    for (k, logs) in &per_key_logs {
+        let mut inserts = HashMap::new();
+        let mut deletes = HashMap::new();
 
         for l in logs {
             match l {
                 Log::Insert {
-                    key: _,
-                    value: Ok(v),
-                } => *inserts.entry(v.clone()).or_insert(0) += 1,
+                    result: Some(v), ..
+                } => *inserts.entry(v).or_insert(0) += 1,
                 Log::Delete {
-                    key: _,
-                    value: Ok(v),
-                } => *deletes.entry(v.clone()).or_insert(0) += 1,
+                    result: Some(v), ..
+                } => *deletes.entry(v).or_insert(0) += 1,
                 _ => (),
             }
         }
 
         for l in logs {
             if let Log::Lookup {
-                key: _,
-                value: Some(v),
+                result: Some(v), ..
             } = l
             {
-                assert!(inserts.contains_key(v))
+                assert!(
+                    inserts.contains_key(v),
+                    "key: {k:?}, value: {v:?}, lookup success but not inserted."
+                );
             }
         }
 
-        for (k, v) in &deletes {
-            assert!(inserts.get(k).unwrap() >= v);
+        for (v, d_count) in deletes {
+            let i_count = inserts.get(v).copied().unwrap_or(0);
+            assert!(
+                i_count >= d_count,
+                "key: {k:?}, value: {v:?}, inserted {i_count} times but deleted {d_count} times."
+            );
         }
     }
 }
@@ -314,55 +287,43 @@ fn assert_logs_consistent<K: Clone + Eq + Hash, V: Clone + Eq + Hash>(logs: &Vec
 /// checks the consistency of the log. For example, if the key `k` was successfully deleted twice,
 /// then `k` must have been inserted at least twice.
 pub fn log_concurrent<
-    K: Debug + Clone + Eq + Hash + Send + RandGen,
-    M: Default + Sync + ConcurrentMap<K, usize>,
+    K: Clone + Debug + Eq + Hash + RandGen + Send,
+    V: Clone + Debug + Eq + Hash + RandGen + Send,
+    M: Default + Sync + ConcurrentMap<K, V>,
 >(
     threads: usize,
     steps: usize,
 ) {
-    let ops = [Ops::Lookup, Ops::Insert, Ops::Delete];
-
     let map = M::default();
 
-    let logs = thread::scope(|s| {
+    let logs = scope(|s| {
         let mut handles = Vec::new();
+
         for _ in 0..threads {
             let handle = s.spawn(|| {
                 let mut rng = thread_rng();
                 let mut logs = Vec::new();
+
                 for _ in 0..steps {
-                    let op = ops.choose(&mut rng).unwrap();
+                    let op = OPS.choose(&mut rng).unwrap();
+                    let key = K::rand_gen(&mut rng);
 
                     match op {
                         Ops::Lookup => {
-                            let key = K::rand_gen(&mut rng);
-                            map.lookup(&key, &pin(), |value| {
-                                logs.push(Log::Lookup {
-                                    key: key.clone(),
-                                    value: value.copied(),
-                                });
-                            });
+                            let result = map.lookup(&key, &pin()).cloned();
+                            logs.push(Log::Lookup { key, result });
                         }
                         Ops::Insert => {
-                            let key = K::rand_gen(&mut rng);
-                            let value = rng.gen::<usize>();
-                            let result = map.insert(&key, value, &pin());
-                            let value = match result {
-                                Ok(()) => Ok(value),
-                                Err(_) => Err(()),
-                            };
-                            logs.push(Log::Insert {
-                                key: key.clone(),
-                                value,
-                            });
+                            let value = V::rand_gen(&mut rng);
+                            let result = map
+                                .insert(key.clone(), value.clone(), &pin())
+                                .ok()
+                                .map(|_| value);
+                            logs.push(Log::Insert { key, result });
                         }
                         Ops::Delete => {
-                            let key = K::rand_gen(&mut rng);
-                            let result = map.delete(&key, &pin());
-                            logs.push(Log::Delete {
-                                key: key.clone(),
-                                value: result,
-                            });
+                            let result = map.delete(&key, &pin()).cloned().ok();
+                            logs.push(Log::Delete { key, result });
                         }
                     }
                 }
@@ -372,8 +333,8 @@ pub fn log_concurrent<
         }
         handles
             .into_iter()
-            .map(|h| h.join().unwrap())
-            .collect::<Vec<_>>()
+            .flat_map(|h| h.join().unwrap())
+            .collect::<Box<[_]>>()
     });
 
     assert_logs_consistent(&logs);

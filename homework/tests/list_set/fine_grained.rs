@@ -26,21 +26,21 @@ fn smoke() {
 #[test]
 fn stress_sequential() {
     const STEPS: usize = 4096;
-    set::stress_sequential::<u8, FineGrainedListSet<u8>>(STEPS);
+    set::stress_sequential::<_, FineGrainedListSet<u8>>(STEPS);
 }
 
 #[test]
 fn stress_concurrent() {
     const THREADS: usize = 16;
     const STEPS: usize = 4096 * 16;
-    set::stress_concurrent::<u8, FineGrainedListSet<u8>>(THREADS, STEPS);
+    set::stress_concurrent::<_, FineGrainedListSet<u8>>(THREADS, STEPS);
 }
 
 #[test]
 fn log_concurrent() {
     const THREADS: usize = 16;
     const STEPS: usize = 4096 * 16;
-    set::log_concurrent::<u8, FineGrainedListSet<u8>>(THREADS, STEPS);
+    set::log_concurrent::<_, FineGrainedListSet<u8>>(THREADS, STEPS);
 }
 
 /// Check the consistency of iterator while other operations are running concurrently.
@@ -61,7 +61,7 @@ fn iter_consistent() {
     thread::scope(|s| {
         // insert or remove odd numbers
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let key = 2 * rng.gen_range(0..50) + 1;
@@ -74,7 +74,7 @@ fn iter_consistent() {
                 done.store(true, Release);
             });
         }
-        let _unused = s.spawn(|| {
+        let _ = s.spawn(|| {
             while !done.load(Acquire) {
                 let snapshot = set.iter().copied().collect::<Vec<_>>();
                 // sorted

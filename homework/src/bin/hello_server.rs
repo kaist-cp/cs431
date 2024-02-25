@@ -1,6 +1,6 @@
-use crossbeam_channel::{bounded, unbounded};
 use cs431_homework::hello_server::{CancellableTcpListener, Handler, Statistics, ThreadPool};
 use std::io;
+use std::sync::mpsc::{channel, sync_channel};
 use std::sync::Arc;
 
 const ADDR: &str = "localhost:7878";
@@ -25,10 +25,10 @@ fn main() -> io::Result<()> {
     let pool = Arc::new(ThreadPool::new(7));
 
     // The (MPSC) channel of reports between workers and the reporter.
-    let (report_sender, report_receiver) = unbounded();
+    let (report_sender, report_receiver) = channel();
 
     // The (SPSC one-shot) channel of stats between the reporter and the main thread.
-    let (stat_sender, stat_receiver) = bounded(0);
+    let (stat_sender, stat_receiver) = sync_channel(0);
 
     // Listens to the address.
     let listener = Arc::new(CancellableTcpListener::bind(ADDR)?);

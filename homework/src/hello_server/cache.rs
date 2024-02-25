@@ -5,11 +5,19 @@ use std::hash::Hash;
 use std::sync::{Arc, Mutex, RwLock};
 
 /// Cache that remembers the result for each key.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Cache<K, V> {
     // todo! This is an example cache type. Build your own cache type that satisfies the
     // specification for `get_or_insert_with`.
     inner: Mutex<HashMap<K, V>>,
+}
+
+impl<K, V> Default for Cache<K, V> {
+    fn default() -> Self {
+        Self {
+            inner: Mutex::new(HashMap::new()),
+        }
+    }
 }
 
 impl<K: Eq + Hash + Clone, V: Clone> Cache<K, V> {

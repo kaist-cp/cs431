@@ -38,13 +38,10 @@ pub trait Stack<T>: Default {
 
     /// Pushes a value to the stack.
     fn push(&self, t: T) {
-        let mut req = Owned::new(Self::PushReq::from(t));
+        let mut req = Owned::new(t.into());
         let guard = pin();
-        loop {
-            match self.try_push(req, &guard) {
-                Ok(_) => break,
-                Err(r) => req = r,
-            }
+        while let Err(r) = self.try_push(req, &guard) {
+            req = r;
         }
     }
 
@@ -64,6 +61,11 @@ pub trait Stack<T>: Default {
 #[derive(Debug)]
 pub struct ElimStack<T, S: Stack<T>> {
     pub(crate) inner: S,
+    // slot tags:
+    // - 0: no request
+    // - 1: push request
+    // - 2: pop request
+    // - 3: request acknowledged
     pub(crate) slots: [Atomic<S::PushReq>; ELIM_SIZE],
     _marker: PhantomData<T>,
 }

@@ -1,4 +1,4 @@
-use std::cmp;
+use std::cmp::Ordering::*;
 use std::mem;
 use std::ptr;
 use std::sync::{Mutex, MutexGuard};
@@ -20,7 +20,16 @@ pub struct FineGrainedListSet<T> {
 unsafe impl<T: Send> Send for FineGrainedListSet<T> {}
 unsafe impl<T: Send> Sync for FineGrainedListSet<T> {}
 
-// reference to the `next` field of previous node which points to the current node
+/// Reference to the `next` field of previous node which points to the current node.
+///
+/// For example, given the following linked list:
+///
+/// ```text
+/// head -> 1 -> 2 -> 3 -> null
+/// ```
+///
+/// If `cursor` is currently at node 2, then `cursor.0` should be the `MutexGuard` obtained from the
+/// `next` of node 1. In particular, `cursor.0.as_ref().unwrap()` creates a shared reference to node 2.
 struct Cursor<'l, T>(MutexGuard<'l, *mut Node<T>>);
 
 impl<T> Node<T> {
@@ -70,12 +79,16 @@ impl<T: Ord> ConcurrentSet<T> for FineGrainedListSet<T> {
 }
 
 #[derive(Debug)]
-pub struct Iter<'l, T>(MutexGuard<'l, *mut Node<T>>);
+pub struct Iter<'l, T> {
+    cursor: MutexGuard<'l, *mut Node<T>>,
+}
 
 impl<T> FineGrainedListSet<T> {
     /// An iterator visiting all elements.
     pub fn iter(&self) -> Iter<'_, T> {
-        Iter(self.head.lock().unwrap())
+        Iter {
+            cursor: self.head.lock().unwrap(),
+        }
     }
 }
 

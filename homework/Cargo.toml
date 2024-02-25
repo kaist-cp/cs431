@@ -4,15 +4,20 @@ version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
 edition = "2021"
 
+[[bin]]
+name = "hello_server"
+path = "src/bin/hello_server.rs"
+required-features = ["build-bin"]
+
 [features]
+build-bin = ["ctrlc"]
 check-loom = ["loom"]
 
 [dependencies]
 cfg-if = "1.0.0"
-crossbeam-channel = "0.5.8"
-crossbeam-epoch = "0.9.15"
-crossbeam-utils = "0.8.16"
-ctrlc = "3.4.1"
+crossbeam-channel = "0.5.10"
+crossbeam-epoch = "0.9.17"
+ctrlc = { version = "3.4.2", optional = true }
 cs431 = { git = "https://github.com/kaist-cp/cs431" }
 # cs431 = { path = "../cs431" }
 loom = { version = "0.7.1", optional = true }

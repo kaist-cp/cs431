@@ -19,7 +19,7 @@ fn counter() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
@@ -57,22 +57,18 @@ fn counter_sleep() {
     let count = AtomicPtr::new(Box::leak(Box::new(0usize)));
     scope(|s| {
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 for _ in 0..ITER {
                     let mut new = Box::new(0);
                     let shield = Shield::default();
                     loop {
                         let cur_ptr = {
                             let mut cur = count.load(Relaxed);
-                            loop {
-                                match shield.try_protect(cur, &count) {
-                                    Ok(_) => break cur,
-                                    Err(new) => {
-                                        sleep(Duration::from_micros(1));
-                                        cur = new;
-                                    }
-                                }
+                            while let Err(new) = shield.try_protect(cur, &count) {
+                                sleep(Duration::from_micros(1));
+                                cur = new;
                             }
+                            cur
                         };
                         sleep(Duration::from_micros(1));
                         let value = unsafe { *cur_ptr };
@@ -107,7 +103,7 @@ fn stack() {
     let stack = Stack::default();
     scope(|s| {
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 for i in 0..ITER {
                     stack.push(i);
                     assert!(stack.try_pop().is_some());
@@ -127,7 +123,7 @@ fn queue() {
     let queue = Queue::default();
     scope(|s| {
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 for i in 0..ITER {
                     queue.push(i);
                     assert!(queue.try_pop().is_some());
@@ -147,7 +143,7 @@ fn stack_queue() {
     let queue = Queue::default();
     scope(|s| {
         for _ in 0..THREADS {
-            let _unused = s.spawn(|| {
+            let _ = s.spawn(|| {
                 for i in 0..ITER {
                     stack.push(i);
                     queue.push(i);
@@ -244,7 +240,7 @@ mod sync {
                 thread::spawn(move || {
                     let local = atomic.load(Relaxed);
                     if !HAZARDS.all_hazards().contains(&obj) {
-                        unsafe { assert_eq!((*local).load(Relaxed), 123) };
+                        assert_eq!(unsafe { (*local).load(Relaxed) }, 123);
                     }
                 })
             };
@@ -253,7 +249,7 @@ mod sync {
             drop(shield);
 
             th.join().unwrap();
-            unsafe { drop(Box::from_raw(local)) };
+            drop(unsafe { Box::from_raw(local) });
         })
     }
 }
@@ -270,7 +266,7 @@ mod stack {
     use cs431_homework::hazard_pointer::{retire, Shield};
 
     /// Treiber's lock-free stack.
-    #[derive(Debug)]
+    #[derive(Debug, Default)]
     pub struct Stack<T> {
         head: AtomicPtr<Node<T>>,
     }
@@ -283,14 +279,6 @@ mod stack {
 
     unsafe impl<T: Send> Send for Node<T> {}
     unsafe impl<T: Sync> Sync for Node<T> {}
-
-    impl<T> Default for Stack<T> {
-        fn default() -> Self {
-            Stack {
-                head: AtomicPtr::new(ptr::null_mut()),
-            }
-        }
-    }
 
     impl<T> Stack<T> {
         pub fn push(&self, t: T) {
@@ -324,7 +312,7 @@ mod stack {
                     .compare_exchange(head_ptr, head_ref.next, Relaxed, Relaxed)
                     .is_ok()
                 {
-                    let data = unsafe { ManuallyDrop::take(&mut (*head_ptr).data) };
+                    let data = ManuallyDrop::into_inner(unsafe { ptr::read(&head_ref.data) });
                     unsafe { retire(head_ptr) };
                     return Some(data);
                 }
@@ -335,14 +323,14 @@ mod stack {
     impl<T> Drop for Stack<T> {
         fn drop(&mut self) {
             #[cfg(not(feature = "check-loom"))]
-            let mut curr = *self.head.get_mut();
+            let mut o_curr = *self.head.get_mut();
             #[cfg(feature = "check-loom")]
-            let mut curr = self.head.load(Relaxed);
+            let mut o_curr = self.head.load(Relaxed);
 
-            while !curr.is_null() {
-                let curr_ref = unsafe { Box::from_raw(curr) };
-                drop(ManuallyDrop::into_inner(curr_ref.data));
-                curr = curr_ref.next;
+            while !o_curr.is_null() {
+                let curr = unsafe { Box::from_raw(o_curr) };
+                drop(ManuallyDrop::into_inner(curr.data));
+                o_curr = curr.next;
             }
         }
     }
@@ -377,17 +365,15 @@ mod queue {
 
     impl<T> Default for Queue<T> {
         fn default() -> Self {
-            let q = Self {
-                head: AtomicPtr::new(ptr::null_mut()),
-                tail: AtomicPtr::new(ptr::null_mut()),
-            };
             let sentinel = Box::leak(Box::new(Node {
                 data: MaybeUninit::uninit(),
-                next: AtomicPtr::new(ptr::null_mut()),
+                next: AtomicPtr::default(),
             }));
-            q.head.store(sentinel, Relaxed);
-            q.tail.store(sentinel, Relaxed);
-            q
+
+            Self {
+                head: AtomicPtr::new(sentinel),
+                tail: AtomicPtr::new(sentinel),
+            }
         }
     }
 
@@ -395,7 +381,7 @@ mod queue {
         pub fn push(&self, t: T) {
             let new = Box::leak(Box::new(Node {
                 data: MaybeUninit::new(t),
-                next: AtomicPtr::new(ptr::null_mut()),
+                next: AtomicPtr::default(),
             }));
             let shield = Shield::default();
 
@@ -452,7 +438,6 @@ mod queue {
                         unsafe { &*next }
                     }
                     Err(new) => {
-                        next_shield.clear();
                         head = new;
                         continue;
                     }
@@ -477,26 +462,17 @@ mod queue {
     }
 
     impl<T> Drop for Queue<T> {
-        #[cfg(feature = "check-loom")]
         fn drop(&mut self) {
+            #[cfg(not(feature = "check-loom"))]
+            let sentinel = unsafe { Box::from_raw(*self.head.get_mut()) };
+            #[cfg(feature = "check-loom")]
             let sentinel = unsafe { Box::from_raw(self.head.load(Relaxed)) };
 
-            let mut curr = sentinel.next.load(Relaxed);
-            while !curr.is_null() {
-                let curr_ref = unsafe { Box::from_raw(curr) };
-                drop(unsafe { curr_ref.data.assume_init() });
-                curr = curr_ref.next.load(Relaxed);
-            }
-        }
-        #[cfg(not(feature = "check-loom"))]
-        fn drop(&mut self) {
-            let sentinel = unsafe { Box::from_raw(*self.head.get_mut()) };
-
-            let mut curr = sentinel.next.into_inner();
-            while !curr.is_null() {
-                let curr_ref = unsafe { Box::from_raw(curr) };
-                drop(unsafe { curr_ref.data.assume_init() });
-                curr = curr_ref.next.into_inner();
+            let mut o_curr = sentinel.next.into_inner();
+            while !o_curr.is_null() {
+                let curr = unsafe { Box::from_raw(o_curr) };
+                drop(unsafe { curr.data.assume_init() });
+                o_curr = curr.next.into_inner();
             }
         }
     }

@@ -57,7 +57,7 @@ thread_local! {
 /// * `pointer` must be removed from shared memory before calling this function, and must be valid.
 /// * The same `pointer` should only be retired once.
 pub unsafe fn retire<T>(pointer: *mut T) {
-    RETIRED.with(|r| r.borrow_mut().retire(pointer));
+    RETIRED.with(|r| unsafe { r.borrow_mut().retire(pointer) });
 }
 
 /// Frees the pointers that are `retire`d by the current thread and not `protect`ed by any other

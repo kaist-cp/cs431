@@ -1,14 +1,10 @@
 //! Homeworks
 
-#![warn(missing_docs)]
-#![warn(missing_debug_implementations)]
-#![warn(unreachable_pub)]
+#![warn(missing_docs, missing_debug_implementations, unreachable_pub)]
 #![allow(clippy::result_unit_err)]
 // Allow lints for homework.
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(unused_mut)]
+#![allow(dead_code, unused_variables, unused_imports, unused_mut)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 mod adt;
 mod arc;
@@ -18,13 +14,10 @@ pub mod hazard_pointer;
 pub mod hello_server;
 mod linked_list;
 mod list_set;
-mod set;
 
 pub mod test;
 
-pub use adt::{
-    ConcurrentMap, ConcurrentSet, NonblockingConcurrentMap, NonblockingMap, SequentialMap,
-};
+pub use adt::{ConcurrentMap, ConcurrentSet};
 pub use arc::Arc;
 pub use elim_stack::ElimStack;
 pub use hash_table::{GrowableArray, SplitOrderedList};
