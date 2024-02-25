@@ -4,7 +4,7 @@
 #![allow(clippy::result_unit_err)]
 // Allow lints for homework.
 #![allow(dead_code, unused_variables, unused_imports, unused_mut)]
-#![deny(unsafe_op_in_unsafe_fn)]
+#![deny(unsafe_op_in_unsafe_fn, warnings)]
 
 mod adt;
 mod arc;
