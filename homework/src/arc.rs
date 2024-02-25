@@ -72,10 +72,17 @@ const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 ///
 /// ## `Deref` behavior
 ///
-/// `Arc<T>` automatically dereferences to `T` (via the [`Deref`][deref] trait),
+/// `Arc<T>` automatically dereferences to `T` (via the [`Deref`] trait),
 /// so you can call `T`'s methods on a value of type `Arc<T>`. To avoid name
 /// clashes with `T`'s methods, the methods of `Arc<T>` itself are associated
-/// functions, called using [fully qualified syntax].
+/// functions, called using [fully qualified syntax]:
+///
+/// ```
+/// use cs431_homework::Arc;
+///
+/// let my_arc = Arc::new(5);
+/// let my_five = Arc::try_unwrap(my_arc).unwrap();
+/// ```
 ///
 /// `Arc<T>`'s implementations of traits like `Clone` may also be called using
 /// fully qualified syntax. Some people prefer to use fully qualified syntax,
@@ -96,9 +103,6 @@ const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 /// [mutex]: ../../std/sync/struct.Mutex.html
 /// [rwlock]: ../../std/sync/struct.RwLock.html
 /// [atomic]: core::sync::atomic
-/// [`Send`]: core::marker::Send
-/// [`Sync`]: core::marker::Sync
-/// [deref]: core::ops::Deref
 /// [RefCell\<T>]: core::cell::RefCell
 /// [`RefCell<T>`]: core::cell::RefCell
 /// [`std::sync`]: ../../std/sync/index.html
@@ -139,7 +143,7 @@ const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 ///     let val = Arc::clone(&val);
 ///
 ///     thread::spawn(move || {
-///         let v = val.fetch_add(1, Ordering::Relaxed);
+///         let v = val.fetch_add(1, Ordering::SeqCst);
 ///         println!("{v:?}");
 ///     });
 /// }
@@ -238,7 +242,7 @@ impl<T> Arc<T> {
     pub unsafe fn get_mut_unchecked(this: &mut Self) -> &mut T {
         // We are careful to *not* create a reference covering the "count" fields, as
         // this would alias with concurrent access to the reference counts.
-        &mut (*this.ptr.as_ptr()).data
+        unsafe { &mut (*this.ptr.as_ptr()).data }
     }
 
     /// Gets the number of `Arc`s to this allocation. In addition, synchronize with the update that
