@@ -10,8 +10,8 @@ use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 ///
 /// This is more complete version of the dynamic sized array from the paper. In the paper, the
 /// segment table is an array of arrays (segments) of pointers to the elements. In this
-/// implementation, a segment contains the pointers to the elements **or other segments**. In other
-/// words, it is a tree that has segments as internal nodes.
+/// implementation, a segment contains the pointers to the elements **or other child segments**. In
+/// other words, it is a tree that has segments as internal nodes.
 ///
 /// # Example run
 ///
@@ -92,7 +92,7 @@ use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 /// ```
 ///
 /// Finally, when you store `owl` at `0b000110`, it traverses through the `0b000XXX` branch of the
-/// level-1 segment and arrives at its 0b110` leaf.
+/// height 2 segment and arrives at its `0b110` leaf.
 ///
 /// ```text
 ///                          +----+
@@ -125,7 +125,7 @@ use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 /// ```
 ///
 /// Instead, it should be handled by the container that the elements actually belong to. For
-/// example in `SplitOrderedList`, destruction of elements are handled by `List`.
+/// example, in `SplitOrderedList` the destruction of elements are handled by the inner `List`.
 #[derive(Debug)]
 pub struct GrowableArray<T> {
     root: Atomic<Segment<T>>,
