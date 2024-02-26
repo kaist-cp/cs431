@@ -21,9 +21,7 @@ We won't cover the weak memory semantics in this semester.
       It presents the same stuff, but is more readable.
     + The [lock-free linked list](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) interface and implementation.
 1. Implement `GrowableArray` in [`hash_table/growable_array.rs`](../src/hash_table/growable_array.rs). (about 100 LOC)
-    * You'll need to perform integer-pointer casts because `AtomicUsize` in `Segment` can be interpreted as both `Atomic<T>` and `Atomic<Segment>`.
-      Use [`into_usize` and `from_usize`](https://docs.rs/crossbeam/*/crossbeam/epoch/trait.Pointer.html).
-      See also: [#225](https://github.com/kaist-cp/cs431/issues/225)
+    * You'll need to properly use [Rust `union`s](https://doc.rust-lang.org/reference/items/unions.html).
     * To represent the height of the segment tree, [tag](https://en.wikipedia.org/wiki/Tagged_pointer) the `root` pointer with the height.
       Use [`tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.tag) and [`with_tag`](https://docs.rs/crossbeam/*/crossbeam/epoch/struct.Shared.html#method.with_tag).
       See [`lockfree/list.rs`](https://github.com/kaist-cp/cs431/blob/main/src/lockfree/list.rs) for example usage.
