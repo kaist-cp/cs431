@@ -226,10 +226,10 @@ where
     #[inline]
     pub fn insert(
         &mut self,
-        node: Owned<Node<K, V>>,
+        mut node: Owned<Node<K, V>>,
         guard: &'g Guard,
     ) -> Result<(), Owned<Node<K, V>>> {
-        node.next.store(self.curr, Relaxed);
+        node.next = self.curr.into();
         match self
             .prev
             .compare_exchange(self.curr, node, Release, Relaxed, guard)

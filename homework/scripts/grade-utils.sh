@@ -56,19 +56,22 @@ export -f run_linters
 # NOTE: sanitizer documentation at https://doc.rust-lang.org/beta/unstable-book/compiler-flags/sanitizer.html
 cargo_asan() {
     local SUBCOMMAND=$1; shift
+    local TARGET_TRIPLE=$(rustc -vV | sed -n 's|host: ||p')
     RUSTFLAGS="-Z sanitizer=address" \
+        ASAN_OPTIONS="detect_leaks=1" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
-        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu "$@"
+        cargo +nightly $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
 }
 export -f cargo_asan
 
 cargo_tsan() {
     local SUBCOMMAND=$1; shift
+    local TARGET_TRIPLE=$(rustc -vV | sed -n 's|host: ||p')
     RUSTFLAGS="-Z sanitizer=thread" \
         TSAN_OPTIONS="suppressions=suppress_tsan.txt" \
         RUSTDOCFLAGS="-Z sanitizer=thread" \
         RUST_TEST_THREADS=1 \
-        cargo +nightly $SUBCOMMAND -Z build-std --target x86_64-unknown-linux-gnu "$@"
+        cargo +nightly $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
 }
 export -f cargo_tsan
 

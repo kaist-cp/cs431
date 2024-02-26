@@ -29,7 +29,8 @@ unsafe impl<T: Send> Sync for FineGrainedListSet<T> {}
 /// ```
 ///
 /// If `cursor` is currently at node 2, then `cursor.0` should be the `MutexGuard` obtained from the
-/// `next` of node 1. In particular, `cursor.0.as_ref().unwrap()` creates a shared reference to node 2.
+/// `next` of node 1. In particular, `cursor.0.as_ref().unwrap()` creates a shared reference to node
+/// 2.
 struct Cursor<'l, T>(MutexGuard<'l, *mut Node<T>>);
 
 impl<T> Node<T> {

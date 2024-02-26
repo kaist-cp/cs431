@@ -76,7 +76,7 @@ mod stack {
     use core::ops::Deref;
     use core::ptr;
     use core::sync::atomic::Ordering::*;
-    use crossbeam_epoch::{Atomic, Guard, Shared};
+    use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
     #[derive(Debug)]
     pub(crate) struct Stack<T> {
@@ -147,8 +147,8 @@ mod stack {
         fn drop(&mut self) {
             let mut o_curr = mem::take(&mut self.head);
 
-            while let Some(curr) = unsafe { o_curr.try_into_owned() } {
-                o_curr = curr.into_box().next.into_inner().into();
+            while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
+                o_curr = curr.next.into_inner().into();
             }
         }
     }

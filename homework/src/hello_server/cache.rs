@@ -28,9 +28,9 @@ impl<K: Eq + Hash + Clone, V: Clone> Cache<K, V> {
     /// `get_or_insert_with(key2, f2)` (`key1≠key2`, `key1,key2∉cache`) concurrently, `f1` and `f2`
     /// should run concurrently.
     ///
-    /// On the other hand, since `f` may consume a lot of resource (= money), it's desirable not to
+    /// On the other hand, since `f` may consume a lot of resource (= money), it's undesirable to
     /// duplicate the work. That is, `f` should be run only once for each key. Specifically, even
-    /// for the concurrent invocations of `get_or_insert_with(key, f)`, `f` is called only once.
+    /// for concurrent invocations of `get_or_insert_with(key, f)`, `f` is called only once per key.
     ///
     /// Hint: the [`Entry`] API may be useful in implementing this function.
     ///
