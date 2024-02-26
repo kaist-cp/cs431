@@ -9,15 +9,15 @@
   + [Zoom room](https://kaist.zoom.us/my/jeehoon.kang) (if remote participation is absolutely necessary).
     The passcode is announced at KLMS.
   + [Youtube channel](https://www.youtube.com/playlist?list=PL5aMzERQ_OZ9j40DJNlsem2qAGoFbfwb4).
-    Turn on English subtitle at YouTube, if necessary.
+    Turn on English subtitles on YouTube, if necessary.
 - Websites: <https://github.com/kaist-cp/cs431>, <https://gg.kaist.ac.kr/course/19>
-- Announcements: in [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
-  + We assume you read each announcement within 24 hours.
-  + We strongly recommend you to watch the repository.
-- TA: TBA
-  + Office Hour: Fri 9:15-10:15, Rm. 4432, Bldg. E3-1. 
+- Announcements: in the [issue tracker](https://github.com/kaist-cp/cs431/issues?q=is%3Aissue+is%3Aopen+label%3Aannouncement)
+  + We assume that you will read each announcement within 24 hours.
+  + We strongly recommend you watch the repository.
+- TA: [Sunho Park](https://www.fearless.systems/sunho.park/) (Head TA), [Janggun Lee](https://www.fearless.systems/janggun.lee/).
+  + Office Hours: Fri 9:15-10:15, Rm. 4432, Bldg. E3-1.
     If you want to come, do so by 9:30.
-    See [below](https://github.com/kaist-cp/cs431#rules) for office hour policy.
+    See [below](https://github.com/kaist-cp/cs431#rules) for the office hour policy.
     <!-- Fri 9:00-12:00, [Zoom room](https://zoom.us/j/4842624821)(The passcode is same as the class). It is not required, but if you want to come, do so by 9:30. See [below](#communication) for office hour policy. -->
 - **IMPORTANT**: you should not expose your work to others. In particular, you should not fork the [upstream](https://github.com/kaist-cp/cs431) and push there.
 
@@ -72,7 +72,7 @@ The course aims to equip students with the ability to:
 - It is **strongly recommended** that students have completed courses in:
 
     + Mathematics (MAS101): Propositional logic and proof techniques.
-    + Data Structures (CS206): Understanding of linked lists, stacks, queues.
+    + Data Structures (CS206): Understanding of linked lists, stacks, and queues.
     + Systems Programming (CS230) or Operating Systems (CS330): Familiarity with memory layout, caching, and locking mechanisms.
     + Programming Principles (CS220) or Programming Languages (CS320): Knowledge of lambda calculus and interpreters.
 
