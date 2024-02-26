@@ -243,10 +243,13 @@ where
     }
 
     /// Deletes the current node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the cursor's current value is a null.
     #[inline]
-    pub fn delete(self, guard: &'g Guard) -> Result<&'g V, ()> {
-        // SAFETY: curr was found, hence cannot be null.
-        let curr_node = unsafe { self.curr.deref() };
+    pub fn delete(&mut self, guard: &'g Guard) -> Result<&'g V, ()> {
+        let curr_node = unsafe { self.curr.as_ref() }.unwrap();
 
         // Release: to release current view of the deleting thread on this mark.
         // Acquire: to ensure that if the latter CAS succeeds, then the thread that reads `next` through `prev` will be safe.
@@ -264,6 +267,7 @@ where
             // value of the function, later access of curr_node is ok.
             unsafe { guard.defer_destroy(self.curr) };
         }
+        self.curr = next;
 
         Ok(&curr_node.value)
     }
@@ -339,7 +343,7 @@ where
         F: Fn(&mut Cursor<'g, K, V>, &K, &'g Guard) -> Result<bool, ()>,
     {
         loop {
-            let (found, cursor) = self.find(key, &find, guard);
+            let (found, mut cursor) = self.find(key, &find, guard);
             if !found {
                 return None;
             }
