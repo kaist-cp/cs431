@@ -215,7 +215,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the cursor's current node is a null.
+    /// Panics if the current node is null.
     #[inline]
     pub fn lookup(&self) -> &'g V {
         &unsafe { self.curr.as_ref() }.unwrap().value
@@ -245,7 +245,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the cursor's current value is a null.
+    /// Panics if the current node is null.
     #[inline]
     pub fn delete(&mut self, guard: &'g Guard) -> Result<&'g V, ()> {
         let curr_node = unsafe { self.curr.as_ref() }.unwrap();
