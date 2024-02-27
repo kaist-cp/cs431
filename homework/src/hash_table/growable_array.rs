@@ -140,7 +140,7 @@ const SEGMENT_LOGSIZE: usize = 10;
 /// needs to track separately. For example, use the main array root's tag.
 ///
 /// Since destructing `Segment<T>` requires its height information, it is not recommended to
-/// implement `Drop` for this trait. Rather, have a custom deallocate method that accounts for the
+/// implement `Drop` for this union. Rather, have a custom deallocate method that accounts for the
 /// height of the segment.
 union Segment<T> {
     children: ManuallyDrop<[Atomic<Segment<T>>; 1 << SEGMENT_LOGSIZE]>,

@@ -192,7 +192,7 @@ where
         }
     }
 
-    /// Gotta go fast. Doesn't fail.
+    /// Doesn't preform any cleanup. Gotta go fast. Doesn't fail.
     #[inline]
     pub fn find_harris_herlihy_shavit(&mut self, key: &K, guard: &'g Guard) -> Result<bool, ()> {
         Ok(loop {
@@ -201,10 +201,9 @@ where
             };
             match curr_node.key.cmp(key) {
                 Less => {
-                    self.curr = curr_node.next.load(Acquire, guard);
                     // NOTE: unnecessary (this function is expected to be used only for `lookup`)
                     self.prev = &curr_node.next;
-                    continue;
+                    self.curr = curr_node.next.load(Acquire, guard);
                 }
                 Equal => break curr_node.next.load(Relaxed, guard).tag() == 0,
                 Greater => break false,
@@ -212,17 +211,17 @@ where
         })
     }
 
-    /// Lookups the value.
+    /// Lookups the value at the current node.
     ///
     /// # Panics
     ///
-    /// Panics if the cursor's current value is a null.
+    /// Panics if the cursor's current node is a null.
     #[inline]
     pub fn lookup(&self) -> &'g V {
         &unsafe { self.curr.as_ref() }.unwrap().value
     }
 
-    /// Inserts a value.
+    /// Inserts a value between the previous and current node.
     #[inline]
     pub fn insert(
         &mut self,
@@ -354,37 +353,37 @@ where
         }
     }
 
-    /// Omitted
+    /// Lookups the value at `key` with the Harris strategy.
     pub fn harris_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.lookup(key, Cursor::find_harris, guard)
     }
 
-    /// Omitted
+    /// Insert the value with the Harris strategy.
     pub fn harris_insert<'g>(&'g self, key: K, value: V, guard: &'g Guard) -> bool {
         self.insert(key, value, Cursor::find_harris, guard)
     }
 
-    /// Omitted
+    /// Attempts to delete the value with the Harris strategy.
     pub fn harris_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.delete(key, Cursor::find_harris, guard)
     }
 
-    /// Omitted
+    /// Lookups the value at `key` with the Harris-Michael strategy.
     pub fn harris_michael_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.lookup(key, Cursor::find_harris_michael, guard)
     }
 
-    /// Omitted
+    /// Insert a `key`-`value`` pair with the Harris-Michael strategy.
     pub fn harris_michael_insert(&self, key: K, value: V, guard: &Guard) -> bool {
         self.insert(key, value, Cursor::find_harris_michael, guard)
     }
 
-    /// Omitted
+    /// Delete the value at `key` with the Harris-Michael strategy.
     pub fn harris_michael_delete<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.delete(key, Cursor::find_harris_michael, guard)
     }
 
-    /// Omitted
+    /// Lookups the value at `key` with the Harris-Herlihy-Shavit strategy.
     pub fn harris_herlihy_shavit_lookup<'g>(&'g self, key: &K, guard: &'g Guard) -> Option<&'g V> {
         self.lookup(key, Cursor::find_harris_herlihy_shavit, guard)
     }
