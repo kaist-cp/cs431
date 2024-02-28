@@ -79,12 +79,12 @@ mod stack {
     use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
     #[derive(Debug)]
-    pub(crate) struct Stack<T> {
+    pub(super) struct Stack<T> {
         head: Atomic<Node<T>>,
     }
 
     impl<T> Stack<T> {
-        pub(crate) fn new() -> Self {
+        pub(super) fn new() -> Self {
             Self {
                 head: Atomic::null(),
             }
@@ -92,20 +92,20 @@ mod stack {
     }
 
     #[derive(Debug)]
-    pub(crate) struct Node<T> {
+    pub(super) struct Node<T> {
         data: T,
         next: UnsafeCell<*const Node<T>>,
     }
 
     impl<T> Node<T> {
-        pub(crate) fn new(data: T) -> Self {
+        pub(super) fn new(data: T) -> Self {
             Self {
                 data,
                 next: UnsafeCell::new(ptr::null()),
             }
         }
 
-        pub(crate) fn into_inner(self) -> T {
+        pub(super) fn into_inner(self) -> T {
             self.data
         }
     }
@@ -130,7 +130,7 @@ mod stack {
         ///
         /// - A single `n` should only be pushed into the stack once.
         /// - After the push, `n` should not be used again.
-        pub(crate) unsafe fn push_node<'g>(&self, n: Shared<'g, Node<T>>, guard: &'g Guard) {
+        pub(super) unsafe fn push_node<'g>(&self, n: Shared<'g, Node<T>>, guard: &'g Guard) {
             let mut head = self.head.load(Relaxed, guard);
             loop {
                 unsafe { *n.deref().next.get() = head.as_raw() };

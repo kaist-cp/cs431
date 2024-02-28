@@ -12,8 +12,8 @@ The skeleton code is a heavily modified version of `Arc` from the standard libra
 We don't recommend reading the original source code before finishing this homework
 because that version is more complex.
 
-## ***2023 fall semester notice: Use `SeqCst`***
-Due to lack of time, we cannot cover the weak memory semantics.
+## ***2024 spring semester notice: Use `SeqCst`***
+We won't cover the weak memory semantics in this semester.
 So you may ignore the instructions on `Ordering` stuff below and
 use `Ordering::SeqCst` for `ordering: Ordering` parameters for `std::sync::atomic` functions.
 

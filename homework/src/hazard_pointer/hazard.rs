@@ -146,6 +146,12 @@ impl HazardBag {
     }
 }
 
+impl Default for HazardBag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for HazardBag {
     /// Frees all slots.
     fn drop(&mut self) {

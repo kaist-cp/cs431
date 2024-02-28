@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::fmt;
-use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::mem;
 use std::ptr;

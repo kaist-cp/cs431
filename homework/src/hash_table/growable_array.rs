@@ -2,7 +2,6 @@
 
 use core::fmt::Debug;
 use core::mem::{self, ManuallyDrop};
-use core::ops::{Deref, DerefMut};
 use core::sync::atomic::Ordering::*;
 use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
