@@ -66,6 +66,8 @@ impl<T> Queue<T> {
         });
 
         loop {
+            guard.repin();
+
             // We push onto the tail, so we'll start optimistically by looking there first.
             let tail = self.tail.load(Acquire, guard);
 
@@ -78,7 +80,6 @@ impl<T> Queue<T> {
                 let _ = self
                     .tail
                     .compare_exchange(tail, next, Release, Relaxed, guard);
-                guard.repin();
                 continue;
             }
 
@@ -96,7 +97,6 @@ impl<T> Queue<T> {
                 }
                 Err(e) => new = e.new,
             }
-            guard.repin();
         }
     }
 
@@ -105,6 +105,8 @@ impl<T> Queue<T> {
     /// Returns `None` if the queue is observed to be empty.
     pub fn try_pop(&self, guard: &mut Guard) -> Option<T> {
         loop {
+            guard.repin();
+
             let head = self.head.load(Acquire, guard);
             let next = unsafe { head.deref() }.next.load(Acquire, guard);
 
@@ -143,7 +145,6 @@ impl<T> Queue<T> {
 
                 return Some(result);
             }
-            guard.repin();
         }
     }
 }
