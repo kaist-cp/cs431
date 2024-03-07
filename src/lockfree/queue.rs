@@ -39,6 +39,13 @@ unsafe impl<T: Send> Send for Queue<T> {}
 
 impl<T> Default for Queue<T> {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T> Queue<T> {
+    /// Create a new, empty queue.
+    pub fn new() -> Self {
         let sentinel = Box::into_raw(Box::new(Node {
             data: MaybeUninit::uninit(),
             next: Atomic::null(),
@@ -49,13 +56,6 @@ impl<T> Default for Queue<T> {
             head: CachePadded::new(sentinel.into()),
             tail: CachePadded::new(sentinel.into()),
         }
-    }
-}
-
-impl<T> Queue<T> {
-    /// Create a new, empty queue.
-    pub fn new() -> Self {
-        Self::default()
     }
 
     /// Adds `t` to the back of the queue.

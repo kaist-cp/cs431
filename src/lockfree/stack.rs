@@ -24,16 +24,16 @@ unsafe impl<T: Send> Sync for Stack<T> {}
 
 impl<T> Default for Stack<T> {
     fn default() -> Self {
-        Self {
-            head: Atomic::null(),
-        }
+        Self::new()
     }
 }
 
 impl<T> Stack<T> {
     /// Creates a new, empty stack.
     pub fn new() -> Stack<T> {
-        Self::default()
+        Self {
+            head: Atomic::null(),
+        }
     }
 
     /// Pushes a value on top of the stack.
