@@ -180,7 +180,7 @@ Ensure you are proficient with the following development tools:
 ### Programming Assignments (60%)
 
 - All assignments will be announced at the start of the semester.
-- Submit your solutions to <https://gg.kaist.ac.kr/course/16>.
+- Submit your solutions to <https://gg.kaist.ac.kr/course/19>.
 - Refer to the documentation at <https://www.fearless.systems/cs431/cs431_homework/>.
 - You are **permitted** to use ChatGPT or other LLMs.
 
