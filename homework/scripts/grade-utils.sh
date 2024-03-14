@@ -7,7 +7,11 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-rustup toolchain update stable nightly
+export RUST_NIGHTLY=nightly-2024-03-13
+# rustup toolchain update stable # nightly
+rustup install $RUST_NIGHTLY
+rustup component add rust-src --toolchain $RUST_NIGHTLY-x86_64-unknown-linux-gnu
+
 
 echo_err() {
     echo "$@" 1>&2
@@ -43,7 +47,7 @@ export -f grep_skip_comment
 run_linters() {
     cargo fmt -- --check
     local FMT_ERR=$?
-    cargo +nightly clippy -- -D warnings
+    cargo +$RUST_NIGHTLY clippy -- -D warnings
     local CLIPPY_ERR=$?
     [ "$FMT_ERR" -ne 0 ] && echo_err 'Please format your code with `cargo fmt` first.'
     [ "$CLIPPY_ERR" -ne 0 ] && echo_err 'Please fix the issues from `cargo +nightly clippy -- -D warnings` first.'
@@ -60,7 +64,7 @@ cargo_asan() {
     RUSTFLAGS="-Z sanitizer=address" \
         ASAN_OPTIONS="detect_leaks=1" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
-        cargo +nightly $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
+        cargo +$RUST_NIGHTLY $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
 }
 export -f cargo_asan
 
@@ -71,7 +75,7 @@ cargo_tsan() {
         TSAN_OPTIONS="suppressions=suppress_tsan.txt" \
         RUSTDOCFLAGS="-Z sanitizer=thread" \
         RUST_TEST_THREADS=1 \
-        cargo +nightly $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
+        cargo +$RUST_NIGHTLY $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
 }
 export -f cargo_tsan
 

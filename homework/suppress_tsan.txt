@@ -1,2 +1,9 @@
+# Suppress false positives from Arc.
+# This is supposed to be fixed in https://github.com/rust-lang/rust/pull/65097,
+# but tsan still reports races in Arc::drop. Why??
+# The grading script doesn't test Arc, but we still have it listed here anyway so that
+# `cargo_tsan test` does not give out false positives.
+race:Arc
+
 # uses fences
 race:crossbeam_epoch
