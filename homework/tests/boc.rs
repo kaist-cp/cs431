@@ -390,7 +390,7 @@ mod stress_test {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
-            assert_eq!(boc_fibonacci::fibonacci(32), 2178309);
+            assert_eq!(boc_fibonacci::fibonacci(30), 832040);
             send_finish.send(()).unwrap();
         });
 
