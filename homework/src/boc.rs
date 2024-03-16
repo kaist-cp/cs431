@@ -293,7 +293,7 @@ where
     Behavior::new(cowns, f).schedule();
 }
 
-/// from https://docs.rs/tuple_list/latest/tuple_list/
+/// from <https://docs.rs/tuple_list/latest/tuple_list/>
 #[macro_export]
 macro_rules! tuple_list {
     () => ( () );
