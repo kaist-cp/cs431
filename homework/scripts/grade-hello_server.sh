@@ -19,7 +19,8 @@ RUNNERS=(
 )
 
 
-t1_failed=false
+t1_basic_failed=false
+t1_nonblocking_failed=false
 t2_failed=false
 t3_failed=false
 
@@ -27,11 +28,25 @@ t3_failed=false
 for RUNNER in "${RUNNERS[@]}"; do
     echo "Running with $RUNNER..."
 
-    if [ "$t1_failed" = false ]; then
-        echo "    Testing cache.rs..."
-        TESTS=("--test cache")
+    if [ "$t1_basic_failed" = false ]; then
+        echo "    Testing basic functionalities of cache.rs..."
+        TESTS=(
+            "--test cache -- --exact cache_no_duplicate_sequential"
+            "--test cache -- --exact cache_no_duplicate_concurrent"
+        )
         if [ $(run_tests) -ne 0 ]; then
-            t1_failed=true
+            t1_basic_failed=true
+        fi
+    fi
+
+    if [ "$t1_nonblocking_failed" = false ]; then
+        echo "    Testing nonblockingness of cache.rs..."
+        TESTS=(
+            "--test cache -- --exact cache_no_block_disjoint"
+            "--test cache -- --exact cache_no_reader_block"
+        )
+        if [ $(run_tests) -ne 0 ]; then
+            t1_nonblocking_failed=true
         fi
     fi
 
@@ -55,8 +70,11 @@ done
 SCORE=0
 
 # Scores for cache.rs
-if [ "$t1_failed" = false ]; then
-    SCORE=$((SCORE + 40))
+if [ "$t1_basic_failed" = false ]; then
+    SCORE=$((SCORE + 15))
+fi
+if [ "$t1_nonblocking_failed" = false ]; then
+    SCORE=$((SCORE + 25))
 fi
 
 # Scores for tcp.rs

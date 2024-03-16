@@ -17,8 +17,11 @@
 The grader runs `./scripts/grade-hello_server.sh` in the `homework` directory.
 This script runs the tests with various options.
 
-There will be no partial scores for each module.
+There will be no partial scores for `tcp` and `thread_pool` modules.
 That is, you will get the score for a module only if your implementation passes **all** tests for that module.
+
+On the other hand, we will give partial scores for `cache` module.
+In particular, even if your implementation of `cache` blocks concurrent accesses to different keys, you can still get some points for basic functionalities.
 
 ## Submission
 ```bash

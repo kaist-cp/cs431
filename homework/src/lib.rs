@@ -8,6 +8,7 @@
 
 mod adt;
 mod arc;
+pub mod boc;
 mod elim_stack;
 mod hash_table;
 pub mod hazard_pointer;
@@ -19,6 +20,7 @@ pub mod test;
 
 pub use adt::{ConcurrentMap, ConcurrentSet};
 pub use arc::Arc;
+pub use boc::CownPtr;
 pub use elim_stack::ElimStack;
 pub use hash_table::{GrowableArray, SplitOrderedList};
 pub use linked_list::LinkedList;

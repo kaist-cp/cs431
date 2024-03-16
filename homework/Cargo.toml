@@ -17,6 +17,7 @@ check-loom = ["loom"]
 cfg-if = "1.0.0"
 crossbeam-channel = "0.5.10"
 crossbeam-epoch = "0.9.17"
+rayon = "1.9.0"
 ctrlc = { version = "3.4.2", optional = true }
 cs431 = { git = "https://github.com/kaist-cp/cs431" }
 # cs431 = { path = "../cs431" }
