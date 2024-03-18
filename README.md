@@ -199,7 +199,7 @@ Ensure you are proficient with the following development tools:
 
 ### Attendance (?%)
 
-- A quiz must be completed on the [Course Management](https://gg.kaist.ac.kr/course/16) website for each session.
+- A quiz must be completed on the [Course Management](https://gg.kaist.ac.kr/course/19) website for each session (if any).
   **Quizzes should be completed by the end of the day.**
 
 - Failing to attend a significant number of sessions will result in an automatic grade of F.
