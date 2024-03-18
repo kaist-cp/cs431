@@ -3,10 +3,9 @@
 use core::cell::UnsafeCell;
 use core::fmt;
 use core::hint::spin_loop;
-use core::ptr::{self, addr_eq, null_mut};
+use core::ptr::null_mut;
 use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering::SeqCst};
-use crossbeam_channel::bounded;
-use rayon;
+
 use std::sync::Arc;
 
 /// A trait representing a `Cown`.
@@ -17,7 +16,7 @@ use std::sync::Arc;
 /// # Safety
 ///
 /// `tail` should actually return the last request for the corresponding cown.
-trait CownBase: Send {
+unsafe trait CownBase: Send {
     /// Return a pointer to the tail of this cown's request queue.
     fn last(&self) -> &AtomicPtr<Request>;
 }
@@ -98,7 +97,7 @@ impl PartialOrd for Request {
 }
 impl PartialEq for Request {
     fn eq(&self, other: &Self) -> bool {
-        addr_eq(Arc::as_ptr(&self.target), Arc::as_ptr(&other.target))
+        matches!(self.cmp(other), std::cmp::Ordering::Equal)
     }
 }
 impl Eq for Request {}
@@ -124,7 +123,8 @@ struct Cown<T: Send> {
     value: UnsafeCell<T>,
 }
 
-impl<T: Send> CownBase for Cown<T> {
+// SAFETY: `self.tail` is indeed the actual tail.
+unsafe impl<T: Send> CownBase for Cown<T> {
     fn last(&self) -> &AtomicPtr<Request> {
         &self.last
     }
@@ -168,7 +168,7 @@ struct Behavior {
     /// Number of not-yet enqueued requests.
     count: AtomicUsize,
     /// The requests for this behavior.
-    requests: Box<[Request]>,
+    requests: Vec<Request>,
 }
 
 impl Behavior {
@@ -229,7 +229,9 @@ pub unsafe trait CownPtrs {
         Self: 'l;
 
     /// Returns a collection of `Request`.
-    fn requests(&self) -> Box<[Request]>;
+    // This could return a `Box<[Request]>`, but we use a `Vec` to avoid possible reallocation in
+    // the implementation.
+    fn requests(&self) -> Vec<Request>;
 
     /// Returns mutable references of type `CownRefs`.
     ///
@@ -244,8 +246,8 @@ unsafe impl CownPtrs for () {
     where
         Self: 'l;
 
-    fn requests(&self) -> Box<[Request]> {
-        Box::new([])
+    fn requests(&self) -> Vec<Request> {
+        Vec::new()
     }
 
     unsafe fn get_mut<'l>(self) -> Self::CownRefs<'l> {}
@@ -256,11 +258,11 @@ unsafe impl<T: Send + 'static, Ts: CownPtrs> CownPtrs for (CownPtr<T>, Ts) {
     where
         Self: 'l;
 
-    fn requests(&self) -> Box<[Request]> {
-        let mut rs = self.1.requests().into_vec();
+    fn requests(&self) -> Vec<Request> {
+        let mut rs = self.1.requests();
         let cown_base: Arc<dyn CownBase> = self.0.inner.clone();
         rs.push(Request::new(cown_base));
-        rs.into_boxed_slice()
+        rs
     }
 
     unsafe fn get_mut<'l>(self) -> Self::CownRefs<'l> {
@@ -273,7 +275,7 @@ unsafe impl<T: Send + 'static> CownPtrs for Vec<CownPtr<T>> {
     where
         Self: 'l;
 
-    fn requests(&self) -> Box<[Request]> {
+    fn requests(&self) -> Vec<Request> {
         self.iter().map(|x| Request::new(x.inner.clone())).collect()
     }
 
@@ -327,7 +329,7 @@ fn boc() {
     let c2_ = c2.clone();
     let c3_ = c3.clone();
 
-    let (finish_sender, finish_receiver) = bounded(0);
+    let (finish_sender, finish_receiver) = crossbeam_channel::bounded(0);
 
     when!(c1, c2; g1, g2; {
         // c3, c2 are moved into this thunk. there's no such thing as auto-cloning move closure
@@ -357,7 +359,7 @@ fn boc_vec() {
     let c2_ = c2.clone();
     let c3_ = c3.clone();
 
-    let (finish_sender, finish_receiver) = bounded(0);
+    let (finish_sender, finish_receiver) = crossbeam_channel::bounded(0);
 
     run_when(vec![c1.clone(), c2.clone()], move |mut x| {
         // c3, c2 are moved into this thunk. there's no such thing as auto-cloning move closure
