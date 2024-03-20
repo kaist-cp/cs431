@@ -5,5 +5,8 @@
 # `cargo_tsan test` does not give out false positives.
 race:Arc
 
+# boc tests
+race:crossbeam_deque
+
 # uses fences
 race:crossbeam_epoch
