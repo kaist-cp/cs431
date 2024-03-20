@@ -1,17 +1,15 @@
-// Two modules `boc_fibonacci` and `boc_banking` are from https://github.com/ic-slurp/verona-benchmarks/tree/main/savina/boc
+//! Modules `boc_fibonacci` and `boc_banking` are taken from <https://github.com/ic-slurp/verona-benchmarks/tree/main/savina/boc>.
 
-/// Implementation of computing fibonacci sequence
 mod boc_fibonacci {
-    use crossbeam_channel::bounded;
+    //! Computing fibonacci sequence using [`boc`].
+
+    use crossbeam_channel::{bounded, Sender};
     use cs431_homework::{boc::run_when, tuple_list, when, CownPtr};
 
-    fn fibonacci_inner(
-        n: usize,
-        sender: Option<crossbeam_channel::Sender<usize>>,
-    ) -> CownPtr<usize> {
+    fn fibonacci_inner(n: usize, sender: Option<Sender<usize>>) -> CownPtr<usize> {
         if n == 0 {
             CownPtr::new(0)
-        } else if n <= 2 {
+        } else if n == 1 {
             CownPtr::new(1)
         } else {
             let prev = fibonacci_inner(n - 1, None);
@@ -29,7 +27,7 @@ mod boc_fibonacci {
     pub fn fibonacci(n: usize) -> usize {
         if n == 0 {
             return 0;
-        } else if n <= 2 {
+        } else if n == 1 {
             return 1;
         }
 
@@ -41,6 +39,8 @@ mod boc_fibonacci {
 }
 
 mod boc_banking {
+    //! A simple transaction system using [`boc`].
+
     use std::{thread::sleep, time::Duration};
 
     use crossbeam_channel::bounded;
@@ -54,55 +54,63 @@ mod boc_banking {
         assert_ne!(transaction_cnt, 0);
 
         let mut rng = thread_rng();
-        let accounts: Vec<CownPtr<usize>> = (0..account_cnt)
+        let accounts: Box<[_]> = (0..account_cnt)
             .map(|_| CownPtr::new(usize::rand_gen(&mut rng)))
             .collect();
-        let teller: CownPtr<(Vec<CownPtr<usize>>, usize)> =
-            CownPtr::new((accounts, transaction_cnt));
+
+        let c_remaining = CownPtr::new(transaction_cnt);
 
         let (finish_sender, finish_receiver) = bounded(0);
 
-        when!(teller; teller_inner; {
-            let mut rng = thread_rng();
-            for _ in 0..transaction_cnt {
-                // randomly pick src and dest accounts
-                let src = usize::rand_gen(&mut rng) % account_cnt;
-                let mut dst = usize::rand_gen(&mut rng) % account_cnt;
-                if src == dst { dst = (dst + 1) % account_cnt; }
+        let mut rng = thread_rng();
+        for _ in 0..transaction_cnt {
+            // Randomly pick src and dest accounts.
+            let src = usize::rand_gen(&mut rng) % account_cnt;
+            let mut dst = usize::rand_gen(&mut rng) % account_cnt;
 
-                let amount = usize::rand_gen(&mut rng) % TRANSFER_LIMIT;
-                let random_sleep = usize::rand_gen(&mut rng) % 2 == 0;
-
-                let cown1 = teller_inner.0[src].clone();
-                let cown2 = teller_inner.0[dst].clone();
-                let teller = teller.clone();
-                let finish_sender = finish_sender.clone();
-
-                when!(cown1, cown2; g1, g2; {
-                    // transfer
-                    if amount <= *g1 { *g1 -= amount; *g2 += amount; }
-                    if random_sleep && use_sleep { sleep(Duration::from_secs(1)); }
-
-                    let finish_sender = finish_sender.clone();
-
-                    // Main thread waits until all transactions finish
-                    when!(teller; teller_inner; {
-                        teller_inner.1 -= 1;
-                        if teller_inner.1 == 0 {
-                            finish_sender.send(()).unwrap();
-                        }
-                    });
-                });
+            if src == dst {
+                dst = (dst + 1) % account_cnt;
             }
-        });
+
+            let amount = usize::rand_gen(&mut rng) % TRANSFER_LIMIT;
+            let random_sleep = use_sleep && usize::rand_gen(&mut rng) % 2 == 0;
+
+            let c_src = accounts[src].clone();
+            let c_dst = accounts[dst].clone();
+
+            // FIXME: This clone and the clone in the lower `when!` seems stupid but is needed.
+            let finish_sender = finish_sender.clone();
+            let c_remaining = c_remaining.clone();
+            when!(c_src, c_dst; src, dst; {
+                // Transfer.
+                if amount <= *src {
+                    *src -= amount;
+                    *dst += amount;
+                }
+
+                if random_sleep {
+                    sleep(Duration::from_secs(1));
+                }
+
+                let finish_sender = finish_sender.clone();
+                when!(c_remaining; remaining; {
+                    *remaining -= 1;
+                    // Tell the main thread that all transactions have finished.
+                    if *remaining == 0 {
+                        finish_sender.send(()).unwrap();
+                    }
+                });
+            });
+        }
 
         finish_receiver.recv().unwrap();
     }
 }
 
-/// Implementation of a merge sort that uses BoC
 mod boc_merge_sort {
-    use crossbeam_channel::bounded;
+    //! Merge sort using BoC.
+
+    use crossbeam_channel::{bounded, Sender};
     use cs431_homework::{
         boc::{run_when, CownPtr},
         tuple_list, when,
@@ -112,35 +120,36 @@ mod boc_merge_sort {
         idx: usize,
         step_size: usize,
         n: usize,
-        boc_arr: &Vec<CownPtr<usize>>,
-        boc_finish: &Vec<CownPtr<usize>>,
-        sender: &crossbeam_channel::Sender<Vec<usize>>,
+        boc_arr: &[CownPtr<usize>],
+        boc_finish: &[CownPtr<usize>],
+        sender: &Sender<Vec<usize>>,
     ) {
         if idx == 0 {
             return;
         }
 
-        // Recursively sort a subarray within range [from, to)
+        // Recursively sort a subarray within range [from, to).
         let from = idx * step_size - n;
         let to = (idx + 1) * step_size - n;
 
-        let mut bocs: Vec<CownPtr<usize>> = boc_arr[from..to].iter().map(|x| x.clone()).collect();
+        let mut bocs = boc_arr[from..to].to_vec();
         bocs.push(boc_finish[idx].clone());
         bocs.push(boc_finish[idx * 2].clone());
         bocs.push(boc_finish[idx * 2 + 1].clone());
 
-        let boc_arr_clone = boc_arr.clone();
-        let boc_finish_clone = boc_finish.clone();
-        let sender_clone = sender.clone();
+        let boc_arr: Box<[_]> = boc_arr.into();
+        let boc_finish: Box<[_]> = boc_finish.into();
+        let sender = sender.clone();
 
         run_when(bocs, move |mut content| {
-            // Check if both left and right subarrays are already sorted
-            let ready = (*content[step_size + 1] == 1) && (*content[step_size + 2] == 1);
-            if !ready || *content[step_size] == 1 {
-                return; // We skip if both subarrays are not ready or we already sorted for this range
+            let left_and_right_sorted =
+                (*content[step_size + 1] == 1) && (*content[step_size + 2] == 1);
+            if !left_and_right_sorted || *content[step_size] == 1 {
+                // If both subarrays are not ready or we already sorted for this range, skip.
+                return;
             }
 
-            // Now, merge the two subarrays
+            // Now, merge the two subarrays.
             let mut lo = 0;
             let mut hi = step_size / 2;
             let mut res = Vec::new();
@@ -157,54 +166,48 @@ mod boc_merge_sort {
                 *content[i] = res[i];
             }
 
-            // Signal we have sorted the subarray within range [from, to)
+            // Signal that we have sorted the subarray [from, to).
             *content[step_size] = 1;
 
-            // Send a signal to main thread if this completes the sorting process
+            // If the sorting process is completed send a signal to the main thread.
             if idx == 1 {
-                sender_clone.send(res).unwrap();
+                sender.send(res).unwrap();
                 return;
             }
 
             // Recursively sort the larger subarray (bottom up)
-            merge_sort_inner(
-                idx / 2,
-                step_size * 2,
-                n,
-                &boc_arr_clone,
-                &boc_finish_clone,
-                &sender_clone,
-            );
+            merge_sort_inner(idx / 2, step_size * 2, n, &boc_arr, &boc_finish, &sender);
         });
     }
 
-    /// The main function of merge sort that returns the sorted array of `arr`
-    /// Assumption: `arr` should have size of 2^`logsize`
-    pub fn merge_sort(arr: Vec<usize>, logsize: usize) -> Vec<usize> {
-        let n: usize = 1 << logsize;
-        assert_eq!(arr.len(), n);
-        if logsize == 0 {
-            return arr;
+    /// Sorts and returns a sorted version of `array`.
+    // TODO: We could make this generic over `T : Ord + Send`, but it might also need `Default` or
+    // usage of `MabyeUninit`.
+    pub fn merge_sort(array: Vec<usize>) -> Vec<usize> {
+        let n = array.len();
+        if n == 1 {
+            return array;
         }
 
-        let boc_arr: Vec<CownPtr<usize>> = arr.iter().map(|x| CownPtr::new(*x)).collect();
-        let boc_finish: Vec<CownPtr<usize>> = (0..(2 * n)).map(|_| CownPtr::new(0)).collect();
+        let boc_arr: Box<[CownPtr<usize>]> = array.into_iter().map(CownPtr::new).collect();
+        let boc_finish: Box<[CownPtr<usize>]> = (0..(2 * n)).map(|_| CownPtr::new(0)).collect();
 
         let (finish_sender, finish_receiver) = bounded(0);
 
         for i in 0..n {
-            let arr_elem = boc_arr[i].clone();
-            let finish_elem = boc_finish[i + n].clone();
+            let c_finished = boc_finish[i + n].clone();
+
             let boc_arr_clone = boc_arr.clone();
             let boc_finish_clone = boc_finish.clone();
-            let sender = finish_sender.clone();
-            when!(arr_elem, finish_elem; _garr, gfinish; {
-                *gfinish = 1; // signals finish of sorting of subarray within range [i, i+1)
-                merge_sort_inner((n + i) / 2, 2, n, &boc_arr_clone, &boc_finish_clone, &sender);
+            let finish_sender = finish_sender.clone();
+            when!(c_finished; finished; {
+                // Signal that the sorting of subarray for [i, i+1) is finished.
+                *finished = 1;
+                merge_sort_inner((n + i) / 2, 2, n, &boc_arr_clone, &boc_finish_clone, &finish_sender);
             });
         }
 
-        // Wait until sorting finishes and get the result
+        // Wait until sorting finishes and get the result.
         finish_receiver.recv().unwrap()
     }
 }
@@ -222,35 +225,35 @@ mod basic_test {
     };
 
     #[test]
-    fn message_passing_test() {
+    fn message_passing() {
         for _ in 0..20 {
-            let c1 = CownPtr::new(false);
-            let c1_ = c1.clone();
-            let msg = Arc::new(AtomicUsize::new(0));
-            let msg_ = msg.clone();
-            let msg__ = msg.clone();
+            let c_sent_t1 = CownPtr::new(false);
+            let c_sent_t2 = c_sent_t1.clone();
+            let msg_t1 = Arc::new(AtomicUsize::new(0));
+            let msg_t2 = msg_t1.clone();
+            let msg_t3 = msg_t1.clone();
 
             let (send1, recv1) = bounded(1);
             let (send2, recv2) = bounded(1);
 
             rayon::spawn(move || {
-                when!(c1; g1; {
-                    if !*g1 {
-                        msg.fetch_add(1, Ordering::Relaxed);
-                        *g1 = true;
+                when!(c_sent_t1; sent; {
+                    if !*sent {
+                        msg_t1.fetch_add(1, Ordering::Relaxed);
+                        *sent = true;
                     } else {
-                        assert_eq!(1, msg.load(Ordering::Relaxed));
+                        assert_eq!(1, msg_t1.load(Ordering::Relaxed));
                     }
                     send1.send(()).unwrap();
                 });
             });
             rayon::spawn(move || {
-                when!(c1_; g1; {
-                    if !*g1 {
-                        msg_.fetch_add(1, Ordering::Relaxed);
-                        *g1 = true;
+                when!(c_sent_t2; sent; {
+                    if !*sent {
+                        msg_t2.fetch_add(1, Ordering::Relaxed);
+                        *sent = true;
                     } else {
-                        assert_eq!(1, msg_.load(Ordering::Relaxed));
+                        assert_eq!(1, msg_t2.load(Ordering::Relaxed));
                     }
                     send2.send(()).unwrap();
                 });
@@ -259,66 +262,67 @@ mod basic_test {
             recv1.recv().unwrap();
             recv2.recv().unwrap();
 
-            assert_eq!(1, msg__.load(Ordering::Relaxed));
+            assert_eq!(1, msg_t3.load(Ordering::Relaxed));
         }
     }
 
     #[test]
     fn message_passing_determines_order() {
         for _ in 0..20 {
-            let c1 = CownPtr::new(false);
-            let c2 = CownPtr::new(false);
-            let c1_ = c1.clone();
-            let c2_ = c2.clone();
-            let msg = Arc::new(AtomicUsize::new(0));
-            let msg_ = msg.clone();
-            let msg__ = msg.clone();
+            let c_flag1_t1 = CownPtr::new(false);
+            let c_flag2_t1 = CownPtr::new(false);
+            let c_flag1_t2 = c_flag1_t1.clone();
+            let c_flag2_t2 = c_flag2_t1.clone();
+            let msg_t1 = Arc::new(AtomicUsize::new(0));
+            let msg_t2 = msg_t1.clone();
+            let msg_t3 = msg_t1.clone();
 
-            let (send1, recv) = bounded(0);
-            let send2 = send1.clone();
+            let (send_t1, recv) = bounded(0);
+            let send_t2 = send_t1.clone();
 
             rayon::spawn(move || {
-                when!(c1; g1; *g1 = true);
-                if msg
+                when!(c_flag1_t1; flag1; *flag1 = true);
+
+                if msg_t1
                     .compare_exchange(0, 1, Ordering::SeqCst, Ordering::SeqCst)
                     .is_err()
                 {
-                    when!(c2; g2; {
-                        assert!(*g2);
-                        send1.send(()).unwrap();
+                    when!(c_flag2_t1; flag2; {
+                        assert!(*flag2);
+                        send_t1.send(()).unwrap();
                     });
                 }
             });
             rayon::spawn(move || {
-                when!(c2_; g2; *g2 = true);
-                if msg_
+                when!(c_flag2_t2; flag2; *flag2 = true);
+
+                if msg_t2
                     .compare_exchange(0, 1, Ordering::SeqCst, Ordering::SeqCst)
                     .is_err()
                 {
-                    when!(c1_; g1; {
-                        assert!(*g1);
-                        send2.send(()).unwrap();
+                    when!(c_flag1_t2; flag1; {
+                        assert!(*flag1);
+                        send_t2.send(()).unwrap();
                     });
                 }
             });
 
             recv.recv().unwrap();
 
-            assert_eq!(1, msg__.load(Ordering::Relaxed));
+            assert_eq!(1, msg_t3.load(Ordering::Relaxed));
         }
     }
 
     #[test]
-    fn fibonacci_basic_test() {
+    fn fibonacci() {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
-            let mut arr = vec![0, 1, 1];
-            while arr.len() <= 25 {
-                let n = arr.len();
-                let ans = arr[n - 2] + arr[n - 1];
-                arr.push(ans);
-                assert_eq!(ans, boc_fibonacci::fibonacci(n));
+            let mut accumulator = vec![0, 1];
+            for n in 2..=25 {
+                let answer = accumulator[n - 2] + accumulator[n - 1];
+                accumulator.push(answer);
+                assert_eq!(answer, boc_fibonacci::fibonacci(n));
             }
 
             send_finish.send(()).unwrap();
@@ -328,21 +332,21 @@ mod basic_test {
     }
 
     #[test]
-    fn merge_sort_basic_test() {
+    fn merge_sort() {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
             let mut arr1 = vec![2, 3, 1, 4];
-            let res1 = boc_merge_sort::merge_sort(arr1.clone(), 2);
+            let res1 = boc_merge_sort::merge_sort(arr1.clone());
             arr1.sort();
             assert_eq!(arr1, res1);
 
             let mut arr2 = vec![3, 4, 2, 1, 8, 5, 6, 7];
-            let res2 = boc_merge_sort::merge_sort(arr2.clone(), 3);
+            let res2 = boc_merge_sort::merge_sort(arr2.clone());
             arr2.sort();
             assert_eq!(arr2, res2);
 
-            let res2_ = boc_merge_sort::merge_sort(arr2.clone(), 3);
+            let res2_ = boc_merge_sort::merge_sort(arr2.clone());
             assert_eq!(arr2, res2_);
 
             let mut arr3 = arr2.clone();
@@ -351,12 +355,12 @@ mod basic_test {
             arr3.append(&mut arr3.clone());
             arr3.append(&mut arr3.clone());
             arr3.append(&mut arr3.clone());
-            let res3 = boc_merge_sort::merge_sort(arr3.clone(), 8);
+            let res3 = boc_merge_sort::merge_sort(arr3.clone());
             arr3.sort();
             assert_eq!(arr3, res3);
 
             let mut arr4: Vec<_> = (0..1024).rev().collect();
-            let res4 = boc_merge_sort::merge_sort(arr4.clone(), 10);
+            let res4 = boc_merge_sort::merge_sort(arr4.clone());
             arr4.sort();
             assert_eq!(arr4, res4);
 
@@ -367,7 +371,7 @@ mod basic_test {
     }
 
     #[test]
-    fn banking_basic_test() {
+    fn banking() {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
@@ -381,12 +385,12 @@ mod basic_test {
 
 mod stress_test {
     use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
-    use crossbeam_channel::bounded;
+    use crossbeam_channel::{bounded, Receiver, Sender};
     use cs431_homework::test::RandGen;
     use rand::thread_rng;
 
     #[test]
-    fn fibonacci_stress_test() {
+    fn fibonacci() {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
@@ -398,7 +402,7 @@ mod stress_test {
     }
 
     #[test]
-    fn banking_stress_test() {
+    fn banking() {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
@@ -410,29 +414,29 @@ mod stress_test {
     }
 
     #[test]
-    fn merge_sort_stress_test() {
+    fn merge_sort() {
         const ITER: usize = 10;
         const LOGSZ_LO: usize = 10;
         const LOGSZ_HI: usize = 14;
 
-        let channels: Vec<_> = (0..ITER).map(|_| bounded(1)).collect();
+        let (senders, receivers): (Vec<Sender<()>>, Vec<Receiver<()>>) =
+            (0..ITER).map(|_| bounded(1)).unzip();
         let mut rng = thread_rng();
 
-        for i in 0..ITER {
-            let sender = channels[i].0.clone();
+        for (i, sender) in senders.into_iter().enumerate() {
             let logsize = LOGSZ_LO + i % (LOGSZ_HI - LOGSZ_LO);
             let len = 1 << logsize;
             let mut arr: Vec<_> = (0..len).map(|_| usize::rand_gen(&mut rng)).collect();
             rayon::spawn(move || {
-                let res = boc_merge_sort::merge_sort(arr.clone(), logsize);
-                arr.sort();
+                let res = boc_merge_sort::merge_sort(arr.clone());
+                arr.sort_unstable();
                 assert_eq!(arr, res);
                 sender.send(()).unwrap();
             });
         }
 
-        for i in 0..ITER {
-            channels[i].1.recv().unwrap();
+        for reciever in receivers {
+            reciever.recv().unwrap();
         }
     }
 }
