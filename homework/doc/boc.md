@@ -46,5 +46,11 @@ More examples can be found in `src/boc.rs` and `test/boc.rs`.
 Run `./scripts/grade-boc.sh`.
 Basic tests account for 60 points and stress tests account for 40 points.
 
+Note: You don't need to worry about the message (shown below) that might be printed during the tests with `cargo_tsan`.
+It will not affect the grading.
+```
+/usr/bin/addr2line: DWARF error: invalid or unhandled FORM value: 0x23
+```
+
 ## Submission
 Submit `boc.rs` to gg.
