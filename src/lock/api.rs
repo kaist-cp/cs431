@@ -87,7 +87,7 @@ pub struct LockGuard<'s, L: RawLock, T> {
     token: ManuallyDrop<L::Token>,
 }
 
-unsafe impl<L: RawLock, T: Sync> Send for LockGuard<'_, L, T> {}
+unsafe impl<L: RawLock, T: Send> Send for LockGuard<'_, L, T> {}
 unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
 
 impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
