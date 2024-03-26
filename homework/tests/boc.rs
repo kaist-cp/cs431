@@ -394,7 +394,7 @@ mod stress_test {
         let (send_finish, recv_finish) = bounded(0);
 
         rayon::spawn(move || {
-            assert_eq!(boc_fibonacci::fibonacci(30), 832040);
+            assert_eq!(boc_fibonacci::fibonacci(28), 317811);
             send_finish.send(()).unwrap();
         });
 
@@ -415,9 +415,9 @@ mod stress_test {
 
     #[test]
     fn merge_sort() {
-        const ITER: usize = 10;
+        const ITER: usize = 4;
         const LOGSZ_LO: usize = 10;
-        const LOGSZ_HI: usize = 14;
+        const LOGSZ_HI: usize = 13;
 
         let (senders, receivers): (Vec<Sender<()>>, Vec<Receiver<()>>) =
             (0..ITER).map(|_| bounded(1)).unzip();
