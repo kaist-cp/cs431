@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An analogous trait to `Wake` but used to construct a `LocalWaker`. This API works in exactly the same way as `Wake`, except that it uses an `Rc` instead of an `Arc`, and the result is a `LocalWaker` instead of a `Waker`."><title>LocalWake in cs431_homework::test::loom::task - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (a165f1f65 2024-03-12)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-12cf3b4f4f9dc36d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_homework</a><span class="version">0.1.0</span></h2></div><h2 class="location"><a href="#">LocalWake</a></h2><div class="sidebar-elems"><section><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.wake">wake</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.wake_by_ref">wake_by_ref</a></li></ul><h3><a href="#object-safety">Object Safety</a></h3><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In cs431_homework::test::loom::task</a></h2></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../cs431_homework/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">task</a>::<wbr><a class="trait" href="#">LocalWake</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="https://doc.rust-lang.org/nightly/src/alloc/task.rs.html#268">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait LocalWake {
+    // Required method
+    fn <a href="#tymethod.wake" class="fn">wake</a>(self: <a class="struct" href="../rc/struct.Rc.html" title="struct cs431_homework::test::loom::rc::Rc">Rc</a>&lt;Self&gt;);
+
+    // Provided method
+    fn <a href="#method.wake_by_ref" class="fn">wake_by_ref</a>(self: &amp;<a class="struct" href="../rc/struct.Rc.html" title="struct cs431_homework::test::loom::rc::Rc">Rc</a>&lt;Self&gt;) { ... }
+}</code></pre><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>local_waker</code>)</span></div></span><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An analogous trait to <code>Wake</code> but used to construct a <code>LocalWaker</code>. This API
+works in exactly the same way as <code>Wake</code>, except that it uses an <code>Rc</code> instead
+of an <code>Arc</code>, and the result is a <code>LocalWaker</code> instead of a <code>Waker</code>.</p>
+<p>The benefits of using <code>LocalWaker</code> over <code>Waker</code> are that it allows the local waker
+to hold data that does not implement <code>Send</code> and <code>Sync</code>. Additionally, it saves calls
+to <code>Arc::clone</code>, which requires atomic synchronization.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>This is a simplified example of a <code>spawn</code> and a <code>block_on</code> function. The <code>spawn</code> function
+is used to push new tasks onto the run queue, while the block on function will remove them
+and poll them. When a task is woken, it will put itself back on the run queue to be polled
+by the executor.</p>
+<p><strong>Note:</strong> This example trades correctness for simplicity. A real world example would interleave
+poll calls with calls to an io reactor to wait for events instead of spinning on a loop.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(local_waker)]
+#![feature(noop_waker)]
+</span><span class="kw">use </span>std::task::{LocalWake, ContextBuilder, LocalWaker, Waker};
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::collections::VecDeque;
+
+
+<span class="macro">thread_local!</span> {
+    <span class="comment">// A queue containing all tasks ready to do progress
+    </span><span class="kw">static </span>RUN_QUEUE: RefCell&lt;VecDeque&lt;Rc&lt;Task&gt;&gt;&gt; = RefCell::default();
+}
+
+<span class="kw">type </span>BoxedFuture = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt;&gt;&gt;;
+
+<span class="kw">struct </span>Task(RefCell&lt;BoxedFuture&gt;);
+
+<span class="kw">impl </span>LocalWake <span class="kw">for </span>Task {
+    <span class="kw">fn </span>wake(<span class="self">self</span>: Rc&lt;<span class="self">Self</span>&gt;) {
+        RUN_QUEUE.with_borrow_mut(|queue| {
+            queue.push_back(<span class="self">self</span>)
+        })
+    }
+}
+
+<span class="kw">fn </span>spawn&lt;F&gt;(future: F)
+<span class="kw">where
+    </span>F: Future&lt;Output=()&gt; + <span class="lifetime">'static </span>+ Send + Sync
+{
+    <span class="kw">let </span>task = RefCell::new(Box::pin(future));
+    RUN_QUEUE.with_borrow_mut(|queue| {
+        queue.push_back(Rc::new(Task(task)));
+    });
+}
+
+<span class="kw">fn </span>block_on&lt;F&gt;(future: F)
+<span class="kw">where
+    </span>F: Future&lt;Output=()&gt; + <span class="lifetime">'static </span>+ Sync + Send
+{
+    spawn(future);
+    <span class="kw">loop </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(task) = RUN_QUEUE.with_borrow_mut(|queue| queue.pop_front()) <span class="kw">else </span>{
+            <span class="comment">// we exit, since there are no more tasks remaining on the queue
+            </span><span class="kw">return</span>;
+        };
+
+        <span class="comment">// cast the Rc&lt;Task&gt; into a `LocalWaker`
+        </span><span class="kw">let </span>local_waker: LocalWaker = task.clone().into();
+        <span class="comment">// Build the context using `ContextBuilder`
+        </span><span class="kw">let </span><span class="kw-2">mut </span>cx = ContextBuilder::from_waker(Waker::noop())
+            .local_waker(<span class="kw-2">&amp;</span>local_waker)
+            .build();
+
+        <span class="comment">// Poll the task
+        </span><span class="kw">let _ </span>= task.<span class="number">0
+            </span>.borrow_mut()
+            .as_mut()
+            .poll(<span class="kw-2">&amp;mut </span>cx);
+    }
+}
+
+block_on(<span class="kw">async </span>{
+    <span class="macro">println!</span>(<span class="string">"hello world"</span>);
+});</code></pre></div>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.wake" class="method"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/task.rs.html#271">source</a><h4 class="code-header">fn <a href="#tymethod.wake" class="fn">wake</a>(self: <a class="struct" href="../rc/struct.Rc.html" title="struct cs431_homework::test::loom::rc::Rc">Rc</a>&lt;Self&gt;)</h4></section><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>local_waker</code>)</span></div></span></summary><div class="docblock"><p>Wake this task.</p>
+</div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.wake_by_ref" class="method"><a class="src rightside" href="https://doc.rust-lang.org/nightly/src/alloc/task.rs.html#281">source</a><h4 class="code-header">fn <a href="#method.wake_by_ref" class="fn">wake_by_ref</a>(self: &amp;<a class="struct" href="../rc/struct.Rc.html" title="struct cs431_homework::test::loom::rc::Rc">Rc</a>&lt;Self&gt;)</h4></section><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>local_waker</code>)</span></div></span></summary><div class="docblock"><p>Wake this task without consuming the local waker.</p>
+<p>If an executor supports a cheaper way to wake without consuming the
+waker, it should override this method. By default, it clones the
+<a href="../rc/struct.Rc.html" title="struct cs431_homework::test::loom::rc::Rc"><code>Rc</code></a> and calls <a href="struct.LocalWaker.html#method.wake" title="method cs431_homework::test::loom::task::LocalWaker::wake"><code>wake</code></a> on the clone.</p>
+</div></details></div><h2 id="object-safety" class="section-header">Object Safety<a href="#object-safety" class="anchor">§</a></h2><div class="object-safety-info">This trait is <b>not</b> <a href="https://doc.rust-lang.org/nightly/reference/items/traits.html#object-safety">object safe</a>.</div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"></div><script src="../../../../trait.impl/alloc/task/trait.LocalWake.js" async></script></section></div></main></body></html>
