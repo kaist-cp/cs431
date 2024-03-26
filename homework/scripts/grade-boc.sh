@@ -24,7 +24,7 @@ RUNNERS=(
     "cargo_tsan"
     "cargo_tsan --release"
 )
-TIMEOUT=500s
+TIMEOUT=180s
 SCORE=0
 
 echo "1. Basic tests"
