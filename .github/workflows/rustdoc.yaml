@@ -29,7 +29,7 @@ jobs:
       run: source "$HOME/.cargo/env"; cd homework; cargo doc --all --document-private-items
 
     - name: Deploy Docs
-      uses: peaceiris/actions-gh-pages@364c31d33bb99327c77b3a5438a83a357a6729ad # v3.4.0
+      uses: peaceiris/actions-gh-pages@v.4.0.0
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_branch: gh-pages
