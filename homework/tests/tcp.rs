@@ -1,9 +1,10 @@
-use cs431_homework::hello_server::CancellableTcpListener;
 use std::io::prelude::*;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, TcpStream};
 use std::sync::mpsc::channel;
 use std::thread::scope;
 use std::time::Duration;
+
+use cs431_homework::hello_server::CancellableTcpListener;
 
 #[test]
 fn cancellable_listener_cancel() {

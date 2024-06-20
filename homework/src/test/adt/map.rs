@@ -2,14 +2,15 @@
 
 use core::fmt::Debug;
 use core::hash::Hash;
-use std::collections::{hash_map::Entry, HashMap};
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::thread::scope;
+
+use crossbeam_epoch::pin;
+use rand::prelude::*;
 
 use crate::test::RandGen;
 use crate::ConcurrentMap;
-use rand::prelude::*;
-
-use crossbeam_epoch::pin;
 
 /// Runs many operations in a single thread and tests if it works like a map data structure using
 /// `std::collections::HashMap` as reference.
@@ -245,11 +246,11 @@ fn assert_logs_consistent<K: Debug + Eq + Hash, V: Debug + Eq + Hash>(logs: &[Lo
         per_key_logs.entry(l.key()).or_insert(vec![]).push(l);
     }
 
-    for (k, logs) in &per_key_logs {
+    for (k, logs) in per_key_logs {
         let mut inserts = HashMap::new();
         let mut deletes = HashMap::new();
 
-        for l in logs {
+        for l in logs.iter() {
             match l {
                 Log::Insert {
                     result: Some(v), ..

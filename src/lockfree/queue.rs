@@ -25,9 +25,9 @@ struct Node<T> {
     /// The place in which a value of type `T` can be stored.
     ///
     /// The type of `data` is `MaybeUninit<T>` because a `Node<T>` doesn't always contain a `T`.
-    /// For example, the initial sentinel node in a queue never contains a value: its data is always
-    /// uninitialized. Other nodes start their life with a push operation and contain a value until
-    /// it gets popped out.
+    /// For example, the initial sentinel node in a queue never contains a value: its data is
+    /// always uninitialized. Other nodes start their life with a push operation and contain a
+    /// value until it gets popped out.
     data: MaybeUninit<T>,
 
     next: Atomic<Node<T>>,
@@ -154,11 +154,11 @@ impl<T> Drop for Queue<T> {
         // Destroy the sentinel node.
 
         let sentinel = mem::take(&mut *self.head);
+        // SAFETY: `pop()` never dropped the sentinel node so it is still valid.
+        let mut o_curr = unsafe { sentinel.into_owned() }.into_box().next;
 
         // Destroy and deallocate `data` for the rest of the nodes.
 
-        // SAFETY: `pop()` never dropped the sentinel node so it is still valid.
-        let mut o_curr = unsafe { sentinel.into_owned() }.into_box().next;
         // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
         while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
             // SAFETY: Not sentinel node, so `data` is valid.
@@ -170,9 +170,11 @@ impl<T> Drop for Queue<T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crossbeam_epoch::pin;
     use std::thread::scope;
+
+    use crossbeam_epoch::pin;
+
+    use super::*;
 
     struct Queue<T> {
         queue: super::Queue<T>,

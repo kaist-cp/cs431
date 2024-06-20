@@ -1,4 +1,5 @@
-use core::sync::atomic::{AtomicBool, Ordering::*};
+use core::sync::atomic::AtomicBool;
+use core::sync::atomic::Ordering::*;
 
 use crossbeam_utils::Backoff;
 

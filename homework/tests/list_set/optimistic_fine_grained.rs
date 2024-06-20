@@ -1,17 +1,15 @@
-use crossbeam_channel::bounded;
-use crossbeam_epoch::pin;
-use rand::prelude::*;
 use std::collections::HashSet;
 use std::iter::zip;
-use std::sync::atomic::{
-    AtomicBool,
-    Ordering::{Acquire, Release},
-};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::{Acquire, Release};
 use std::thread;
 use std::time::Duration;
 
+use crossbeam_channel::bounded;
+use crossbeam_epoch::pin;
 use cs431_homework::test::adt::set;
 use cs431_homework::{ConcurrentSet, OptimisticFineGrainedListSet};
+use rand::prelude::*;
 
 #[test]
 fn smoke() {

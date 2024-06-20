@@ -4,7 +4,8 @@ mod boc_fibonacci {
     //! Computing fibonacci sequence using [`boc`].
 
     use crossbeam_channel::{bounded, Sender};
-    use cs431_homework::{boc::run_when, tuple_list, when, CownPtr};
+    use cs431_homework::boc::run_when;
+    use cs431_homework::{tuple_list, when, CownPtr};
 
     fn fibonacci_inner(n: usize, sender: Option<Sender<usize>>) -> CownPtr<usize> {
         if n == 0 {
@@ -41,10 +42,13 @@ mod boc_fibonacci {
 mod boc_banking {
     //! A simple transaction system using [`boc`].
 
-    use std::{thread::sleep, time::Duration};
+    use std::thread::sleep;
+    use std::time::Duration;
 
     use crossbeam_channel::bounded;
-    use cs431_homework::{boc::run_when, test::RandGen, tuple_list, when, CownPtr};
+    use cs431_homework::boc::run_when;
+    use cs431_homework::test::RandGen;
+    use cs431_homework::{tuple_list, when, CownPtr};
     use rand::thread_rng;
 
     const TRANSFER_LIMIT: usize = 2048;
@@ -111,10 +115,8 @@ mod boc_merge_sort {
     //! Merge sort using BoC.
 
     use crossbeam_channel::{bounded, Sender};
-    use cs431_homework::{
-        boc::{run_when, CownPtr},
-        tuple_list, when,
-    };
+    use cs431_homework::boc::{run_when, CownPtr};
+    use cs431_homework::{tuple_list, when};
 
     fn merge_sort_inner(
         idx: usize,
@@ -213,16 +215,14 @@ mod boc_merge_sort {
 }
 
 mod basic_test {
-    use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+
     use crossbeam_channel::bounded;
-    use cs431_homework::{
-        boc::{run_when, CownPtr},
-        tuple_list, when,
-    };
-    use std::sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    };
+    use cs431_homework::boc::{run_when, CownPtr};
+    use cs431_homework::{tuple_list, when};
+
+    use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
 
     #[test]
     fn message_passing() {
@@ -384,10 +384,11 @@ mod basic_test {
 }
 
 mod stress_test {
-    use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
     use crossbeam_channel::{bounded, Receiver, Sender};
     use cs431_homework::test::RandGen;
     use rand::thread_rng;
+
+    use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
 
     #[test]
     fn fibonacci() {

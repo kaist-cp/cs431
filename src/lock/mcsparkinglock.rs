@@ -1,5 +1,6 @@
 use core::ptr;
-use core::sync::atomic::{AtomicBool, AtomicPtr, Ordering::*};
+use core::sync::atomic::Ordering::*;
+use core::sync::atomic::{AtomicBool, AtomicPtr};
 use std::thread::{self, Thread};
 
 use crossbeam_utils::CachePadded;

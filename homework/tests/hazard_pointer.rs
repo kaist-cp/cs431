@@ -1,15 +1,13 @@
-use std::thread::sleep;
-use std::time::Duration;
-
 #[cfg(not(feature = "check-loom"))]
 use core::sync::atomic::{AtomicPtr, Ordering::*};
-#[cfg(feature = "check-loom")]
-use loom::sync::atomic::{AtomicPtr, Ordering::*};
+use std::thread::{scope, sleep};
+use std::time::Duration;
 
 use cs431_homework::hazard_pointer::{collect, retire, Shield};
+#[cfg(feature = "check-loom")]
+use loom::sync::atomic::{AtomicPtr, Ordering::*};
 use queue::Queue;
 use stack::Stack;
-use std::thread::scope;
 
 #[test]
 fn counter() {
@@ -159,11 +157,12 @@ fn stack_queue() {
 
 mod sync {
     use core::ptr;
+
     use cs431_homework::hazard_pointer::*;
-    use cs431_homework::test::loom::model;
-    use cs431_homework::test::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering::*};
+    use cs431_homework::test::loom::sync::atomic::Ordering::*;
+    use cs431_homework::test::loom::sync::atomic::{AtomicPtr, AtomicUsize};
     use cs431_homework::test::loom::sync::Arc;
-    use cs431_homework::test::loom::thread;
+    use cs431_homework::test::loom::{model, thread};
 
     #[test]
     fn try_protect_collect_sync() {
@@ -255,15 +254,14 @@ mod sync {
 }
 
 mod stack {
-    use core::mem::ManuallyDrop;
+    use core::mem::MaybeUninit;
     use core::ptr;
-
     #[cfg(not(feature = "check-loom"))]
     use core::sync::atomic::{AtomicPtr, Ordering::*};
-    #[cfg(feature = "check-loom")]
-    use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
     use cs431_homework::hazard_pointer::{retire, Shield};
+    #[cfg(feature = "check-loom")]
+    use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
     /// Treiber's lock-free stack.
     #[derive(Debug, Default)]
@@ -273,7 +271,7 @@ mod stack {
 
     #[derive(Debug)]
     struct Node<T> {
-        data: ManuallyDrop<T>,
+        data: MaybeUninit<T>,
         next: *mut Node<T>,
     }
 
@@ -283,20 +281,18 @@ mod stack {
     impl<T> Stack<T> {
         pub fn push(&self, t: T) {
             let new = Box::leak(Box::new(Node {
-                data: ManuallyDrop::new(t),
+                data: MaybeUninit::new(t),
                 next: ptr::null_mut(),
             }));
 
+            let mut head = self.head.load(Relaxed);
+
             loop {
-                let head = self.head.load(Relaxed);
                 new.next = head;
 
-                if self
-                    .head
-                    .compare_exchange(head, new, Release, Relaxed)
-                    .is_ok()
-                {
-                    break;
+                match self.head.compare_exchange(head, new, Release, Relaxed) {
+                    Ok(_) => break,
+                    Err(current) => head = current,
                 }
             }
         }
@@ -312,7 +308,7 @@ mod stack {
                     .compare_exchange(head_ptr, head_ref.next, Relaxed, Relaxed)
                     .is_ok()
                 {
-                    let data = ManuallyDrop::into_inner(unsafe { ptr::read(&head_ref.data) });
+                    let data = unsafe { head_ref.data.assume_init_read() };
                     unsafe { retire(head_ptr) };
                     return Some(data);
                 }
@@ -329,7 +325,7 @@ mod stack {
 
             while !o_curr.is_null() {
                 let curr = unsafe { Box::from_raw(o_curr) };
-                drop(ManuallyDrop::into_inner(curr.data));
+                drop(unsafe { curr.data.assume_init() });
                 o_curr = curr.next;
             }
         }
@@ -339,13 +335,12 @@ mod stack {
 mod queue {
     use core::mem::MaybeUninit;
     use core::ptr;
-
     #[cfg(not(feature = "check-loom"))]
     use core::sync::atomic::{AtomicPtr, Ordering::*};
-    #[cfg(feature = "check-loom")]
-    use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
     use cs431_homework::hazard_pointer::{retire, Shield};
+    #[cfg(feature = "check-loom")]
+    use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
     /// Michael-Scott queue.
     #[derive(Debug)]
@@ -448,14 +443,13 @@ mod queue {
                     let _ = self.tail.compare_exchange(tail, next, Release, Relaxed);
                 }
 
-                if self
-                    .head
-                    .compare_exchange(head, next, Release, Relaxed)
-                    .is_ok()
-                {
-                    let result = unsafe { next_ref.data.assume_init_read() };
-                    unsafe { retire(head) };
-                    return Some(result);
+                match self.head.compare_exchange(head, next, Release, Relaxed) {
+                    Ok(_) => {
+                        let result = unsafe { next_ref.data.assume_init_read() };
+                        unsafe { retire(head) };
+                        return Some(result);
+                    }
+                    Err(new) => head = new,
                 }
             }
         }

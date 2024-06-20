@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
-use std::fmt;
 use std::marker::PhantomData;
-use std::mem;
-use std::ptr;
+use std::{fmt, mem, ptr};
 
 /// A doubly-linked list with owned nodes.
 ///

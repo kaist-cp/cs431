@@ -1,9 +1,10 @@
-use crossbeam_channel::bounded;
-use cs431_homework::hello_server::Cache;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Barrier;
 use std::thread::scope;
 use std::time::Duration;
+
+use crossbeam_channel::bounded;
+use cs431_homework::hello_server::Cache;
 
 const NUM_THREADS: usize = 8;
 const NUM_KEYS: usize = 128;

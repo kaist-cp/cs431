@@ -1,9 +1,10 @@
-use crossbeam_channel::bounded;
-use cs431_homework::hello_server::ThreadPool;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Barrier};
 use std::thread::sleep;
 use std::time::Duration;
+
+use crossbeam_channel::bounded;
+use cs431_homework::hello_server::ThreadPool;
 
 const NUM_THREADS: usize = 4;
 const NUM_JOBS: usize = 1024;

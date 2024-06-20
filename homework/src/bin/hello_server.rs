@@ -1,7 +1,8 @@
-use cs431_homework::hello_server::{CancellableTcpListener, Handler, Statistics, ThreadPool};
 use std::io;
 use std::sync::mpsc::{channel, sync_channel};
 use std::sync::Arc;
+
+use cs431_homework::hello_server::{CancellableTcpListener, Handler, Statistics, ThreadPool};
 
 const ADDR: &str = "localhost:7878";
 

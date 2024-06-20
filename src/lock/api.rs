@@ -8,6 +8,7 @@ use core::ops::{Deref, DerefMut};
 ///
 /// Implementations of this trait must ensure that the lock is actually
 /// exclusive: a lock can't be acquired while the lock is already locked.
+// TODO: For weak memory, there needs to be a bit more stricter condition. unlock -hb→ lock.
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     type Token;
@@ -29,7 +30,8 @@ pub unsafe trait RawLock: Default + Send + Sync {
 ///
 /// Implementations of this trait must ensure that the lock is actually
 /// exclusive: a lock can't be acquired while the lock is already locked.
-/// Also, `try_lock()`, when successful, should return a token that can be used for `RawLock::unlock`.
+/// Also, `try_lock()`, when successful, should return a token that can be used for
+/// `RawLock::unlock`.
 pub unsafe trait RawTryLock: RawLock {
     /// Tries to acquire the raw lock.
     fn try_lock(&self) -> Result<Self::Token, ()>;
@@ -120,8 +122,9 @@ impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{Lock, RawLock};
     use std::thread::scope;
+
+    use super::{Lock, RawLock};
 
     pub fn smoke<L: RawLock>() {
         const LENGTH: usize = 1024;

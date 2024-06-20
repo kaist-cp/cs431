@@ -2,11 +2,10 @@
 
 use core::ops::Deref;
 use core::sync::atomic::Ordering::*;
-use crossbeam_epoch::{pin, Guard, Owned, Shared};
 
+use crossbeam_epoch::{pin, Guard, Owned, Shared};
 use cs431_homework::test::adt::map;
 use cs431_homework::{ConcurrentMap, GrowableArray};
-
 use stack::{Node, Stack};
 
 #[derive(Debug)]
@@ -72,10 +71,10 @@ impl<V> ConcurrentMap<u32, V> for ArrayMap<V> {
 
 mod stack {
     use core::cell::UnsafeCell;
-    use core::mem;
     use core::ops::Deref;
-    use core::ptr;
     use core::sync::atomic::Ordering::*;
+    use core::{mem, ptr};
+
     use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
     #[derive(Debug)]

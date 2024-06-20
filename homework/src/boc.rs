@@ -1,21 +1,19 @@
 //! Concurrent Owner (Cown) type.
 
 use core::cell::UnsafeCell;
-use core::fmt;
-use core::hint::spin_loop;
-use core::ptr::null_mut;
-use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering::SeqCst};
-
+use core::sync::atomic::Ordering::SeqCst;
+use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize};
+use core::{fmt, hint, ptr};
 use std::sync::Arc;
 
 /// A trait representing a `Cown`.
 ///
 /// Instead of directly using a `Cown<T>`, which fixes _a single_ `T` we use a trait object to allow
-/// for multiple requests with different `T`. to be used for the same cown.
+/// multiple requests with different `T`s to be used with the same cown.
 ///
 /// # Safety
 ///
-/// `tail` should actually return the last request for the corresponding cown.
+/// `last()` should actually return the last request for the corresponding cown.
 unsafe trait CownBase: Send {
     /// Return a pointer to the tail of this cown's request queue.
     fn last(&self) -> &AtomicPtr<Request>;
@@ -42,7 +40,7 @@ impl Request {
     /// Creates a new Request.
     fn new(target: Arc<dyn CownBase>) -> Request {
         Request {
-            next: AtomicPtr::new(null_mut()),
+            next: AtomicPtr::new(ptr::null_mut()),
             scheduled: AtomicBool::new(false),
             target,
         }
@@ -86,18 +84,19 @@ impl Request {
 }
 
 impl Ord for Request {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        #[allow(warnings)]
         Arc::as_ptr(&self.target).cmp(&Arc::as_ptr(&other.target))
     }
 }
 impl PartialOrd for Request {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 impl PartialEq for Request {
     fn eq(&self, other: &Self) -> bool {
-        matches!(self.cmp(other), std::cmp::Ordering::Equal)
+        matches!(self.cmp(other), core::cmp::Ordering::Equal)
     }
 }
 impl Eq for Request {}
@@ -152,7 +151,7 @@ impl<T: Send> CownPtr<T> {
     pub fn new(value: T) -> CownPtr<T> {
         CownPtr {
             inner: Arc::new(Cown {
-                last: AtomicPtr::new(null_mut()),
+                last: AtomicPtr::new(ptr::null_mut()),
                 value: UnsafeCell::new(value),
             }),
         }
@@ -332,7 +331,7 @@ fn boc() {
     let (finish_sender, finish_receiver) = crossbeam_channel::bounded(0);
 
     when!(c1, c2; g1, g2; {
-        // c3, c2 are moved into this thunk. there's no such thing as auto-cloning move closure
+        // c3, c2 are moved into this thunk. There's no such thing as auto-cloning move closure.
         *g1 += 1;
         *g2 += 1;
         when!(c3, c2; g3, g2; {
@@ -362,7 +361,7 @@ fn boc_vec() {
     let (finish_sender, finish_receiver) = crossbeam_channel::bounded(0);
 
     run_when(vec![c1.clone(), c2.clone()], move |mut x| {
-        // c3, c2 are moved into this thunk. there's no such thing as auto-cloning move closure
+        // c3, c2 are moved into this thunk. There's no such thing as auto-cloning move closure.
         *x[0] += 1;
         *x[1] += 1;
         when!(c3, c2; g3, g2; {

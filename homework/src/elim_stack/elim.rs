@@ -2,8 +2,9 @@ use core::mem::ManuallyDrop;
 use core::ops::Deref;
 use core::ptr;
 use core::sync::atomic::Ordering;
-use crossbeam_epoch::{Guard, Owned, Shared};
 use std::thread;
+
+use crossbeam_epoch::{Guard, Owned, Shared};
 
 use super::base::{get_random_elim_index, ElimStack, Stack, ELIM_DELAY};
 

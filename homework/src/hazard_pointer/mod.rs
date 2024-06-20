@@ -21,11 +21,11 @@
 //! ```
 
 use core::cell::RefCell;
+#[cfg(not(feature = "check-loom"))]
+use std::thread_local;
 
 #[cfg(feature = "check-loom")]
 use loom::thread_local;
-#[cfg(not(feature = "check-loom"))]
-use std::thread_local;
 
 mod hazard;
 mod retire;

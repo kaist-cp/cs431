@@ -151,6 +151,8 @@ where
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
+            // NOTE: This load could be non-atomic, but `crossbeam-epoch`'s atomics does not support
+            // such fine-grained access options. `core` atomics have `as_ptr()`.
             let next = unsafe { node.deref() }.next.load(Relaxed, guard);
             // SAFETY: we unlinked the chain with above CAS.
             unsafe { guard.defer_destroy(node) };
@@ -251,7 +253,8 @@ where
         let curr_node = unsafe { self.curr.as_ref() }.unwrap();
 
         // Release: to release current view of the deleting thread on this mark.
-        // Acquire: to ensure that if the latter CAS succeeds, then the thread that reads `next` through `prev` will be safe.
+        // Acquire: to ensure that if the latter CAS succeeds, then the thread that reads `next`
+        // through `prev` will be safe.
         let next = curr_node.next.fetch_or(1, AcqRel, guard);
         if next.tag() == 1 {
             return Err(());

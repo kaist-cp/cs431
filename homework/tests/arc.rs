@@ -1,4 +1,5 @@
-use cs431_homework::test::loom::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+use cs431_homework::test::loom::sync::atomic::AtomicUsize;
+use cs431_homework::test::loom::sync::atomic::Ordering::Relaxed;
 
 /// Used for testing if `T` of `Arc<T>` is dropped exactly once.
 struct Canary(*const AtomicUsize);
@@ -14,12 +15,13 @@ impl Drop for Canary {
 
 #[cfg(not(feature = "check-loom"))]
 mod basic {
+    use cs431_homework::test::loom::sync::atomic::AtomicUsize;
+    use cs431_homework::test::loom::sync::atomic::Ordering::Relaxed;
+    use cs431_homework::test::loom::sync::mpsc::channel;
+    use cs431_homework::test::loom::thread;
     use cs431_homework::Arc;
 
     use super::Canary;
-    use cs431_homework::test::loom::sync::atomic::{AtomicUsize, Ordering::Relaxed};
-    use cs431_homework::test::loom::sync::mpsc::channel;
-    use cs431_homework::test::loom::thread;
 
     #[test]
     fn manually_share_arc() {
@@ -143,11 +145,12 @@ mod basic {
 }
 
 mod correctness {
-    use super::Canary;
-    use cs431_homework::test::loom::model;
-    use cs431_homework::test::loom::sync::atomic::{AtomicUsize, Ordering::Relaxed};
-    use cs431_homework::test::loom::thread;
+    use cs431_homework::test::loom::sync::atomic::AtomicUsize;
+    use cs431_homework::test::loom::sync::atomic::Ordering::Relaxed;
+    use cs431_homework::test::loom::{model, thread};
     use cs431_homework::Arc;
+
+    use super::Canary;
 
     #[test]
     /// data:=123 → flag.count:=1 → flag.count==1 → data==123

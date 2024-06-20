@@ -1,6 +1,7 @@
 use core::marker::PhantomData;
 #[cfg(not(feature = "check-loom"))]
 use core::sync::atomic::{fence, Ordering};
+
 #[cfg(feature = "check-loom")]
 use loom::sync::atomic::{fence, Ordering};
 
@@ -87,10 +88,11 @@ impl Drop for RetiredSet<'_> {
 
 #[cfg(all(test, not(feature = "check-loom")))]
 mod tests {
-    use super::{HazardBag, RetiredSet};
     use std::cell::RefCell;
     use std::collections::HashSet;
     use std::rc::Rc;
+
+    use super::{HazardBag, RetiredSet};
 
     // retire `THRESHOLD` pointers to trigger collection
     #[test]

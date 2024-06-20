@@ -105,8 +105,9 @@ impl<T> Drop for TreiberStack<T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use std::thread::scope;
+
+    use super::*;
 
     #[test]
     fn push() {

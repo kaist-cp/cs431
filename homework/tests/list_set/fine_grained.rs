@@ -1,14 +1,12 @@
-use rand::prelude::*;
 use std::collections::HashSet;
 use std::iter::zip;
-use std::sync::atomic::{
-    AtomicBool,
-    Ordering::{Acquire, Release},
-};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::{Acquire, Release};
 use std::thread;
 
 use cs431_homework::test::adt::set;
 use cs431_homework::{ConcurrentSet, FineGrainedListSet};
+use rand::prelude::*;
 
 #[test]
 fn smoke() {

@@ -152,7 +152,7 @@ impl<T> Segment<T> {
     fn new() -> Owned<Self> {
         Owned::new(
             // SAFETY: An array of null pointers can be interperted as either an element segment or
-            // an children segment.
+            // a children segment.
             unsafe { mem::zeroed() },
         )
     }

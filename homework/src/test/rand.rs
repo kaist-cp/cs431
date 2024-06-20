@@ -1,6 +1,8 @@
 //! Utilities for random value generator
 
-use rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
+use rand::distributions::Alphanumeric;
+use rand::rngs::ThreadRng;
+use rand::Rng;
 
 /// Types that has random generator
 pub trait RandGen {

@@ -3,11 +3,11 @@
 use core::fmt::Debug;
 use core::hash::Hash;
 
+use crossbeam_epoch::Guard;
+
 use super::map;
 use crate::test::RandGen;
 use crate::{ConcurrentMap, ConcurrentSet};
-
-use crossbeam_epoch::Guard;
 
 // A set can be seen as a map with value `()`. Thus, we can reuse the tests for maps.
 impl<T, S: ConcurrentSet<T>> ConcurrentMap<T, ()> for S {

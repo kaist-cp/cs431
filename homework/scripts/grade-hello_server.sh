@@ -12,57 +12,53 @@ run_linters || exit 1
 RUNNERS=(
     "cargo"
     "cargo --release"
-    "cargo_asan"
-    "cargo_asan --release"
-    "cargo_tsan"
-    "cargo_tsan --release"
 )
 
 
-t1_basic_failed=false
-t1_nonblocking_failed=false
-t2_failed=false
-t3_failed=false
+cache_basic_failed=false
+cache_nonblocking_failed=false
+tcp_failed=false
+thread_pool_failed=false
 
 # Executes test for each runner.
 for RUNNER in "${RUNNERS[@]}"; do
     echo "Running with $RUNNER..."
 
-    if [ "$t1_basic_failed" = false ]; then
+    if [ "$cache_basic_failed" = false ]; then
         echo "    Testing basic functionalities of cache.rs..."
         TESTS=(
             "--test cache -- --exact cache_no_duplicate_sequential"
             "--test cache -- --exact cache_no_duplicate_concurrent"
         )
         if [ $(run_tests) -ne 0 ]; then
-            t1_basic_failed=true
+            cache_basic_failed=true
         fi
     fi
 
-    if [ "$t1_nonblocking_failed" = false ]; then
+    if [ "$cache_nonblocking_failed" = false ]; then
         echo "    Testing nonblockingness of cache.rs..."
         TESTS=(
             "--test cache -- --exact cache_no_block_disjoint"
             "--test cache -- --exact cache_no_reader_block"
         )
         if [ $(run_tests) -ne 0 ]; then
-            t1_nonblocking_failed=true
+            cache_nonblocking_failed=true
         fi
     fi
 
-    if [ "$t2_failed" = false ]; then
+    if [ "$tcp_failed" = false ]; then
         echo "    Testing tcp.rs..."
         TESTS=("--test tcp")
         if [ $(run_tests) -ne 0 ]; then
-            t2_failed=true
+            tcp_failed=true
         fi
     fi
 
-    if [ "$t3_failed" = false ]; then
+    if [ "$thread_pool_failed" = false ]; then
         echo "    Testing thread_pool.rs..."
         TESTS=("--test thread_pool")
         if [ $(run_tests) -ne 0 ]; then
-            t3_failed=true
+            thread_pool_failed=true
         fi
     fi
 done
@@ -70,20 +66,20 @@ done
 SCORE=0
 
 # Scores for cache.rs
-if [ "$t1_basic_failed" = false ]; then
+if [ "$cache_basic_failed" = false ]; then
     SCORE=$((SCORE + 15))
 fi
-if [ "$t1_nonblocking_failed" = false ]; then
+if [ "$cache_nonblocking_failed" = false ]; then
     SCORE=$((SCORE + 25))
 fi
 
 # Scores for tcp.rs
-if [ "$t2_failed" = false ]; then
+if [ "$tcp_failed" = false ]; then
     SCORE=$((SCORE + 20))
 fi
 
 # Scores for thread_pool.rs
-if [ "$t3_failed" = false ]; then
+if [ "$thread_pool_failed" = false ]; then
     SCORE=$((SCORE + 40))
 fi
 

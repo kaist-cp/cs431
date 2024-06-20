@@ -1,9 +1,9 @@
 use core::ptr::{self, NonNull};
+#[cfg(not(feature = "check-loom"))]
+use core::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 use std::collections::HashSet;
 use std::fmt;
 
-#[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 #[cfg(feature = "check-loom")]
 use loom::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 
@@ -164,12 +164,13 @@ unsafe impl Sync for HazardSlot {}
 
 #[cfg(all(test, not(feature = "check-loom")))]
 mod tests {
-    use super::{HazardBag, Shield};
     use std::collections::HashSet;
-    use std::mem;
     use std::ops::Range;
-    use std::sync::{atomic::AtomicPtr, Arc};
-    use std::thread;
+    use std::sync::atomic::AtomicPtr;
+    use std::sync::Arc;
+    use std::{mem, thread};
+
+    use super::{HazardBag, Shield};
 
     const THREADS: usize = 8;
     const VALUES: Range<usize> = 1..1024;

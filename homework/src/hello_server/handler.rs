@@ -1,11 +1,12 @@
 //! Request handler with a cache.
 
-use regex::bytes::Regex;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::sync::{Arc, OnceLock};
 use std::thread;
 use std::time::Duration;
+
+use regex::bytes::Regex;
 
 use super::cache::Cache;
 use super::statistics::Report;

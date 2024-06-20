@@ -2,17 +2,25 @@
 
 use core::mem;
 use core::ops::Deref;
-use core::sync::atomic::{fence, AtomicUsize, Ordering::*};
+use core::sync::atomic::Ordering::*;
+use core::sync::atomic::{fence, AtomicUsize};
 
 use crossbeam_utils::Backoff;
 
 /// A raw sequence lock.
 #[derive(Debug)]
 pub struct RawSeqLock {
-    // Even: unlocked or read-locked.
-    // Odd: write-locked.
-    // Is monotonically increasing. In particuler, large part of the API are unsafe to enforece this.
+    /// - Even: unlocked or read-locked.
+    /// - Odd: write-locked.
+    /// - Is monotonically increasing. In particuler, a large part of the API is unsafe to enforce
+    ///   this.
     seq: AtomicUsize,
+}
+
+impl Default for RawSeqLock {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RawSeqLock {
@@ -95,7 +103,7 @@ impl RawSeqLock {
 }
 
 /// A sequence lock.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SeqLock<T> {
     inner: RawSeqLock,
     data: T,
@@ -115,14 +123,15 @@ pub struct ReadGuard<'s, T> {
     seq: usize,
 }
 
+// TODO: Think about the safety of these implementations.
 unsafe impl<T: Send> Send for SeqLock<T> {}
-unsafe impl<T: Send> Sync for SeqLock<T> {}
+unsafe impl<T: Send + Sync> Sync for SeqLock<T> {}
 
 unsafe impl<T> Send for WriteGuard<'_, T> {}
-unsafe impl<T: Send + Sync> Sync for WriteGuard<'_, T> {}
+unsafe impl<T: Sync> Sync for WriteGuard<'_, T> {}
 
 unsafe impl<T> Send for ReadGuard<'_, T> {}
-unsafe impl<T: Send + Sync> Sync for ReadGuard<'_, T> {}
+unsafe impl<T: Sync> Sync for ReadGuard<'_, T> {}
 
 impl<T> SeqLock<T> {
     /// Creates a new sequence lock.
@@ -214,7 +223,7 @@ impl<T> Drop for ReadGuard<'_, T> {
     fn drop(&mut self) {
         // HACK(@jeehoonkang): we really need linear type here:
         // https://github.com/rust-lang/rfcs/issues/814
-        panic!("seqlock::ReadGuard should never drop: use Self::finish() instead");
+        panic!("`seqlock::ReadGuard` should never drop. Use `ReadGuard::finish()` instead.");
     }
 }
 

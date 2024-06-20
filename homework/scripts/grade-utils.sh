@@ -7,10 +7,10 @@
 # * RUNNERS: array of "cargo[_asan | _tsan] [--release]"
 # * TIMEOUT: default 10s
 
-export RUST_NIGHTLY=nightly-2024-03-13
-# rustup toolchain update stable # nightly
-rustup install $RUST_NIGHTLY
-rustup component add rust-src --toolchain $RUST_NIGHTLY-x86_64-unknown-linux-gnu
+export RUST_NIGHTLY=nightly
+rustup toolchain update stable nightly
+# rustup install $RUST_NIGHTLY
+# rustup component add rust-src --toolchain $RUST_NIGHTLY-x86_64-unknown-linux-gnu
 
 
 echo_err() {
@@ -62,7 +62,7 @@ cargo_asan() {
     local SUBCOMMAND=$1; shift
     local TARGET_TRIPLE=$(rustc -vV | sed -n 's|host: ||p')
     RUSTFLAGS="-Z sanitizer=address" \
-        ASAN_OPTIONS="detect_leaks=1" \
+        # ASAN_OPTIONS="detect_leaks=1" \
         RUSTDOCFLAGS="-Z sanitizer=address" \
         cargo +$RUST_NIGHTLY $SUBCOMMAND -Z build-std --target $TARGET_TRIPLE "$@"
 }

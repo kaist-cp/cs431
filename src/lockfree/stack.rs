@@ -1,4 +1,4 @@
-use core::mem::{self, ManuallyDrop};
+use core::mem::{self, MaybeUninit};
 use core::ptr;
 use core::sync::atomic::Ordering::*;
 
@@ -14,7 +14,9 @@ pub struct Stack<T> {
 
 #[derive(Debug)]
 struct Node<T> {
-    data: ManuallyDrop<T>,
+    // MaybeUninit as the data may be taken out of the node.
+    // TODO: fix the slides to sync with this.
+    data: MaybeUninit<T>,
     next: *const Node<T>,
 }
 
@@ -38,27 +40,28 @@ impl<T> Stack<T> {
 
     /// Pushes a value on top of the stack.
     pub fn push(&self, t: T) {
-        let mut n = Owned::new(Node {
-            data: ManuallyDrop::new(t),
+        let mut node = Owned::new(Node {
+            data: MaybeUninit::new(t),
             next: ptr::null(),
         });
 
-        let mut guard = crossbeam_epoch::pin();
+        // SAFETY: We don't dereference any pointers obtained from this guard.
+        let guard = unsafe { crossbeam_epoch::unprotected() };
 
+        let mut head = self.head.load(Relaxed, guard);
         loop {
-            let head = self.head.load(Relaxed, &guard);
-            n.next = head.as_raw();
+            node.next = head.as_raw();
 
             match self
                 .head
-                .compare_exchange(head, n, Release, Relaxed, &guard)
+                .compare_exchange(head, node, Release, Relaxed, guard)
             {
                 Ok(_) => break,
-                Err(e) => n = e.new,
+                Err(e) => {
+                    head = e.current;
+                    node = e.new;
+                }
             }
-
-            // Repin to ensure the global epoch can make progress.
-            guard.repin();
         }
     }
 
@@ -67,6 +70,7 @@ impl<T> Stack<T> {
     /// Returns `None` if the stack is empty.
     pub fn pop(&self) -> Option<T> {
         let mut guard = crossbeam_epoch::pin();
+
         loop {
             let head = self.head.load(Acquire, &guard);
             let h = unsafe { head.as_ref() }?;
@@ -77,13 +81,14 @@ impl<T> Stack<T> {
                 .compare_exchange(head, next, Relaxed, Relaxed, &guard)
                 .is_ok()
             {
-                // Since the above `compare_exchange()` succeeded, `head` is detached from `self` so
-                // is unreachable from other threads.
+                // Since the above `compare_exchange()` succeeded, `head` is detached from
+                // `self` so is unreachable from other threads.
 
                 // SAFETY: We are returning ownership of `data` in `head` by making a copy of it via
-                // `ptr::read()`. This is safe as no other thread has access to `data` after `head`
-                // is unreachable, so the ownership of `data` in `head` will never be used again.
-                let result = ManuallyDrop::into_inner(unsafe { ptr::read(&h.data) });
+                // `assume_init_read()`. This is safe as no other thread has access to `data` after
+                // `head` is unreachable, so the ownership of `data` in `head` will never be used
+                // again.
+                let result = unsafe { h.data.assume_init_read() };
 
                 // SAFETY: `head` is unreachable, and we no longer access `head`.
                 unsafe { guard.defer_destroy(head) };
@@ -109,7 +114,7 @@ impl<T> Drop for Stack<T> {
 
         // SAFETY: All non-null nodes made were valid, and we have unique ownership via `&mut self`.
         while let Some(curr) = unsafe { o_curr.try_into_owned() }.map(Owned::into_box) {
-            drop(ManuallyDrop::into_inner(curr.data));
+            drop(unsafe { curr.data.assume_init() });
             o_curr = curr.next.into();
         }
     }
@@ -117,8 +122,9 @@ impl<T> Drop for Stack<T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use std::thread::scope;
+
+    use super::*;
 
     #[test]
     fn push() {

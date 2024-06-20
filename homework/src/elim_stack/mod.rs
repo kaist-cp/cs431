@@ -9,9 +9,11 @@ pub type ElimStack<T> = base::ElimStack<T, treiber_stack::TreiberStack<T>>;
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use base::Stack;
     use std::thread::scope;
+
+    use base::Stack;
+
+    use super::*;
 
     #[test]
     fn push() {

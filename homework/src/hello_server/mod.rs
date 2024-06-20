@@ -1,4 +1,5 @@
 //! Hello server with a cache.
+#![deny(unsafe_code)]
 
 mod cache;
 mod handler;
