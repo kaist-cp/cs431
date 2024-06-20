@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ELIM_DELAY","ELIM_SIZE"],"fn":["get_random_elim_index"],"struct":["ElimStack"],"trait":["Stack"]};
