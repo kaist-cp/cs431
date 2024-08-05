@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["aho_corasick","byteorder","cfg_if","crossbeam_channel","crossbeam_deque","crossbeam_epoch","crossbeam_utils","cs431","cs431_homework","either","getrandom","libc","memchr","ppv_lite86","proc_macro2","quote","rand","rand_chacha","rand_core","rayon","rayon_core","regex","regex_automata","regex_syntax","syn","unicode_ident","zerocopy","zerocopy_derive"];

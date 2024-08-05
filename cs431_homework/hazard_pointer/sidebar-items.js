@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["RETIRED"],"fn":["collect","retire"],"mod":["hazard","retire"],"static":["HAZARDS"],"struct":["HazardBag","RetiredSet","Shield"]};
