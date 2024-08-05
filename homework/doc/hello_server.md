@@ -2,7 +2,7 @@
 
 ## Expected outcome
 
-- Execute `cargo run hello_server`. A web server should run. If it doesn't, try changing the port used in [`hello_server.rs:6`](../src/bin/hello_server.rs).
+- Execute `cargo run --features="build-bin" hello_server`. A web server should run. If it doesn't, try changing the port used in [`hello_server.rs:6`](../src/bin/hello_server.rs).
 - Run `curl http://localhost:7878/alice`. It should wait for a few seconds, and return a web page.
 - Run `curl http://localhost:7878/alice` again. It should instantly return a web page.
 - Run `curl http://localhost:7878/bob`. It should wait for a few seconds, and return a web page.
