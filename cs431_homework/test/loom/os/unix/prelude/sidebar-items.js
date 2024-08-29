@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["BorrowedFd","OwnedFd"],"trait":["AsFd","AsRawFd","CommandExt","DirEntryExt","ExitStatusExt","FileExt","FileTypeExt","FromRawFd","IntoRawFd","JoinHandleExt","MetadataExt","OpenOptionsExt","OsStrExt","OsStringExt","PermissionsExt"],"type":["RawFd"]};

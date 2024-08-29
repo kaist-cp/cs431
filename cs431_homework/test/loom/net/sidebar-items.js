@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["IpAddr","Ipv6MulticastScope","Shutdown","SocketAddr"],"struct":["AddrParseError","Incoming","IntoIncoming","Ipv4Addr","Ipv6Addr","SocketAddrV4","SocketAddrV6","TcpListener","TcpStream","UdpSocket"],"trait":["ToSocketAddrs"]};
