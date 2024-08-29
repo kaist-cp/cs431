@@ -121,6 +121,11 @@ impl<T> Queue<T> {
                     .compare_exchange(tail, next, Release, Relaxed, guard);
             }
 
+            // After the above load & CAS, the thread view ensures that the index of tail is greater
+            // than that of current head. We relase that view to the head with the below CAS,
+            // ensuring that the index of the new head is less than or equal to that of the tail.
+            //
+            // Note: similar reasoning is done in SC memory regarding index of head and tail.
             if self
                 .head
                 .compare_exchange(head, next, Release, Relaxed, guard)

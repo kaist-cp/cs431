@@ -7,6 +7,9 @@ use core::sync::atomic::Ordering::*;
 use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
 /// Linked list node.
+// TODO: This node type is very brittle; what if some list creates a node, and uses it to add it to
+// another, separate list? Also see the discussions at <https://github.com/kaist-cp/cs431/issues/957>.
+// The public API surface is way too large.
 #[derive(Debug)]
 pub struct Node<K, V> {
     /// Mark: tag(), Tag: not needed
