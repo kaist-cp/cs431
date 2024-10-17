@@ -154,9 +154,11 @@ where
         let mut node = prev_next;
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
-            // NOTE: This load could be non-atomic, but `crossbeam-epoch`'s atomics does not support
-            // such fine-grained access options. `core` atomics have `as_ptr()`.
+            //
+            // NOTE: It may seem like this load could be non-atomic, but that would
+            // race with the `fetch_or` done in `remove`.
             let next = unsafe { node.deref() }.next.load(Relaxed, guard);
+
             // SAFETY: we unlinked the chain with above CAS.
             unsafe { guard.defer_destroy(node) };
             node = next;
