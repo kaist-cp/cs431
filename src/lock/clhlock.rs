@@ -12,6 +12,9 @@ struct Node {
 #[derive(Debug, Clone)]
 pub struct Token(*const CachePadded<Node>);
 
+unsafe impl Send for Token {}
+unsafe impl Sync for Token {}
+
 /// CLH lock.
 #[derive(Debug)]
 pub struct ClhLock {

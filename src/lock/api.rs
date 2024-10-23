@@ -11,7 +11,7 @@ use core::ops::{Deref, DerefMut};
 // TODO: For weak memory, there needs to be a bit more stricter condition. unlock -hb→ lock.
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
-    type Token;
+    type Token: Send + Sync;
 
     /// Acquires the raw lock.
     fn lock(&self) -> Self::Token;

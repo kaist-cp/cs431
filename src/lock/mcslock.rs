@@ -14,6 +14,9 @@ struct Node {
 #[derive(Debug, Clone)]
 pub struct Token(*mut CachePadded<Node>);
 
+unsafe impl Send for Token {}
+unsafe impl Sync for Token {}
+
 /// An MCS lock.
 #[derive(Debug)]
 pub struct McsLock {
