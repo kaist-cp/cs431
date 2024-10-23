@@ -11,6 +11,8 @@ use core::ops::{Deref, DerefMut};
 // TODO: For weak memory, there needs to be a bit more stricter condition. unlock -hb→ lock.
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
+    //
+    // Send + Sync is needed to make LockGuard Send + Sync.
     type Token: Send + Sync;
 
     /// Acquires the raw lock.
@@ -45,7 +47,7 @@ pub struct Lock<L: RawLock, T> {
     data: UnsafeCell<T>,
 }
 
-unsafe impl<L: RawLock, T: Send> Send for Lock<L, T> {}
+// Send is automatically implemented for Lock.
 unsafe impl<L: RawLock, T: Send> Sync for Lock<L, T> {}
 
 impl<L: RawLock, T> Lock<L, T> {
@@ -83,14 +85,13 @@ impl<L: RawTryLock, T> Lock<L, T> {
 }
 
 /// A guard that holds the lock and dereferences the inner value.
+///
+/// Send/Sync are is automatically implemented.
 #[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,
     token: ManuallyDrop<L::Token>,
 }
-
-unsafe impl<L: RawLock, T: Send> Send for LockGuard<'_, L, T> {}
-unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
 
 impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
     fn drop(&mut self) {
