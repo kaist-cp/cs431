@@ -59,6 +59,7 @@ The course aims to equip students with the ability to:
 ### Textbook
 
 - [Slides](https://docs.google.com/presentation/d/1NMg08N1LUNDPuMxNZ-UMbdH13p8LXgMM3esbWRMowhU/edit?usp=sharing)
+- [Code Documentation](https://kaist-cp.github.io/cs431/cs431/)
 - References
     + [The Art of Multiprocessor Programming](https://dl.acm.org/doi/book/10.5555/2385452)
     + [The Crossbeam Library Documentation](https://docs.rs/crossbeam/latest/crossbeam/)
@@ -181,7 +182,7 @@ Ensure you are proficient with the following development tools:
 
 - All assignments will be announced at the start of the semester.
 - Submit your solutions to <https://gg.kaist.ac.kr/course/19>.
-- Refer to the documentation at <https://www.fearless.systems/cs431/cs431_homework/>.
+- Refer to the documentation at <https://kaist-cp.github.io/cs431/cs431_homework/>.
 - You are **permitted** to use ChatGPT or other LLMs.
 
 
