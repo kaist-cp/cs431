@@ -241,7 +241,8 @@ pub unsafe trait CownPtrs {
 }
 
 unsafe impl CownPtrs for () {
-    type CownRefs<'l> = ()
+    type CownRefs<'l>
+        = ()
     where
         Self: 'l;
 
@@ -253,7 +254,8 @@ unsafe impl CownPtrs for () {
 }
 
 unsafe impl<T: Send + 'static, Ts: CownPtrs> CownPtrs for (CownPtr<T>, Ts) {
-    type CownRefs<'l> = (&'l mut T, Ts::CownRefs<'l>)
+    type CownRefs<'l>
+        = (&'l mut T, Ts::CownRefs<'l>)
     where
         Self: 'l;
 
@@ -270,7 +272,8 @@ unsafe impl<T: Send + 'static, Ts: CownPtrs> CownPtrs for (CownPtr<T>, Ts) {
 }
 
 unsafe impl<T: Send + 'static> CownPtrs for Vec<CownPtr<T>> {
-    type CownRefs<'l> = Vec<&'l mut T>
+    type CownRefs<'l>
+        = Vec<&'l mut T>
     where
         Self: 'l;
 

@@ -63,7 +63,7 @@ impl<V> ConcurrentMap<u32, V> for ArrayMap<V> {
             return Err(());
         }
         match slot.compare_exchange(curr, Shared::null(), AcqRel, Acquire, guard) {
-            Ok(_) => Ok(unsafe { curr.deref() }.deref()),
+            Ok(_) => Ok(unsafe { curr.deref() }),
             Err(_) => Err(()), // already removed
         }
     }
@@ -132,8 +132,11 @@ mod stack {
         pub(super) unsafe fn push_node<'g>(&self, n: Shared<'g, Node<T>>, guard: &'g Guard) {
             let mut head = self.head.load(Relaxed, guard);
             loop {
+                // SAEFTY: as n is pused only once, and after the push, n is not used again, we are
+                // the unique accessor of `n.next`. Hence non-atomic write is safe.
                 unsafe { *n.deref().next.get() = head.as_raw() };
 
+                // TODO: Relaxed fine here? Might need release so that it syncs with `drop`?
                 match self.head.compare_exchange(head, n, Relaxed, Relaxed, guard) {
                     Ok(_) => break,
                     Err(e) => head = e.current,

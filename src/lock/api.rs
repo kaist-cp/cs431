@@ -12,8 +12,9 @@ use core::ops::{Deref, DerefMut};
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     ///
-    /// Send + Sync is needed to make LockGuard Send + Sync.
-    type Token: Send + Sync;
+    /// We don't enforce Send + Sync, as some locks may not satisfy it. Nessecary bounds will be
+    /// auto-derived.
+    type Token;
 
     /// Acquires the raw lock.
     fn lock(&self) -> Self::Token;
@@ -49,6 +50,8 @@ pub struct Lock<L: RawLock, T> {
 }
 
 // Send is automatically implemented for Lock.
+
+// SATEFY: threads can only access `&mut T` via the lock, and `L` is `Sync`.
 unsafe impl<L: RawLock, T: Send> Sync for Lock<L, T> {}
 
 impl<L: RawLock, T: Default> Default for Lock<L, T>
@@ -99,7 +102,7 @@ impl<L: RawTryLock, T> Lock<L, T> {
 }
 
 /// A guard that holds the lock and dereferences the inner value.
-// Send/Sync are automatically implemented.
+// `Send` and `Sync` are automatically derived.
 #[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,

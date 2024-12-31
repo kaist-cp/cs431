@@ -2,9 +2,10 @@ use std::cmp::Ordering::*;
 use std::mem::{self, ManuallyDrop};
 use std::sync::atomic::Ordering;
 
-use crate::ConcurrentSet;
 use crossbeam_epoch::{pin, Atomic, Guard, Owned, Shared};
 use cs431::lock::seqlock::{ReadGuard, SeqLock};
+
+use crate::ConcurrentSet;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -92,7 +93,7 @@ pub struct Iter<'g, T> {
 impl<T> OptimisticFineGrainedListSet<T> {
     /// An iterator visiting all elements. `next()` returns `Some(Err(()))` when validation fails.
     /// In that case, the user must restart the iteration.
-    pub fn iter<'g>(&'g self, guard: &'g Guard) -> Iter<'_, T> {
+    pub fn iter<'g>(&'g self, guard: &'g Guard) -> Iter<'g, T> {
         Iter {
             cursor: ManuallyDrop::new(self.head(guard)),
             guard,

@@ -68,7 +68,6 @@ pub struct ElimStack<T, S: Stack<T>> {
     // - 2: pop request
     // - 3: request acknowledged
     pub(crate) slots: [Atomic<S::PushReq>; ELIM_SIZE],
-    _marker: PhantomData<T>,
 }
 
 impl<T, S: Stack<T>> Default for ElimStack<T, S> {
@@ -76,7 +75,6 @@ impl<T, S: Stack<T>> Default for ElimStack<T, S> {
         Self {
             inner: Default::default(),
             slots: Default::default(),
-            _marker: PhantomData,
         }
     }
 }
