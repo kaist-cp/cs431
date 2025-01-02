@@ -1,6 +1,7 @@
 //! Concurrent Owner (Cown) type.
 
 use core::cell::UnsafeCell;
+use core::pin::Pin;
 use core::sync::atomic::Ordering::SeqCst;
 use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize};
 use core::{fmt, hint, ptr};
@@ -167,7 +168,7 @@ struct Behavior {
     /// Number of not-yet enqueued requests.
     count: AtomicUsize,
     /// The requests for this behavior.
-    requests: Vec<Request>,
+    requests: Pin<Box<[Request]>>,
 }
 
 impl Behavior {
