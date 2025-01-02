@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A macro to test at runtime whether instruction sets are available on RISC-V platforms."><title>is_riscv_feature_detected in cs431_homework::test::loom::arch - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (7f75bfa1a 2024-12-30)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">is_<wbr>riscv_<wbr>feature_<wbr>detected</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#unprivileged-specification" title="Unprivileged Specification">Unprivileged Specification</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>arch</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">arch</a></span><h1>Macro <span class="macro">is_riscv_feature_detected</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.76.0">1.76.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std_detect/detect/arch/riscv.rs.html#3-212">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! is_riscv_feature_detected {
+    (&quot;rv32i&quot;) =&gt; { ... };
+    (&quot;zifencei&quot;) =&gt; { ... };
+    (&quot;zihintpause&quot;) =&gt; { ... };
+    (&quot;rv64i&quot;) =&gt; { ... };
+    (&quot;m&quot;) =&gt; { ... };
+    (&quot;a&quot;) =&gt; { ... };
+    (&quot;zicsr&quot;) =&gt; { ... };
+    (&quot;zicntr&quot;) =&gt; { ... };
+    (&quot;zihpm&quot;) =&gt; { ... };
+    (&quot;f&quot;) =&gt; { ... };
+    (&quot;d&quot;) =&gt; { ... };
+    (&quot;q&quot;) =&gt; { ... };
+    (&quot;c&quot;) =&gt; { ... };
+    (&quot;zfinx&quot;) =&gt; { ... };
+    (&quot;zdinx&quot;) =&gt; { ... };
+    (&quot;zhinx&quot;) =&gt; { ... };
+    (&quot;zhinxmin&quot;) =&gt; { ... };
+    (&quot;ztso&quot;) =&gt; { ... };
+    (&quot;rv32e&quot;) =&gt; { ... };
+    (&quot;rv128i&quot;) =&gt; { ... };
+    (&quot;zfh&quot;) =&gt; { ... };
+    (&quot;zfhmin&quot;) =&gt; { ... };
+    (&quot;j&quot;) =&gt; { ... };
+    (&quot;p&quot;) =&gt; { ... };
+    (&quot;v&quot;) =&gt; { ... };
+    (&quot;zam&quot;) =&gt; { ... };
+    (&quot;s&quot;) =&gt; { ... };
+    (&quot;svnapot&quot;) =&gt; { ... };
+    (&quot;svpbmt&quot;) =&gt; { ... };
+    (&quot;svinval&quot;) =&gt; { ... };
+    (&quot;h&quot;) =&gt; { ... };
+    (&quot;zba&quot;) =&gt; { ... };
+    (&quot;zbb&quot;) =&gt; { ... };
+    (&quot;zbc&quot;) =&gt; { ... };
+    (&quot;zbs&quot;) =&gt; { ... };
+    (&quot;zbkb&quot;) =&gt; { ... };
+    (&quot;zbkc&quot;) =&gt; { ... };
+    (&quot;zbkx&quot;) =&gt; { ... };
+    (&quot;zknd&quot;) =&gt; { ... };
+    (&quot;zkne&quot;) =&gt; { ... };
+    (&quot;zknh&quot;) =&gt; { ... };
+    (&quot;zksed&quot;) =&gt; { ... };
+    (&quot;zksh&quot;) =&gt; { ... };
+    (&quot;zkr&quot;) =&gt; { ... };
+    (&quot;zkn&quot;) =&gt; { ... };
+    (&quot;zks&quot;) =&gt; { ... };
+    (&quot;zk&quot;) =&gt; { ... };
+    (&quot;zkt&quot;) =&gt; { ... };
+    ($t:tt,) =&gt; { ... };
+    ($t:tt) =&gt; { ... };
+}</code></pre><span class="item-info"><div class="stab portability">Available on <strong>RISC-V RV32 or RISC-V RV64</strong> only.</div></span><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A macro to test at <em>runtime</em> whether instruction sets are available on
+RISC-V platforms.</p>
+<p>RISC-V standard defined the base sets and the extension sets.
+The base sets are RV32I, RV64I, RV32E or RV128I. Any RISC-V platform
+must support one base set and/or multiple extension sets.</p>
+<p>Any RISC-V standard instruction sets can be in state of either ratified,
+frozen or draft. The version and status of current standard instruction
+sets can be checked out from preface section of the <a href="https://github.com/riscv/riscv-isa-manual/">ISA manual</a>.</p>
+<p>Platform may define and support their own custom instruction sets with
+ISA prefix X. These sets are highly platform specific and should be
+detected with their own platform support crates.</p>
+<h2 id="unprivileged-specification"><a class="doc-anchor" href="#unprivileged-specification">§</a>Unprivileged Specification</h2>
+<p>The supported ratified RISC-V instruction sets are as follows:</p>
+<ul>
+<li>RV32E: <code>"rv32e"</code></li>
+<li>RV32I: <code>"rv32i"</code></li>
+<li>RV64I: <code>"rv64i"</code></li>
+<li>A: <code>"a"</code></li>
+<li>B: <code>"b"</code>
+<ul>
+<li>Zba: <code>"zba"</code></li>
+<li>Zbb: <code>"zbb"</code></li>
+<li>Zbc: <code>"zbc"</code></li>
+<li>Zbs: <code>"zbs"</code></li>
+</ul>
+</li>
+<li>C: <code>"c"</code></li>
+<li>D: <code>"d"</code></li>
+<li>F: <code>"f"</code></li>
+<li>M: <code>"m"</code></li>
+<li>Q: <code>"q"</code></li>
+<li>V: <code>"v"</code></li>
+<li>Zicntr: <code>"zicntr"</code></li>
+<li>Zicsr: <code>"zicsr"</code></li>
+<li>Zifencei: <code>"zifencei"</code></li>
+<li>Zihintpause: <code>"zihintpause"</code></li>
+<li>Zihpm: <code>"zihpm"</code></li>
+<li>Zk: <code>"zk"</code>
+<ul>
+<li>Zbkb: <code>"zbkb"</code></li>
+<li>Zbkc: <code>"zbkc"</code></li>
+<li>Zbkx: <code>"zbkx"</code></li>
+<li>Zkn: <code>"zkn"</code>
+<ul>
+<li>Zknd: <code>"zknd"</code></li>
+<li>Zkne: <code>"zkne"</code></li>
+<li>Zknh: <code>"zknh"</code></li>
+</ul>
+</li>
+<li>Zkr: <code>"zkr"</code></li>
+<li>Zks: <code>"zks"</code>
+<ul>
+<li>Zksed: <code>"zksed"</code></li>
+<li>Zksh: <code>"zksh"</code></li>
+</ul>
+</li>
+<li>Zkt: <code>"zkt"</code></li>
+</ul>
+</li>
+</ul>
+<p>There’s also bases and extensions marked as standard instruction set,
+but they are in frozen or draft state. These instruction sets are also
+reserved by this macro and can be detected in the future platforms.</p>
+<p>Frozen RISC-V instruction sets:</p>
+<ul>
+<li>Zfh: <code>"zfh"</code></li>
+<li>Zfhmin: <code>"zfhmin"</code></li>
+<li>Zfinx: <code>"zfinx"</code></li>
+<li>Zdinx: <code>"zdinx"</code></li>
+<li>Zhinx: <code>"zhinx"</code></li>
+<li>Zhinxmin: <code>"zhinxmin"</code></li>
+<li>Ztso: <code>"ztso"</code></li>
+</ul>
+<p>Draft RISC-V instruction sets:</p>
+<ul>
+<li>RV128I: <code>"rv128i"</code></li>
+<li>J: <code>"j"</code></li>
+<li>P: <code>"p"</code></li>
+<li>Zam: <code>"zam"</code></li>
+</ul>
+<p>Defined by Privileged Specification:</p>
+<ul>
+<li>Supervisor: <code>"s"</code></li>
+<li>Svnapot: <code>"svnapot"</code></li>
+<li>Svpbmt: <code>"svpbmt"</code></li>
+<li>Svinval: <code>"svinval"</code></li>
+<li>Hypervisor: <code>"h"</code></li>
+</ul>
+</div></details></section></div></main></body></html>
