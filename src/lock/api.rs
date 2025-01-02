@@ -12,7 +12,7 @@ use core::ops::{Deref, DerefMut};
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     ///
-    /// We don't enforce Send + Sync, as some locks may not satisfy it. Nessecary bounds will be
+    /// We don't enforce Send + Sync, as some locks may not satisfy it. Necessary bounds will be
     /// auto-derived.
     type Token;
 
