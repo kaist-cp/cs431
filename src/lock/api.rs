@@ -24,7 +24,7 @@ pub unsafe trait RawLock: Default + Send + Sync {
     /// # Safety
     ///
     /// - `self` must be a an acquired lock.
-    /// - `token` must be from a [`RawLock::lock`] or [`RawTryLock::unlock`] call to `self`.
+    /// - `token` must be from a [`RawLock::lock`] or [`RawTryLock::try_lock`] call to `self`.
     unsafe fn unlock(&self, token: Self::Token);
 }
 
