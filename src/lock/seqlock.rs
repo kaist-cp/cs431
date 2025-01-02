@@ -56,7 +56,7 @@ impl RawSeqLock {
     /// # Safety
     ///
     /// - `self` must be a an acquired writer's lock.
-    /// - `seq` must be the be the value returned from the corresponding of the `write_lock()`.
+    /// - `seq` must be from the most recent [`SeqLock::write_lock`] call on `self`.
     pub unsafe fn write_unlock(&self, seq: usize) {
         self.seq.store(seq.wrapping_add(2), Release);
     }
@@ -88,6 +88,7 @@ impl RawSeqLock {
     /// # Safety
     ///
     /// - `seq` must be even.
+    // No need to require `self` to be a read lock, as the sequence number is enough to validate.
     pub unsafe fn upgrade(&self, seq: usize) -> bool {
         if self
             .seq
@@ -223,7 +224,7 @@ impl<T> Drop for ReadGuard<'_, T> {
     fn drop(&mut self) {
         // HACK(@jeehoonkang): we really need linear type here:
         // https://github.com/rust-lang/rfcs/issues/814
-        panic!("`seqlock::ReadGuard` should never drop. Use `ReadGuard::finish()` instead.");
+        panic!("`seqlock::ReadGuard` should never drop. Use `ReadGuard::finish` instead.");
     }
 }
 

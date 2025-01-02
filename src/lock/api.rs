@@ -23,7 +23,8 @@ pub unsafe trait RawLock: Default + Send + Sync {
     ///
     /// # Safety
     ///
-    /// `unlock()` should be called with the token given by the corresponding `lock()`.
+    /// - `self` must be a an acquired lock.
+    /// - `token` must be from a [`RawLock::lock`] or [`RawTryLock::unlock`] call to `self`.
     unsafe fn unlock(&self, token: Self::Token);
 }
 
@@ -31,19 +32,16 @@ pub unsafe trait RawLock: Default + Send + Sync {
 ///
 /// # Safety
 ///
-/// Implementations of this trait must ensure that the lock is actually exclusive: a lock can't be
-/// acquired while the lock is already locked.
+/// See [`RawLock`] for safety requirements.
 ///
-/// Also, `try_lock()`, when successful, should return a token that can be used for
-/// `RawLock::unlock`.
+/// Also, [`RawTryLock::try_lock`] should return a token that can be used for [`RawLock::unlock`].
 pub unsafe trait RawTryLock: RawLock {
     /// Tries to acquire the raw lock.
     fn try_lock(&self) -> Result<Self::Token, ()>;
 }
 
 /// A type-safe lock.
-#[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Lock<L: RawLock, T> {
     inner: L,
     data: UnsafeCell<T>,
@@ -53,19 +51,6 @@ pub struct Lock<L: RawLock, T> {
 
 // SATEFY: threads can only access `&mut T` via the lock, and `L` is `Sync`.
 unsafe impl<L: RawLock, T: Send> Sync for Lock<L, T> {}
-
-impl<L: RawLock, T: Default> Default for Lock<L, T>
-where
-    L: Default,
-{
-    // Manual impl for minimum trait bound.
-    fn default() -> Self {
-        Self {
-            inner: L::default(),
-            data: UnsafeCell::default(),
-        }
-    }
-}
 
 impl<L: RawLock, T> Lock<L, T> {
     /// Creates a new lock.

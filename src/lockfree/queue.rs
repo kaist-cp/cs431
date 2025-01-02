@@ -66,8 +66,6 @@ impl<T> Queue<T> {
         });
 
         loop {
-            guard.repin();
-
             // We push onto the tail, so we'll start optimistically by looking there first.
             let tail = self.tail.load(Acquire, guard);
 
@@ -97,6 +95,7 @@ impl<T> Queue<T> {
                 }
                 Err(e) => new = e.new,
             }
+            guard.repin();
         }
     }
 
@@ -105,8 +104,6 @@ impl<T> Queue<T> {
     /// Returns `None` if the queue is observed to be empty.
     pub fn try_pop(&self, guard: &mut Guard) -> Option<T> {
         loop {
-            guard.repin();
-
             let head = self.head.load(Acquire, guard);
             let next = unsafe { head.deref() }.next.load(Acquire, guard);
 
@@ -125,7 +122,8 @@ impl<T> Queue<T> {
             // than that of current head. We relase that view to the head with the below CAS,
             // ensuring that the index of the new head is less than or equal to that of the tail.
             //
-            // Note: similar reasoning is done in SC memory regarding index of head and tail.
+            // Note: this reasoning is also done in SC memory regarding index of head and tail,
+            // albeit simpler.
             if self
                 .head
                 .compare_exchange(head, next, Release, Relaxed, guard)
@@ -150,6 +148,7 @@ impl<T> Queue<T> {
 
                 return Some(result);
             }
+            guard.repin();
         }
     }
 }

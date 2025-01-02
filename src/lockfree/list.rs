@@ -21,7 +21,7 @@ pub struct Node<K, V> {
 /// Sorted singly linked list.
 ///
 /// Use-after-free will be caused when an unprotected guard is used, as the lifetime of returned
-/// elements are linked to that of the guard in the same way a `Shared<'g,T>` is.
+/// elements are linked to that of the guard in the same way a [`Shared`] is.
 #[derive(Debug)]
 pub struct List<K, V> {
     head: Atomic<Node<K, V>>,
