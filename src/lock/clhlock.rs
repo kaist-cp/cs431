@@ -12,8 +12,8 @@ struct Node {
 #[derive(Debug, Clone)]
 pub struct Token(*const CachePadded<Node>);
 
+// SAFETY: It doesn't matter if a thread used a token made by another thread.
 unsafe impl Send for Token {}
-unsafe impl Sync for Token {}
 
 /// CLH lock.
 #[derive(Debug)]

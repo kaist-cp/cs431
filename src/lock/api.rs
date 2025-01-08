@@ -12,8 +12,8 @@ use core::ops::{Deref, DerefMut};
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     ///
-    /// We don't enforce Send + Sync, as some locks may not satisfy it. Necessary bounds will be
-    /// auto-derived.
+    /// We don't enforce Send/Sync, as some locks may not satisfy it. We restrict them at
+    /// Send/Sync impl for [LockGuard].
     type Token;
 
     /// Acquires the raw lock.
@@ -87,12 +87,21 @@ impl<L: RawTryLock, T> Lock<L, T> {
 }
 
 /// A guard that holds the lock and dereferences the inner value.
-// `Send` and `Sync` are automatically derived.
 #[derive(Debug)]
 pub struct LockGuard<'s, L: RawLock, T> {
     lock: &'s Lock<L, T>,
     token: ManuallyDrop<L::Token>,
 }
+
+// Not auto derived as the auto-derived impls are incorrect. Remember, auto-derived impls are only
+// correct if there are no unsafe code used in the struct's methods.
+
+// SAFETY: Ownership of `LockGuard` implies ownership of `L::Token` and `T`. Thus, they must both be
+// `Send`.
+unsafe impl<L: RawLock, T: Send> Send for LockGuard<'_, L, T> where L::Token: Send {}
+
+// SAFETY: Reference to `LockGuard` implies reference to `T`. Thus, `T` must be `Sync`.
+unsafe impl<L: RawLock, T: Sync> Sync for LockGuard<'_, L, T> {}
 
 impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
     fn drop(&mut self) {
@@ -110,14 +119,17 @@ impl<L: RawLock, T> Deref for LockGuard<'_, L, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Having a `LockGuard` means the underlying lock is acquired.
+        // SAFETY: Having a `LockGuard` means the underlying lock is acquired, so the underlying
+        // data is valid. Hence we can create a shared reference to it.
         unsafe { &*self.lock.data.get() }
     }
 }
 
 impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: Having a `LockGuard` means the underlying lock is held.
+        // SAFETY: Having a `LockGuard` means the underlying lock is acquired, so the underlying
+        // data is valid. Having a mutable refererence to it implies that we are the only one with
+        // access to the underlying data. Hence we can create a mutable reference to it.
         unsafe { &mut *self.lock.data.get() }
     }
 }
