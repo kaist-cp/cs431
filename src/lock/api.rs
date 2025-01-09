@@ -12,8 +12,8 @@ use core::ops::{Deref, DerefMut};
 pub unsafe trait RawLock: Default + Send + Sync {
     /// Raw lock's token type.
     ///
-    /// We don't enforce Send/Sync, as some locks may not satisfy it. We restrict them at
-    /// Send/Sync impl for [LockGuard].
+    /// We don't enforce `Send`/`Sync`, as some locks may not satisfy it. We restrict them at
+    /// `Send`/`Sync` impl for [`LockGuard`].
     type Token;
 
     /// Acquires the raw lock.
@@ -23,7 +23,7 @@ pub unsafe trait RawLock: Default + Send + Sync {
     ///
     /// # Safety
     ///
-    /// - `self` must be a an acquired lock.
+    /// - `self` must be an acquired lock.
     /// - `token` must be from a [`RawLock::lock`] or [`RawTryLock::try_lock`] call to `self`.
     unsafe fn unlock(&self, token: Self::Token);
 }
@@ -112,6 +112,8 @@ impl<L: RawLock, T> Drop for LockGuard<'_, L, T> {
         // SAFETY: since `self` was created with `lock` and it's `token`, the `token` given to
         // `unlock()` is correct.
         unsafe { self.lock.inner.unlock(token) };
+
+        // Note: Important that nothing is done to `data` after `unlock()`.
     }
 }
 
@@ -119,17 +121,19 @@ impl<L: RawLock, T> Deref for LockGuard<'_, L, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Having a `LockGuard` means the underlying lock is acquired, so the underlying
-        // data is valid. Hence we can create a shared reference to it.
+        // SAFETY:
+        // - Existance of a `LockGuard` means the lock is acquired, so the data is valid.
+        // - Having a shared reference to the `LockGuard` implies there is no accessor making a
+        //   mutable reference to the data.
         unsafe { &*self.lock.data.get() }
     }
 }
 
 impl<L: RawLock, T> DerefMut for LockGuard<'_, L, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: Having a `LockGuard` means the underlying lock is acquired, so the underlying
-        // data is valid. Having a mutable refererence to it implies that we are the only one with
-        // access to the underlying data. Hence we can create a mutable reference to it.
+        // SAFETY:
+        // - Existance of a `LockGuard` means the lock is acquired, so the data is valid.
+        // - Having a mutable reference to the `LockGuard` implies there is no accessor to data.
         unsafe { &mut *self.lock.data.get() }
     }
 }
