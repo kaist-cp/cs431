@@ -1,8 +1,8 @@
 use std::cmp::Ordering::*;
 use std::mem::{self, ManuallyDrop};
-use std::sync::atomic::Ordering;
+use std::sync::atomic::Ordering::*;
 
-use crossbeam_epoch::{pin, Atomic, Guard, Owned, Shared};
+use crossbeam_epoch::{Atomic, Guard, Owned, Shared, pin};
 use cs431::lock::seqlock::{ReadGuard, SeqLock};
 
 use crate::ConcurrentSet;
@@ -58,7 +58,7 @@ impl<T> OptimisticFineGrainedListSet<T> {
 
     fn head<'g>(&'g self, guard: &'g Guard) -> Cursor<'g, T> {
         let prev = unsafe { self.head.read_lock() };
-        let curr = prev.load(Ordering::SeqCst, guard);
+        let curr = prev.load(Acquire, guard);
         Cursor { prev, curr }
     }
 }

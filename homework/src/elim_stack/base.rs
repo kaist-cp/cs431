@@ -3,15 +3,15 @@ use core::mem::ManuallyDrop;
 use core::ops::Deref;
 use std::time;
 
-use crossbeam_epoch::{pin, Atomic, Guard, Owned};
-use rand::{thread_rng, Rng};
+use crossbeam_epoch::{Atomic, Guard, Owned, pin};
+use rand::{Rng, thread_rng};
 
 pub(crate) const ELIM_SIZE: usize = 16;
 pub(crate) const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);
 
 #[inline]
 pub(crate) fn get_random_elim_index() -> usize {
-    thread_rng().gen::<usize>() % ELIM_SIZE
+    thread_rng().r#gen::<usize>() % ELIM_SIZE
 }
 
 /// Concurrent stack types.

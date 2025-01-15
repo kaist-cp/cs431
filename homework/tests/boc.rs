@@ -3,9 +3,9 @@
 mod boc_fibonacci {
     //! Computing fibonacci sequence using [`boc`].
 
-    use crossbeam_channel::{bounded, Sender};
+    use crossbeam_channel::{Sender, bounded};
     use cs431_homework::boc::run_when;
-    use cs431_homework::{tuple_list, when, CownPtr};
+    use cs431_homework::{CownPtr, tuple_list, when};
 
     fn fibonacci_inner(n: usize, sender: Option<Sender<usize>>) -> CownPtr<usize> {
         if n == 0 {
@@ -48,7 +48,7 @@ mod boc_banking {
     use crossbeam_channel::bounded;
     use cs431_homework::boc::run_when;
     use cs431_homework::test::RandGen;
-    use cs431_homework::{tuple_list, when, CownPtr};
+    use cs431_homework::{CownPtr, tuple_list, when};
     use rand::thread_rng;
 
     const TRANSFER_LIMIT: usize = 2048;
@@ -114,8 +114,8 @@ mod boc_banking {
 mod boc_merge_sort {
     //! Merge sort using BoC.
 
-    use crossbeam_channel::{bounded, Sender};
-    use cs431_homework::boc::{run_when, CownPtr};
+    use crossbeam_channel::{Sender, bounded};
+    use cs431_homework::boc::{CownPtr, run_when};
     use cs431_homework::{tuple_list, when};
 
     fn merge_sort_inner(
@@ -215,11 +215,11 @@ mod boc_merge_sort {
 }
 
 mod basic_test {
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use crossbeam_channel::bounded;
-    use cs431_homework::boc::{run_when, CownPtr};
+    use cs431_homework::boc::{CownPtr, run_when};
     use cs431_homework::{tuple_list, when};
 
     use crate::{boc_banking, boc_fibonacci, boc_merge_sort};
@@ -384,7 +384,7 @@ mod basic_test {
 }
 
 mod stress_test {
-    use crossbeam_channel::{bounded, Receiver, Sender};
+    use crossbeam_channel::{Receiver, Sender, bounded};
     use cs431_homework::test::RandGen;
     use rand::thread_rng;
 

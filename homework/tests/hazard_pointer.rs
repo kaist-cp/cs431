@@ -3,7 +3,7 @@ use core::sync::atomic::{AtomicPtr, Ordering::*};
 use std::thread::{scope, sleep};
 use std::time::Duration;
 
-use cs431_homework::hazard_pointer::{collect, retire, Shield};
+use cs431_homework::hazard_pointer::{Shield, collect, retire};
 #[cfg(feature = "check-loom")]
 use loom::sync::atomic::{AtomicPtr, Ordering::*};
 use queue::Queue;
@@ -159,9 +159,9 @@ mod sync {
     use core::ptr;
 
     use cs431_homework::hazard_pointer::*;
+    use cs431_homework::test::loom::sync::Arc;
     use cs431_homework::test::loom::sync::atomic::Ordering::*;
     use cs431_homework::test::loom::sync::atomic::{AtomicPtr, AtomicUsize};
-    use cs431_homework::test::loom::sync::Arc;
     use cs431_homework::test::loom::{model, thread};
 
     #[test]
@@ -238,7 +238,7 @@ mod sync {
             let th = {
                 thread::spawn(move || {
                     let local = atomic.load(Relaxed);
-                    if !HAZARDS.all_hazards().contains(&obj) {
+                    if !HAZARDS.all_hazards().contains(&(obj as *mut ())) {
                         assert_eq!(unsafe { (*local).load(Relaxed) }, 123);
                     }
                 })
@@ -259,7 +259,7 @@ mod stack {
     #[cfg(not(feature = "check-loom"))]
     use core::sync::atomic::{AtomicPtr, Ordering::*};
 
-    use cs431_homework::hazard_pointer::{retire, Shield};
+    use cs431_homework::hazard_pointer::{Shield, retire};
     #[cfg(feature = "check-loom")]
     use loom::sync::atomic::{AtomicPtr, Ordering::*};
 
@@ -338,7 +338,7 @@ mod queue {
     #[cfg(not(feature = "check-loom"))]
     use core::sync::atomic::{AtomicPtr, Ordering::*};
 
-    use cs431_homework::hazard_pointer::{retire, Shield};
+    use cs431_homework::hazard_pointer::{Shield, retire};
     #[cfg(feature = "check-loom")]
     use loom::sync::atomic::{AtomicPtr, Ordering::*};
 

@@ -1,7 +1,9 @@
 //! Split-ordered linked list.
 
 use core::mem::{self, MaybeUninit};
-use core::sync::atomic::{AtomicUsize, Ordering::*};
+use core::sync::atomic::AtomicUsize;
+use core::sync::atomic::Ordering::*;
+
 use crossbeam_epoch::{Guard, Owned};
 use cs431::lockfree::list::{Cursor, List, Node};
 
@@ -73,16 +75,19 @@ impl<V> SplitOrderedList<V> {
 impl<V> ConcurrentMap<usize, V> for SplitOrderedList<V> {
     fn lookup<'a>(&'a self, key: &usize, guard: &'a Guard) -> Option<&'a V> {
         Self::assert_valid_key(*key);
+
         todo!()
     }
 
     fn insert(&self, key: usize, value: V, guard: &Guard) -> Result<(), V> {
         Self::assert_valid_key(key);
+
         todo!()
     }
 
     fn delete<'a>(&'a self, key: &usize, guard: &'a Guard) -> Result<&'a V, ()> {
         Self::assert_valid_key(*key);
+
         todo!()
     }
 }

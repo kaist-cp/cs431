@@ -1,7 +1,6 @@
 use std::cmp::Ordering::*;
-use std::mem;
-use std::ptr;
 use std::sync::{Mutex, MutexGuard};
+use std::{mem, ptr};
 
 use crate::ConcurrentSet;
 

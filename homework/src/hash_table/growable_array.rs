@@ -3,6 +3,7 @@
 use core::fmt::Debug;
 use core::mem::{self, ManuallyDrop};
 use core::sync::atomic::Ordering::*;
+
 use crossbeam_epoch::{Atomic, Guard, Owned, Shared};
 
 /// Growable array of `Atomic<T>`.
@@ -138,9 +139,9 @@ const SEGMENT_LOGSIZE: usize = 10;
 /// pointers to `T`. This is determined by the height of this segment in the main array, which one
 /// needs to track separately. For example, use the main array root's tag.
 ///
-/// Since destructing `Segment<T>` requires its height information, it is not recommended to
-/// implement `Drop` for this union. Rather, have a custom deallocate method that accounts for the
-/// height of the segment.
+/// Since destructing segments requires its height information, it is not recommended to
+/// implement [`Drop`]. Rather, implement and use the custom [`Segment::deallocate`] method that
+/// accounts for the height of the segment.
 union Segment<T> {
     children: ManuallyDrop<[Atomic<Segment<T>>; 1 << SEGMENT_LOGSIZE]>,
     elements: ManuallyDrop<[Atomic<T>; 1 << SEGMENT_LOGSIZE]>,
@@ -155,6 +156,15 @@ impl<T> Segment<T> {
             // a children segment.
             unsafe { mem::zeroed() },
         )
+    }
+
+    /// Deallocates a segment of `height`.
+    ///
+    /// # Safety
+    ///
+    /// `self` must actually have height `height`.
+    unsafe fn deallocate(self, height: usize) {
+        todo!()
     }
 }
 

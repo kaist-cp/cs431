@@ -1,11 +1,11 @@
 use core::ptr::{self, NonNull};
 #[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering, fence};
 use std::collections::HashSet;
 use std::fmt;
 
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{fence, AtomicBool, AtomicPtr, AtomicUsize, Ordering};
+use loom::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering, fence};
 
 use super::HAZARDS;
 
@@ -98,7 +98,7 @@ struct HazardSlot {
     // Whether this slot is occupied by a `Shield`.
     active: AtomicBool,
     // Machine representation of the hazard pointer.
-    hazard: AtomicUsize,
+    hazard: AtomicPtr<()>,
     // Immutable pointer to the next slot in the bag.
     next: *const HazardSlot,
 }
@@ -138,7 +138,7 @@ impl HazardBag {
     }
 
     /// Returns all the hazards in the set.
-    pub fn all_hazards(&self) -> HashSet<usize> {
+    pub fn all_hazards(&self) -> HashSet<*mut ()> {
         todo!()
     }
 }
@@ -163,8 +163,8 @@ unsafe impl Sync for HazardSlot {}
 mod tests {
     use std::collections::HashSet;
     use std::ops::Range;
-    use std::sync::atomic::AtomicPtr;
     use std::sync::Arc;
+    use std::sync::atomic::AtomicPtr;
     use std::{mem, thread};
 
     use super::{HazardBag, Shield};
@@ -193,7 +193,7 @@ mod tests {
             .into_iter()
             .for_each(|th| th.join().unwrap());
         let all = hazard_bag.all_hazards();
-        let values = VALUES.collect();
+        let values = VALUES.map(|data| data as *mut ()).collect();
         assert!(all.is_superset(&values))
     }
 
@@ -216,7 +216,7 @@ mod tests {
             .into_iter()
             .for_each(|th| th.join().unwrap());
         let all = hazard_bag.all_hazards();
-        let values = VALUES.collect();
+        let values = VALUES.map(|data| data as *mut ()).collect();
         let intersection: HashSet<_> = all.intersection(&values).collect();
         assert!(intersection.is_empty())
     }

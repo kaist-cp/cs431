@@ -2,9 +2,10 @@
 
 // NOTE: Crossbeam channels are MPMC, which means that you don't need to wrap the receiver in
 // Arc<Mutex<..>>. Just clone the receiver and give it to each worker thread.
-use crossbeam_channel::{unbounded, Sender};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
+
+use crossbeam_channel::{Sender, unbounded};
 
 struct Job(Box<dyn FnOnce() + Send + 'static>);
 

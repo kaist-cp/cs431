@@ -1,8 +1,7 @@
 //! TcpListener that can be cancelled.
 
 use std::io;
-use std::net::ToSocketAddrs;
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Like `std::net::tcp::TcpListener`, but `cancel`lable.
@@ -42,7 +41,7 @@ impl CancellableTcpListener {
         todo!()
     }
 
-    /// Returns an iterator over the connections being received on this listener.  The returned
+    /// Returns an iterator over the connections being received on this listener. The returned
     /// iterator will return `None` if the listener is `cancel`led.
     pub fn incoming(&self) -> Incoming<'_> {
         Incoming { listener: self }

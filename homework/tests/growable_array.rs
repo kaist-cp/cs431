@@ -3,7 +3,7 @@
 use core::ops::Deref;
 use core::sync::atomic::Ordering::*;
 
-use crossbeam_epoch::{pin, Guard, Owned, Shared};
+use crossbeam_epoch::{Guard, Owned, Shared, pin};
 use cs431_homework::test::adt::map;
 use cs431_homework::{ConcurrentMap, GrowableArray};
 use stack::{Node, Stack};

@@ -12,27 +12,15 @@ use crate::{ConcurrentMap, ConcurrentSet};
 // A set can be seen as a map with value `()`. Thus, we can reuse the tests for maps.
 impl<T, S: ConcurrentSet<T>> ConcurrentMap<T, ()> for S {
     fn lookup<'a>(&'a self, key: &T, _guard: &'a Guard) -> Option<&'a ()> {
-        if self.contains(key) {
-            Some(&())
-        } else {
-            None
-        }
+        if self.contains(key) { Some(&()) } else { None }
     }
 
     fn insert(&self, key: T, _value: (), _guard: &Guard) -> Result<(), ()> {
-        if self.insert(key) {
-            Ok(())
-        } else {
-            Err(())
-        }
+        if self.insert(key) { Ok(()) } else { Err(()) }
     }
 
     fn delete<'a>(&'a self, key: &T, _guard: &'a Guard) -> Result<&'a (), ()> {
-        if self.remove(key) {
-            Ok(&())
-        } else {
-            Err(())
-        }
+        if self.remove(key) { Ok(&()) } else { Err(()) }
     }
 }
 

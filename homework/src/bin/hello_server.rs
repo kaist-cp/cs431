@@ -1,6 +1,6 @@
 use std::io;
-use std::sync::mpsc::{channel, sync_channel};
 use std::sync::Arc;
+use std::sync::mpsc::{channel, sync_channel};
 
 use cs431_homework::hello_server::{CancellableTcpListener, Handler, Statistics, ThreadPool};
 

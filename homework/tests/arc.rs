@@ -15,11 +15,11 @@ impl Drop for Canary {
 
 #[cfg(not(feature = "check-loom"))]
 mod basic {
+    use cs431_homework::Arc;
     use cs431_homework::test::loom::sync::atomic::AtomicUsize;
     use cs431_homework::test::loom::sync::atomic::Ordering::Relaxed;
     use cs431_homework::test::loom::sync::mpsc::channel;
     use cs431_homework::test::loom::thread;
-    use cs431_homework::Arc;
 
     use super::Canary;
 
@@ -145,10 +145,10 @@ mod basic {
 }
 
 mod correctness {
+    use cs431_homework::Arc;
     use cs431_homework::test::loom::sync::atomic::AtomicUsize;
     use cs431_homework::test::loom::sync::atomic::Ordering::Relaxed;
     use cs431_homework::test::loom::{model, thread};
-    use cs431_homework::Arc;
 
     use super::Canary;
 

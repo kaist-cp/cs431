@@ -1,11 +1,13 @@
 use core::marker::PhantomData;
 #[cfg(not(feature = "check-loom"))]
-use core::sync::atomic::{fence, Ordering};
+use core::sync::atomic::{Ordering, fence};
 
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{fence, Ordering};
+use loom::sync::atomic::{Ordering, fence};
 
-use super::{HazardBag, HAZARDS};
+use super::{HAZARDS, HazardBag};
+
+type Retired = (*mut (), unsafe fn(*mut ()));
 
 /// Thread-local list of retired pointers.
 #[derive(Debug)]
@@ -13,7 +15,7 @@ pub struct RetiredSet<'s> {
     hazards: &'s HazardBag,
     /// The first element of the pair is the machine representation of the pointer and the second
     /// is the function pointer to `free::<T>` where `T` is the type of the object.
-    inner: Vec<(usize, unsafe fn(usize))>,
+    inner: Vec<Retired>,
     _marker: PhantomData<*const ()>, // !Send + !Sync
 }
 
@@ -52,8 +54,8 @@ impl<'s> RetiredSet<'s> {
         ///   unique ownership to `data`.
         ///
         /// [`Box::from_raw`]: https://doc.rust-lang.org/std/boxed/struct.Box.html#method.from_raw
-        unsafe fn free<T>(data: usize) {
-            drop(unsafe { Box::from_raw(data as *mut T) })
+        unsafe fn free<T>(data: *mut ()) {
+            drop(unsafe { Box::from_raw(data.cast::<T>()) })
         }
 
         todo!()

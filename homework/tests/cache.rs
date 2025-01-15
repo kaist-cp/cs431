@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Barrier;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread::scope;
 use std::time::Duration;
 

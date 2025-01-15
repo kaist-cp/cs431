@@ -2,15 +2,15 @@
 
 use core::fmt::Debug;
 use core::hash::Hash;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::thread::scope;
 
 use crossbeam_epoch::pin;
 use rand::prelude::*;
 
-use crate::test::RandGen;
 use crate::ConcurrentMap;
+use crate::test::RandGen;
 
 /// Runs many operations in a single thread and tests if it works like a map data structure using
 /// `std::collections::HashMap` as reference.
@@ -69,11 +69,12 @@ pub fn stress_sequential<
                 println!("iteration {i}: insert({key:?}, {value:?})");
 
                 let map_res = map.insert(key.clone(), value.clone(), &pin());
-                let hmap_res = if let Entry::Vacant(e) = hashmap.entry(key) {
-                    let _ = e.insert(value);
-                    Ok(())
-                } else {
-                    Err(value)
+                let hmap_res = match hashmap.entry(key) {
+                    Entry::Vacant(e) => {
+                        let _ = e.insert(value);
+                        Ok(())
+                    }
+                    _ => Err(value),
                 };
                 assert_eq!(map_res, hmap_res);
             }

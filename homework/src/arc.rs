@@ -6,11 +6,11 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::ptr::NonNull;
 #[cfg(not(feature = "check-loom"))]
-use std::sync::atomic::{fence, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering, fence};
 use std::{fmt, mem};
 
 #[cfg(feature = "check-loom")]
-use loom::sync::atomic::{fence, AtomicUsize, Ordering};
+use loom::sync::atomic::{AtomicUsize, Ordering, fence};
 
 const MAX_REFCOUNT: usize = (isize::MAX) as usize;
 
@@ -237,10 +237,9 @@ impl<T> Arc<T> {
     /// }
     /// assert_eq!(*x, "foo");
     /// ```
-    #[allow(clippy::needless_pass_by_ref_mut)]
     pub unsafe fn get_mut_unchecked(this: &mut Self) -> &mut T {
         // We are careful to *not* create a reference covering the "count" fields, as
-        // this would alias with concurrent access to the reference counts.
+        // this would alias with concurrent access to the reference counts (e.g. by `Weak`).
         unsafe { &mut (*this.ptr.as_ptr()).data }
     }
 

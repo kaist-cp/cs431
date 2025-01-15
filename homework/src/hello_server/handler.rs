@@ -60,7 +60,8 @@ impl Handler {
             .captures(&buf)
             .and_then(|cap| cap.name("key"))
             .map(|key| String::from_utf8_lossy(key.as_bytes()));
-
+        // TODO: Might be better to just change the strings to not have "{" and "}" in them.
+        #[allow(clippy::literal_string_with_formatting_args)]
         let resp = if let Some(ref key) = key {
             let result = self.cache.get_or_insert_with(
                 key.to_string(),

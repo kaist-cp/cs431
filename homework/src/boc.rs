@@ -13,7 +13,7 @@ use std::sync::Arc;
 ///
 /// # Safety
 ///
-/// `last()` should actually return the last request for the corresponding cown.
+/// `last` should actually return the last request for the corresponding cown.
 unsafe trait CownBase: Send {
     /// Return a pointer to the tail of this cown's request queue.
     fn last(&self) -> &AtomicPtr<Request>;
@@ -309,16 +309,16 @@ macro_rules! tuple_list {
     ($i:ident, $($e:ident),*,) => ( ($i, $crate::tuple_list!($($e),*)) );
 
     // handling complex expressions
-    ($i:expr)  => ( ($i, ()) );
-    ($i:expr,) => ( ($i, ()) );
-    ($i:expr, $($e:expr),*)  => ( ($i, $crate::tuple_list!($($e),*)) );
-    ($i:expr, $($e:expr),*,) => ( ($i, $crate::tuple_list!($($e),*)) );
+    ($i:expr_2021)  => ( ($i, ()) );
+    ($i:expr_2021,) => ( ($i, ()) );
+    ($i:expr_2021, $($e:expr_2021),*)  => ( ($i, $crate::tuple_list!($($e),*)) );
+    ($i:expr_2021, $($e:expr_2021),*,) => ( ($i, $crate::tuple_list!($($e),*)) );
 }
 
 /// "When" block.
 #[macro_export]
 macro_rules! when {
-    ( $( $cs:ident ),* ; $( $gs:ident ),* ; $thunk:expr ) => {{
+    ( $( $cs:ident ),* ; $( $gs:ident ),* ; $thunk:expr_2021 ) => {{
         run_when(tuple_list!($($cs.clone()),*), move |tuple_list!($($gs),*)| $thunk);
     }};
 }

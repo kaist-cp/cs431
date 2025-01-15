@@ -63,7 +63,7 @@ fn iter_consistent() {
                 let mut rng = thread_rng();
                 for _ in 0..STEPS {
                     let key = 2 * rng.gen_range(0..50) + 1;
-                    if rng.gen() {
+                    if rng.r#gen() {
                         set.insert(key);
                     } else {
                         set.remove(&key);

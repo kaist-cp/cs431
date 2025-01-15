@@ -6,7 +6,7 @@ use std::thread;
 
 use crossbeam_epoch::{Guard, Owned, Shared};
 
-use super::base::{get_random_elim_index, ElimStack, Stack, ELIM_DELAY};
+use super::base::{ELIM_DELAY, ElimStack, Stack, get_random_elim_index};
 
 impl<T, S: Stack<T>> Stack<T> for ElimStack<T, S> {
     type PushReq = S::PushReq;
