@@ -135,13 +135,13 @@ const SEGMENT_LOGSIZE: usize = 10;
 
 /// A fixed size array of atomic pointers to other `Segment<T>` or `T`.
 ///
-/// Each segment is either a child segment with pointers to `Segment<T>` or an element segment with
-/// pointers to `T`. This is determined by the height of this segment in the main array, which one
-/// needs to track separately. For example, use the main array root's tag.
+/// Each segment is either an inner segment with pointers to other, children `Segment<T>` or an
+/// element segment with pointers to `T`. This is determined by the height of this segment in the
+/// main array, which one needs to track separately. For example, use the main array root's tag.
 ///
-/// Since destructing segments requires its height information, it is not recommended to
-/// implement [`Drop`]. Rather, implement and use the custom [`Segment::deallocate`] method that
-/// accounts for the height of the segment.
+/// Since destructing segments requires its height information, it is not recommended to implement
+/// [`Drop`]. Rather, implement and use the custom [`Segment::deallocate`] method that accounts for
+/// the height of the segment.
 union Segment<T> {
     children: ManuallyDrop<[Atomic<Segment<T>>; 1 << SEGMENT_LOGSIZE]>,
     elements: ManuallyDrop<[Atomic<T>; 1 << SEGMENT_LOGSIZE]>,
@@ -149,11 +149,11 @@ union Segment<T> {
 
 impl<T> Segment<T> {
     /// Create a new segment filled with null pointers. It is up to the callee to whether to use
-    /// this as a children or an element segment.
+    /// this as an intermediate or an element segment.
     fn new() -> Owned<Self> {
         Owned::new(
-            // SAFETY: An array of null pointers can be interperted as either an element segment or
-            // a children segment.
+            // SAFETY: An array of null pointers can be interperted as either an intermediate
+            // segment or an element segment.
             unsafe { mem::zeroed() },
         )
     }
@@ -162,7 +162,8 @@ impl<T> Segment<T> {
     ///
     /// # Safety
     ///
-    /// `self` must actually have height `height`.
+    /// - `self` must actually have height `height`.
+    /// - There should be no other references to possible children segments.
     unsafe fn deallocate(self, height: usize) {
         todo!()
     }
@@ -197,7 +198,7 @@ impl<T> GrowableArray<T> {
 
     /// Returns the reference to the `Atomic` pointer at `index`. Allocates new segments if
     /// necessary.
-    pub fn get<'g>(&self, mut index: usize, guard: &'g Guard) -> &'g Atomic<T> {
+    pub fn get<'g>(&self, index: usize, guard: &'g Guard) -> &'g Atomic<T> {
         todo!()
     }
 }

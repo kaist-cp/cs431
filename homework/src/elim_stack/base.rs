@@ -4,14 +4,14 @@ use core::ops::Deref;
 use std::time;
 
 use crossbeam_epoch::{Atomic, Guard, Owned, pin};
-use rand::{Rng, thread_rng};
+use rand::{self, Rng};
 
 pub(crate) const ELIM_SIZE: usize = 16;
 pub(crate) const ELIM_DELAY: time::Duration = time::Duration::from_millis(10);
 
 #[inline]
 pub(crate) fn get_random_elim_index() -> usize {
-    thread_rng().r#gen::<usize>() % ELIM_SIZE
+    (rand::rng().random::<u64>() as usize) % ELIM_SIZE
 }
 
 /// Concurrent stack types.

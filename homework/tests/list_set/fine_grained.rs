@@ -57,22 +57,24 @@ fn iter_consistent() {
 
     let done = AtomicBool::new(false);
     thread::scope(|s| {
+        // Ensure handles lives to the end.
+        let mut handles = Vec::with_capacity(THREADS + 1);
         // insert or remove odd numbers
         for _ in 0..THREADS {
-            let _ = s.spawn(|| {
-                let mut rng = thread_rng();
+            handles.push(s.spawn(|| {
+                let mut rng = rand::rng();
                 for _ in 0..STEPS {
-                    let key = 2 * rng.gen_range(0..50) + 1;
-                    if rng.r#gen() {
+                    let key = 2 * rng.random_range(0..50) + 1;
+                    if rng.random() {
                         set.insert(key);
                     } else {
                         set.remove(&key);
                     }
                 }
                 done.store(true, Release);
-            });
+            }));
         }
-        let _ = s.spawn(|| {
+        handles.push(s.spawn(|| {
             while !done.load(Acquire) {
                 let snapshot = set.iter().copied().collect::<Vec<_>>();
                 // sorted
@@ -81,6 +83,6 @@ fn iter_consistent() {
                 let snapshot = snapshot.into_iter().collect::<HashSet<_>>();
                 assert!(evens.is_subset(&snapshot));
             }
-        });
+        }));
     });
 }

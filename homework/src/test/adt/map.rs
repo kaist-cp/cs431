@@ -36,7 +36,7 @@ pub fn stress_sequential<
         Ops::DeleteNone,
     ];
 
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let map = M::default();
     let mut hashmap = HashMap::new();
 
@@ -118,7 +118,7 @@ pub fn lookup_concurrent<
     }
     const OPS: [Ops; 2] = [Ops::LookupSome, Ops::LookupNone];
 
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let map = M::default();
     let mut hashmap = HashMap::new();
 
@@ -133,7 +133,7 @@ pub fn lookup_concurrent<
         let mut handles = Vec::new();
         for _ in 0..threads {
             let handle = s.spawn(|| {
-                let mut rng = thread_rng();
+                let mut rng = rand::rng();
                 for _ in 0..steps {
                     let op = OPS.choose(&mut rng).unwrap();
 
@@ -164,7 +164,7 @@ pub fn insert_concurrent<
         let mut handles = Vec::new();
         for _ in 0..threads {
             let handle = s.spawn(|| {
-                let mut rng = thread_rng();
+                let mut rng = rand::rng();
                 for _ in 0..steps {
                     let key = K::rand_gen(&mut rng);
                     let value = V::rand_gen(&mut rng);
@@ -218,7 +218,7 @@ pub fn stress_concurrent<
         let mut handles = Vec::new();
         for _ in 0..threads {
             let handle = s.spawn(|| {
-                let mut rng = thread_rng();
+                let mut rng = rand::rng();
                 for _ in 0..steps {
                     let op = OPS.choose(&mut rng).unwrap();
                     let key = K::rand_gen(&mut rng);
@@ -303,7 +303,7 @@ pub fn log_concurrent<
 
         for _ in 0..threads {
             let handle = s.spawn(|| {
-                let mut rng = thread_rng();
+                let mut rng = rand::rng();
                 let mut logs = Vec::new();
 
                 for _ in 0..steps {

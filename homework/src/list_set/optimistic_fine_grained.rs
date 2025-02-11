@@ -20,7 +20,7 @@ pub struct OptimisticFineGrainedListSet<T> {
 }
 
 unsafe impl<T: Send> Send for OptimisticFineGrainedListSet<T> {}
-unsafe impl<T: Send> Sync for OptimisticFineGrainedListSet<T> {}
+unsafe impl<T: Sync> Sync for OptimisticFineGrainedListSet<T> {}
 
 #[derive(Debug)]
 struct Cursor<'g, T> {

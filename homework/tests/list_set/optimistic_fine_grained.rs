@@ -120,23 +120,26 @@ fn iter_consistent() {
 
     let done = AtomicBool::new(false);
     thread::scope(|s| {
+        // Ensure handles lives to the end.
+        let mut handles = Vec::with_capacity(THREADS + 1);
         // Inserts or removes odd numbers.
         for _ in 0..THREADS {
-            let _ = s.spawn(|| {
-                let mut rng = thread_rng();
+            handles.push(s.spawn(|| {
+                let mut rng = rand::rng();
                 for _ in 0..STEPS {
-                    let key = 2 * rng.gen_range(0..50) + 1;
-                    if rng.r#gen() {
+                    let key = 2 * rng.random_range(0..50) + 1;
+                    if rng.random() {
                         let _ = set.insert(key);
                     } else {
                         let _ = set.remove(&key);
                     }
                 }
+                // TODO: Ideally, should be per-thread variable?
                 done.store(true, Release);
-            });
+            }));
         }
         // Checks iterator consistency.
-        let _ = s.spawn(|| {
+        handles.push(s.spawn(|| {
             while !done.load(Acquire) {
                 let mut snapshot = Vec::new();
                 for r in set.iter(&pin()) {
@@ -157,6 +160,6 @@ fn iter_consistent() {
                 let snapshot = snapshot.into_iter().collect::<HashSet<_>>();
                 assert!(evens.is_subset(&snapshot));
             }
-        });
+        }));
     });
 }
