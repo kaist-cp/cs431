@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["very_expensive_computation_that_takes_a_few_seconds"],"struct":["Handler"]};

@@ -1,0 +1,2 @@
+window.ALL_CRATES = ["aho_corasick","cfg_if","crossbeam_channel","crossbeam_deque","crossbeam_epoch","crossbeam_utils","cs431","cs431_homework","either","getrandom","libc","memchr","ppv_lite86","rand","rand_chacha","rand_core","rayon","rayon_core","regex","regex_automata","regex_syntax","zerocopy"];
+//{"start":21,"fragment_lengths":[14,9,20,18,18,18,8,17,9,12,7,9,13,7,14,12,8,13,8,17,15,11]}

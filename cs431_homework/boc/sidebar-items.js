@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["run_when"],"struct":["Behavior","Cown","CownPtr","Request"],"trait":["CownBase","CownPtrs"],"type":["BehaviorThunk"]};
