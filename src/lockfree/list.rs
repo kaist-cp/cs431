@@ -27,8 +27,8 @@ pub struct List<K, V> {
     head: Atomic<Node<K, V>>,
 }
 
-// Unlike stack and queue, we need `K` and `V` to be `Sync` for the list to be `Sync`,
-// as both `K` and `V` are accessed concurrently in `find` and `delete`, respectively.
+// Unlike stack and queue, we need `K` and `V` to be `Sync` for the list to be `Sync`, as both `K`
+// and `V` are accessed concurrently in `find` and `delete`, respectively.
 unsafe impl<K: Sync, V: Sync> Sync for List<K, V> {}
 unsafe impl<K: Send, V: Send> Send for List<K, V> {}
 
@@ -155,8 +155,8 @@ where
         while node.with_tag(0) != self.curr {
             // SAFETY: All nodes in the unlinked chain are not null.
             //
-            // NOTE: It may seem like this load could be non-atomic, but that would
-            // race with the `fetch_or` done in `remove`.
+            // NOTE: It may seem like this load could be non-atomic, but that would race with the
+            // `fetch_or` done in `remove`.
             let next = unsafe { node.deref() }.next.load(Relaxed, guard);
 
             // SAFETY: we unlinked the chain with above CAS.

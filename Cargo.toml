@@ -2,10 +2,10 @@
 name = "cs431"
 version = "0.1.0"
 authors = ["Jeehoon Kang <jeehoon.kang@kaist.ac.kr>"]
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 crossbeam-epoch = "0.9.18"
-crossbeam-utils = "0.8.19"
+crossbeam-utils = "0.8.21"
