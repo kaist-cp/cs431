@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Terminates the process in an abnormal fashion."><title>abort in cs431_homework::test::loom::process - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">abort</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>process</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">process</a></div><h1>Function <span class="fn">abort</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.17.0">1.17.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/process.rs.html#2498">Source</a> </span></div><pre class="rust item-decl"><code>pub fn abort() -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.never.html">!</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Terminates the process in an abnormal fashion.</p>
+<p>The function will never return and will immediately terminate the current
+process in a platform specific “abnormal” manner. As a consequence,
+no destructors on the current stack or any other thread’s stack
+will be run, Rust IO buffers (eg, from <code>BufWriter</code>) will not be flushed,
+and C stdio buffers will (on most platforms) not be flushed.</p>
+<p>This is in contrast to the default behavior of <a href="../macro.panic.html" title="macro cs431_homework::test::loom::panic"><code>panic!</code></a> which unwinds
+the current thread’s stack and calls all destructors.
+When <code>panic="abort"</code> is set, either as an argument to <code>rustc</code> or in a
+crate’s Cargo.toml, <a href="../macro.panic.html" title="macro cs431_homework::test::loom::panic"><code>panic!</code></a> and <code>abort</code> are similar. However,
+<a href="../macro.panic.html" title="macro cs431_homework::test::loom::panic"><code>panic!</code></a> will still call the <a href="../panic/fn.set_hook.html" title="fn cs431_homework::test::loom::panic::set_hook">panic hook</a> while <code>abort</code> will not.</p>
+<p>If a clean shutdown is needed it is recommended to only call
+this function at a known point where there are no more destructors left
+to run.</p>
+<p>The process’s termination will be similar to that from the C <code>abort()</code>
+function.  On Unix, the process will terminate with signal <code>SIGABRT</code>, which
+typically means that the shell prints “Aborted”.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process;
+
+<span class="kw">fn </span>main() {
+    <span class="macro">println!</span>(<span class="string">"aborting"</span>);
+
+    process::abort();
+
+    <span class="comment">// execution never gets here
+</span>}</code></pre></div>
+<p>The <code>abort</code> function terminates the process, so the destructor will not
+get run on the example below:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process;
+
+<span class="kw">struct </span>HasDrop;
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>HasDrop {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="macro">println!</span>(<span class="string">"This will never be printed!"</span>);
+    }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>_x = HasDrop;
+    process::abort();
+    <span class="comment">// the destructor implemented for HasDrop will never get run
+</span>}</code></pre></div>
+</div></details></section></div></main></body></html>

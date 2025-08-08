@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Creates a `HashMap` containing the arguments."><title>hash_map in cs431_homework::test::loom - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">hash_<wbr>map</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">cs431_homework</a>::<wbr><a href="../index.html">test</a>::<wbr><a href="index.html">loom</a></div><h1>Macro <span class="macro">hash_map</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="https://doc.rust-lang.org/nightly/src/std/macros.rs.html#443">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! hash_map {
+    () =&gt; { ... };
+    ($($key:expr =&gt; $value:expr),* $(,)?) =&gt; { ... };
+}</code></pre><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>hash_map_macro</code>)</span></div></span><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Creates a <a href="collections/struct.HashMap.html" title="struct cs431_homework::test::loom::collections::HashMap"><code>HashMap</code></a> containing the arguments.</p>
+<p><code>hash_map!</code> allows specifying the entries that make
+up the <a href="collections/struct.HashMap.html" title="struct cs431_homework::test::loom::collections::HashMap"><code>HashMap</code></a> where the key and value are separated by a <code>=&gt;</code>.</p>
+<p>The entries are separated by commas with a trailing comma being allowed.</p>
+<p>It is semantically equivalent to using repeated <a href="collections/struct.HashMap.html#method.insert" title="method cs431_homework::test::loom::collections::HashMap::insert"><code>HashMap::insert</code></a>
+on a newly created hashmap.</p>
+<p><code>hash_map!</code> will attempt to avoid repeated reallocations by
+using <a href="collections/struct.HashMap.html#method.with_capacity" title="associated function cs431_homework::test::loom::collections::HashMap::with_capacity"><code>HashMap::with_capacity</code></a>.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(hash_map_macro)]
+
+</span><span class="kw">let </span>map = <span class="macro">hash_map!</span> {
+    <span class="string">"key" </span>=&gt; <span class="string">"value"</span>,
+    <span class="string">"key1" </span>=&gt; <span class="string">"value1"
+</span>};
+
+<span class="macro">assert_eq!</span>(map.get(<span class="string">"key"</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">"value"</span>));
+<span class="macro">assert_eq!</span>(map.get(<span class="string">"key1"</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">"value1"</span>));
+<span class="macro">assert!</span>(map.get(<span class="string">"brrrrrrooooommm"</span>).is_none());</code></pre></div>
+<p>And with a trailing comma</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code> <span class="attr">#![feature(hash_map_macro)]
+
+ </span><span class="kw">let </span>map = <span class="macro">hash_map!</span> {
+     <span class="string">"key" </span>=&gt; <span class="string">"value"</span>, <span class="comment">// notice the ,
+ </span>};
+
+ <span class="macro">assert_eq!</span>(map.get(<span class="string">"key"</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">"value"</span>));</code></pre></div>
+<p>The key and value are moved into the HashMap.</p>
+</div></details></section></div></main></body></html>

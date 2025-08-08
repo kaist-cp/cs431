@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Removes an environment variable from the environment of the currently running process."><title>remove_var in cs431_homework::test::loom::env - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">remove_<wbr>var</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#panics" title="Panics">Panics</a></li><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>env</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">env</a></div><h1>Function <span class="fn">remove_var</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/env.rs.html#437">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe fn remove_var&lt;K&gt;(key: K)<div class="where">where
+    K: <a class="trait" href="../convert/trait.AsRef.html" title="trait cs431_homework::test::loom::convert::AsRef">AsRef</a>&lt;<a class="struct" href="../ffi/struct.OsStr.html" title="struct cs431_homework::test::loom::ffi::OsStr">OsStr</a>&gt;,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Removes an environment variable from the environment of the currently running process.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>This function is safe to call in a single-threaded program.</p>
+<p>This function is also always safe to call on Windows, in single-threaded
+and multi-threaded programs.</p>
+<p>In multi-threaded programs on other operating systems, the only safe option is
+to not use <code>set_var</code> or <code>remove_var</code> at all.</p>
+<p>The exact requirement is: you
+must ensure that there are no other threads concurrently writing or
+<em>reading</em>(!) the environment through functions or global variables other
+than the ones in this module. The problem is that these operating systems
+do not provide a thread-safe way to read the environment, and most C
+libraries, including libc itself, do not advertise which functions read
+from the environment. Even functions from the Rust standard library may
+read the environment without going through this module, e.g. for DNS
+lookups from <a href="../net/trait.ToSocketAddrs.html" title="trait cs431_homework::test::loom::net::ToSocketAddrs"><code>std::net::ToSocketAddrs</code></a>. No stable guarantee is made about
+which functions may read from the environment in future versions of a
+library. All this makes it not practically possible for you to guarantee
+that no other thread will read the environment, so the only safe option is
+to not use <code>set_var</code> or <code>remove_var</code> in multi-threaded programs at all.</p>
+<p>Discussion of this unsafety on Unix may be found in:</p>
+<ul>
+<li><a href="https://austingroupbugs.net/view.php?id=188">Austin Group Bugzilla</a></li>
+<li><a href="https://sourceware.org/bugzilla/show_bug.cgi?id=15607#c2">GNU C library Bugzilla</a></li>
+</ul>
+<p>To prevent a child process from inheriting an environment variable, you can
+instead use <a href="../process/struct.Command.html#method.env_remove" title="method cs431_homework::test::loom::process::Command::env_remove"><code>Command::env_remove</code></a> or <a href="../process/struct.Command.html#method.env_clear" title="method cs431_homework::test::loom::process::Command::env_clear"><code>Command::env_clear</code></a>.</p>
+<h2 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h2>
+<p>This function may panic if <code>key</code> is empty, contains an ASCII equals sign
+<code>'='</code> or the NUL character <code>'\0'</code>, or when the value contains the NUL
+character.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::env;
+
+<span class="kw">let </span>key = <span class="string">"KEY"</span>;
+<span class="kw">unsafe </span>{
+    env::set_var(key, <span class="string">"VALUE"</span>);
+}
+<span class="macro">assert_eq!</span>(env::var(key), <span class="prelude-val">Ok</span>(<span class="string">"VALUE"</span>.to_string()));
+
+<span class="kw">unsafe </span>{
+    env::remove_var(key);
+}
+<span class="macro">assert!</span>(env::var(key).is_err());</code></pre></div>
+</div></details></section></div></main></body></html>

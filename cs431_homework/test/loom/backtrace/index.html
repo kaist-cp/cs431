@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Support for capturing a stack backtrace of an OS thread"><title>cs431_homework::test::loom::backtrace - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module backtrace</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#accuracy" title="Accuracy">Accuracy</a></li><li><a href="#platform-support" title="Platform support">Platform support</a></li><li><a href="#environment-variables" title="Environment Variables">Environment Variables</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a></div><h1>Module <span>backtrace</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.65.0">1.65.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/lib.rs.html#595">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Support for capturing a stack backtrace of an OS thread</p>
+<p>This module contains the support necessary to capture a stack backtrace of a
+running OS thread from the OS thread itself. The <code>Backtrace</code> type supports
+capturing a stack trace via the <code>Backtrace::capture</code> and
+<code>Backtrace::force_capture</code> functions.</p>
+<p>A backtrace is typically quite handy to attach to errors (e.g. types
+implementing <code>std::error::Error</code>) to get a causal chain of where an error
+was generated.</p>
+<h3 id="accuracy"><a class="doc-anchor" href="#accuracy">§</a>Accuracy</h3>
+<p>Backtraces are attempted to be as accurate as possible, but no guarantees
+are provided about the exact accuracy of a backtrace. Instruction pointers,
+symbol names, filenames, line numbers, etc, may all be incorrect when
+reported. Accuracy is attempted on a best-effort basis, however, any bug
+reports are always welcome to indicate areas of improvement!</p>
+<p>For most platforms a backtrace with a filename/line number requires that
+programs be compiled with debug information. Without debug information
+filenames/line numbers will not be reported.</p>
+<h3 id="platform-support"><a class="doc-anchor" href="#platform-support">§</a>Platform support</h3>
+<p>Not all platforms that std compiles for support capturing backtraces. Some
+platforms simply do nothing when capturing a backtrace. To check whether the
+platform supports capturing backtraces you can consult the <code>BacktraceStatus</code>
+enum as a result of <code>Backtrace::status</code>.</p>
+<p>Like above with accuracy platform support is done on a best effort basis.
+Sometimes libraries might not be available at runtime or something may go
+wrong which would cause a backtrace to not be captured. Please feel free to
+report issues with platforms where a backtrace cannot be captured though!</p>
+<h3 id="environment-variables"><a class="doc-anchor" href="#environment-variables">§</a>Environment Variables</h3>
+<p>The <code>Backtrace::capture</code> function might not actually capture a backtrace by
+default. Its behavior is governed by two environment variables:</p>
+<ul>
+<li>
+<p><code>RUST_LIB_BACKTRACE</code> - if this is set to <code>0</code> then <code>Backtrace::capture</code>
+will never capture a backtrace. Any other value set will enable
+<code>Backtrace::capture</code>.</p>
+</li>
+<li>
+<p><code>RUST_BACKTRACE</code> - if <code>RUST_LIB_BACKTRACE</code> is not set, then this variable
+is consulted with the same rules of <code>RUST_LIB_BACKTRACE</code>.</p>
+</li>
+<li>
+<p>If neither of the above env vars are set, then <code>Backtrace::capture</code> will
+be disabled.</p>
+</li>
+</ul>
+<p>Capturing a backtrace can be a quite expensive runtime operation, so the
+environment variables allow either forcibly disabling this runtime
+performance hit or allow selectively enabling it in some programs.</p>
+<p>Note that the <code>Backtrace::force_capture</code> function can be used to ignore
+these environment variables. Also note that the state of environment
+variables is cached once the first backtrace is created, so altering
+<code>RUST_LIB_BACKTRACE</code> or <code>RUST_BACKTRACE</code> at runtime might not actually change
+how backtraces are captured.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Backtrace.html" title="struct cs431_homework::test::loom::backtrace::Backtrace">Backtrace</a></dt><dd>A captured OS thread stack backtrace.</dd><dt><a class="struct" href="struct.BacktraceFrame.html" title="struct cs431_homework::test::loom::backtrace::BacktraceFrame">Backtrace<wbr>Frame</a><wbr><span class="stab unstable" title="">Experimental</span></dt><dd>A single frame of a backtrace.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.BacktraceStatus.html" title="enum cs431_homework::test::loom::backtrace::BacktraceStatus">Backtrace<wbr>Status</a></dt><dd>The current status of a backtrace, indicating whether it was captured or
+whether it is empty for some other reason.</dd></dl></section></div></main></body></html>

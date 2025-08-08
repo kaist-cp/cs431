@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Puts the current thread to sleep until the specified deadline has passed."><title>sleep_until in cs431_homework::test::loom::thread - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">sleep_<wbr>until</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#platform-specific-behavior" title="Platform-specific behavior">Platform-specific behavior</a></li><li><a href="#underlying-system-calls" title="Underlying System calls">Underlying System calls</a></li><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>thread</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">thread</a></div><h1>Function <span class="fn">sleep_until</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="https://doc.rust-lang.org/nightly/src/std/thread/mod.rs.html#985">Source</a> </span></div><pre class="rust item-decl"><code>pub fn sleep_until(deadline: <a class="struct" href="../time/struct.Instant.html" title="struct cs431_homework::test::loom::time::Instant">Instant</a>)</code></pre><span class="item-info"><div class="stab unstable"><span class="emoji">🔬</span><span>This is a nightly-only experimental API. (<code>thread_sleep_until</code>)</span></div></span><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Puts the current thread to sleep until the specified deadline has passed.</p>
+<p>The thread may still be asleep after the deadline specified due to
+scheduling specifics or platform-dependent functionality. It will never
+wake before.</p>
+<p>This function is blocking, and should not be used in <code>async</code> functions.</p>
+<h2 id="platform-specific-behavior"><a class="doc-anchor" href="#platform-specific-behavior">§</a>Platform-specific behavior</h2>
+<p>In most cases this function will call an OS specific function. Where that
+is not supported <a href="fn.sleep.html" title="fn cs431_homework::test::loom::thread::sleep"><code>sleep</code></a> is used. Those platforms are referred to as other
+in the table below.</p>
+<h2 id="underlying-system-calls"><a class="doc-anchor" href="#underlying-system-calls">§</a>Underlying System calls</h2>
+<p>The following system calls are <a href="../io/index.html#platform-specific-behavior" title="mod cs431_homework::test::loom::io">currently</a> being used:</p>
+<div><table><thead><tr><th>Platform</th><th>System call</th></tr></thead><tbody>
+<tr><td>Linux</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic clock)</td></tr>
+<tr><td>BSD except OpenBSD</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Android</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Solaris</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Illumos</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Dragonfly</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Hurd</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Fuchsia</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Vxworks</td><td><a href="https://linux.die.net/man/3/clock_nanosleep">clock_nanosleep</a> (Monotonic Clock)]</td></tr>
+<tr><td>Other</td><td><code>sleep_until</code> uses <a href="fn.sleep.html" title="fn cs431_homework::test::loom::thread::sleep"><code>sleep</code></a> and does not issue a syscall itself</td></tr>
+</tbody></table>
+</div>
+<p><strong>Disclaimer:</strong> These system calls might change over time.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>A simple game loop that limits the game to 60 frames per second.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(thread_sleep_until)]
+</span><span class="kw">let </span>max_fps = <span class="number">60.0</span>;
+<span class="kw">let </span>frame_time = Duration::from_secs_f32(<span class="number">1.0</span>/max_fps);
+<span class="kw">let </span><span class="kw-2">mut </span>next_frame = Instant::now();
+<span class="kw">loop </span>{
+    thread::sleep_until(next_frame);
+    next_frame += frame_time;
+    update();
+    render();
+}</code></pre></div>
+<p>A slow API we must not call too fast and which takes a few
+tries before succeeding. By using <code>sleep_until</code> the time the
+API call takes does not influence when we retry or when we give up</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#![feature(thread_sleep_until)]
+</span><span class="kw">let </span>deadline = Instant::now() + MAX_DURATION;
+<span class="kw">let </span>delay = Duration::from_millis(<span class="number">250</span>);
+<span class="kw">let </span><span class="kw-2">mut </span>next_attempt = Instant::now();
+<span class="kw">loop </span>{
+    <span class="kw">if </span>Instant::now() &gt; deadline {
+        <span class="kw">break </span><span class="prelude-val">Err</span>(());
+    }
+    <span class="kw">if let </span>Status::Ready(data) = slow_web_api_call() {
+        <span class="kw">break </span><span class="prelude-val">Ok</span>(data);
+    }
+
+    next_attempt = deadline.min(next_attempt + delay);
+    thread::sleep_until(next_attempt);
+}</code></pre></div>
+</div></details></section></div></main></body></html>

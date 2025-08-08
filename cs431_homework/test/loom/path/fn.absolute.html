@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Makes the path absolute without accessing the filesystem."><title>absolute in cs431_homework::test::loom::path - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">absolute</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#platform-specific-behavior" title="Platform-specific behavior">Platform-specific behavior</a></li><li><a href="#errors" title="Errors">Errors</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#posix-paths" title="POSIX paths">POSIX paths</a></li><li><a href="#windows-paths" title="Windows paths">Windows paths</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>path</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">path</a></div><h1>Function <span class="fn">absolute</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.79.0">1.79.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/path.rs.html#3724">Source</a> </span></div><pre class="rust item-decl"><code>pub fn absolute&lt;P&gt;(path: P) -&gt; <a class="enum" href="../result/enum.Result.html" title="enum cs431_homework::test::loom::result::Result">Result</a>&lt;<a class="struct" href="struct.PathBuf.html" title="struct cs431_homework::test::loom::path::PathBuf">PathBuf</a>, <a class="struct" href="../io/struct.Error.html" title="struct cs431_homework::test::loom::io::Error">Error</a>&gt;<div class="where">where
+    P: <a class="trait" href="../convert/trait.AsRef.html" title="trait cs431_homework::test::loom::convert::AsRef">AsRef</a>&lt;<a class="struct" href="struct.Path.html" title="struct cs431_homework::test::loom::path::Path">Path</a>&gt;,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Makes the path absolute without accessing the filesystem.</p>
+<p>If the path is relative, the current directory is used as the base directory.
+All intermediate components will be resolved according to platform-specific
+rules, but unlike <a href="../fs/fn.canonicalize.html" title="fn cs431_homework::test::loom::fs::canonicalize"><code>canonicalize</code></a>, this does not
+resolve symlinks and may succeed even if the path does not exist.</p>
+<p>If the <code>path</code> is empty or getting the
+<a href="../env/fn.current_dir.html" title="fn cs431_homework::test::loom::env::current_dir">current directory</a> fails, then an error will be
+returned.</p>
+<h2 id="platform-specific-behavior"><a class="doc-anchor" href="#platform-specific-behavior">§</a>Platform-specific behavior</h2>
+<p>On POSIX platforms, the path is resolved using <a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13">POSIX semantics</a>,
+except that it stops short of resolving symlinks. This means it will keep <code>..</code>
+components and trailing slashes.</p>
+<p>On Windows, for verbatim paths, this will simply return the path as given. For other
+paths, this is currently equivalent to calling
+<a href="https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew"><code>GetFullPathNameW</code></a>.</p>
+<p>On Cygwin, this is currently equivalent to calling <a href="https://cygwin.com/cygwin-api/func-cygwin-conv-path.html"><code>cygwin_conv_path</code></a>
+with mode <code>CCP_WIN_A_TO_POSIX</code>, and then being processed like other POSIX platforms.
+If a Windows path is given, it will be converted to an absolute POSIX path without
+keeping <code>..</code>.</p>
+<p>Note that these <a href="../io/index.html#platform-specific-behavior" title="mod cs431_homework::test::loom::io">may change in the future</a>.</p>
+<h2 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h2>
+<p>This function may return an error in the following situations:</p>
+<ul>
+<li>If <code>path</code> is syntactically invalid; in particular, if it is empty.</li>
+<li>If getting the <a href="../env/fn.current_dir.html" title="fn cs431_homework::test::loom::env::current_dir">current directory</a> fails.</li>
+</ul>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h3 id="posix-paths"><a class="doc-anchor" href="#posix-paths">§</a>POSIX paths</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() -&gt; std::io::Result&lt;()&gt; {
+    <span class="kw">use </span>std::path::{<span class="self">self</span>, Path};
+
+    <span class="comment">// Relative to absolute
+    </span><span class="kw">let </span>absolute = path::absolute(<span class="string">"foo/./bar"</span>)<span class="question-mark">?</span>;
+    <span class="macro">assert!</span>(absolute.ends_with(<span class="string">"foo/bar"</span>));
+
+    <span class="comment">// Absolute to absolute
+    </span><span class="kw">let </span>absolute = path::absolute(<span class="string">"/foo//test/.././bar.rs"</span>)<span class="question-mark">?</span>;
+    <span class="macro">assert_eq!</span>(absolute, Path::new(<span class="string">"/foo/test/../bar.rs"</span>));
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<h3 id="windows-paths"><a class="doc-anchor" href="#windows-paths">§</a>Windows paths</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() -&gt; std::io::Result&lt;()&gt; {
+    <span class="kw">use </span>std::path::{<span class="self">self</span>, Path};
+
+    <span class="comment">// Relative to absolute
+    </span><span class="kw">let </span>absolute = path::absolute(<span class="string">"foo/./bar"</span>)<span class="question-mark">?</span>;
+    <span class="macro">assert!</span>(absolute.ends_with(<span class="string">r"foo\bar"</span>));
+
+    <span class="comment">// Absolute to absolute
+    </span><span class="kw">let </span>absolute = path::absolute(<span class="string">r"C:\foo//test\..\./bar.rs"</span>)<span class="question-mark">?</span>;
+
+    <span class="macro">assert_eq!</span>(absolute, Path::new(<span class="string">r"C:\foo\bar.rs"</span>));
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<p>Note that this <a href="../io/index.html#platform-specific-behavior" title="mod cs431_homework::test::loom::io">may change in the future</a>.</p>
+</div></details></section></div></main></body></html>

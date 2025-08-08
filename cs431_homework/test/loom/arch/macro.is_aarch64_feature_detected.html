@@ -1,0 +1,175 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This macro tests, at runtime, whether an `aarch64` feature is enabled on aarch64 platforms. Currently most features are only supported on linux-based platforms."><title>is_aarch64_feature_detected in cs431_homework::test::loom::arch - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">is_<wbr>aarch64_<wbr>feature_<wbr>detected</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#supported-arguments" title="Supported arguments">Supported arguments</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>arch</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">arch</a></div><h1>Macro <span class="macro">is_aarch64_feature_detected</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.60.0">1.60.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std_detect/detect/arch/aarch64.rs.html#3-259">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! is_aarch64_feature_detected {
+    (&quot;neon&quot;) =&gt; { ... };
+    (&quot;pmull&quot;) =&gt; { ... };
+    (&quot;fp&quot;) =&gt; { ... };
+    (&quot;aes&quot;) =&gt; { ... };
+    (&quot;bf16&quot;) =&gt; { ... };
+    (&quot;bti&quot;) =&gt; { ... };
+    (&quot;crc&quot;) =&gt; { ... };
+    (&quot;cssc&quot;) =&gt; { ... };
+    (&quot;dit&quot;) =&gt; { ... };
+    (&quot;dpb&quot;) =&gt; { ... };
+    (&quot;dpb2&quot;) =&gt; { ... };
+    (&quot;dotprod&quot;) =&gt; { ... };
+    (&quot;ecv&quot;) =&gt; { ... };
+    (&quot;f32mm&quot;) =&gt; { ... };
+    (&quot;f64mm&quot;) =&gt; { ... };
+    (&quot;faminmax&quot;) =&gt; { ... };
+    (&quot;fcma&quot;) =&gt; { ... };
+    (&quot;fhm&quot;) =&gt; { ... };
+    (&quot;flagm&quot;) =&gt; { ... };
+    (&quot;flagm2&quot;) =&gt; { ... };
+    (&quot;fp16&quot;) =&gt; { ... };
+    (&quot;fp8&quot;) =&gt; { ... };
+    (&quot;fp8dot2&quot;) =&gt; { ... };
+    (&quot;fp8dot4&quot;) =&gt; { ... };
+    (&quot;fp8fma&quot;) =&gt; { ... };
+    (&quot;fpmr&quot;) =&gt; { ... };
+    (&quot;frintts&quot;) =&gt; { ... };
+    (&quot;hbc&quot;) =&gt; { ... };
+    (&quot;i8mm&quot;) =&gt; { ... };
+    (&quot;jsconv&quot;) =&gt; { ... };
+    (&quot;lse&quot;) =&gt; { ... };
+    (&quot;lse128&quot;) =&gt; { ... };
+    (&quot;lse2&quot;) =&gt; { ... };
+    (&quot;lut&quot;) =&gt; { ... };
+    (&quot;mops&quot;) =&gt; { ... };
+    (&quot;mte&quot;) =&gt; { ... };
+    (&quot;paca&quot;) =&gt; { ... };
+    (&quot;pacg&quot;) =&gt; { ... };
+    (&quot;pauth-lr&quot;) =&gt; { ... };
+    (&quot;rand&quot;) =&gt; { ... };
+    (&quot;rcpc&quot;) =&gt; { ... };
+    (&quot;rcpc2&quot;) =&gt; { ... };
+    (&quot;rcpc3&quot;) =&gt; { ... };
+    (&quot;rdm&quot;) =&gt; { ... };
+    (&quot;sb&quot;) =&gt; { ... };
+    (&quot;sha2&quot;) =&gt; { ... };
+    (&quot;sha3&quot;) =&gt; { ... };
+    (&quot;sm4&quot;) =&gt; { ... };
+    (&quot;sme&quot;) =&gt; { ... };
+    (&quot;sme2&quot;) =&gt; { ... };
+    (&quot;sme2p1&quot;) =&gt; { ... };
+    (&quot;sme-b16b16&quot;) =&gt; { ... };
+    (&quot;sme-f16f16&quot;) =&gt; { ... };
+    (&quot;sme-f64f64&quot;) =&gt; { ... };
+    (&quot;sme-f8f16&quot;) =&gt; { ... };
+    (&quot;sme-f8f32&quot;) =&gt; { ... };
+    (&quot;sme-fa64&quot;) =&gt; { ... };
+    (&quot;sme-i16i64&quot;) =&gt; { ... };
+    (&quot;sme-lutv2&quot;) =&gt; { ... };
+    (&quot;ssbs&quot;) =&gt; { ... };
+    (&quot;ssve-fp8dot2&quot;) =&gt; { ... };
+    (&quot;ssve-fp8dot4&quot;) =&gt; { ... };
+    (&quot;ssve-fp8fma&quot;) =&gt; { ... };
+    (&quot;sve&quot;) =&gt; { ... };
+    (&quot;sve2&quot;) =&gt; { ... };
+    (&quot;sve2p1&quot;) =&gt; { ... };
+    (&quot;sve2-aes&quot;) =&gt; { ... };
+    (&quot;sve-b16b16&quot;) =&gt; { ... };
+    (&quot;sve2-bitperm&quot;) =&gt; { ... };
+    (&quot;sve2-sha3&quot;) =&gt; { ... };
+    (&quot;sve2-sm4&quot;) =&gt; { ... };
+    (&quot;tme&quot;) =&gt; { ... };
+    (&quot;wfxt&quot;) =&gt; { ... };
+    (&quot;asimd&quot;) =&gt; { ... };
+    (&quot;ras&quot;) =&gt; { ... };
+    (&quot;v8.1a&quot;) =&gt; { ... };
+    (&quot;v8.2a&quot;) =&gt; { ... };
+    (&quot;v8.3a&quot;) =&gt; { ... };
+    (&quot;v8.4a&quot;) =&gt; { ... };
+    (&quot;v8.5a&quot;) =&gt; { ... };
+    (&quot;v8.6a&quot;) =&gt; { ... };
+    (&quot;v8.7a&quot;) =&gt; { ... };
+    (&quot;v8.8a&quot;) =&gt; { ... };
+    (&quot;v8.9a&quot;) =&gt; { ... };
+    (&quot;v9.1a&quot;) =&gt; { ... };
+    (&quot;v9.2a&quot;) =&gt; { ... };
+    (&quot;v9.3a&quot;) =&gt; { ... };
+    (&quot;v9.4a&quot;) =&gt; { ... };
+    (&quot;v9.5a&quot;) =&gt; { ... };
+    (&quot;v9a&quot;) =&gt; { ... };
+    ($t:tt,) =&gt; { ... };
+    ($t:tt) =&gt; { ... };
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This macro tests, at runtime, whether an <code>aarch64</code> feature is enabled on aarch64 platforms.
+Currently most features are only supported on linux-based platforms.</p>
+<p>This macro takes one argument which is a string literal of the feature being tested for.
+The feature names are mostly taken from their FEAT_* definitions in the <a href="https://developer.arm.com/documentation/ddi0487/latest">ARM Architecture
+Reference Manual</a>.</p>
+<h3 id="supported-arguments"><a class="doc-anchor" href="#supported-arguments">§</a>Supported arguments</h3>
+<ul>
+<li><code>"aes"</code> - FEAT_AES &amp; FEAT_PMULL</li>
+<li><code>"asimd"</code> or “neon” - FEAT_AdvSIMD</li>
+<li><code>"bf16"</code> - FEAT_BF16</li>
+<li><code>"bti"</code> - FEAT_BTI</li>
+<li><code>"crc"</code> - FEAT_CRC</li>
+<li><code>"cssc"</code> - FEAT_CSSC</li>
+<li><code>"dit"</code> - FEAT_DIT</li>
+<li><code>"dotprod"</code> - FEAT_DotProd</li>
+<li><code>"dpb"</code> - FEAT_DPB</li>
+<li><code>"dpb2"</code> - FEAT_DPB2</li>
+<li><code>"ecv"</code> - FEAT_ECV</li>
+<li><code>"f32mm"</code> - FEAT_F32MM</li>
+<li><code>"f64mm"</code> - FEAT_F64MM</li>
+<li><code>"faminmax"</code> - FEAT_FAMINMAX</li>
+<li><code>"fcma"</code> - FEAT_FCMA</li>
+<li><code>"fhm"</code> - FEAT_FHM</li>
+<li><code>"flagm"</code> - FEAT_FLAGM</li>
+<li><code>"flagm2"</code> - FEAT_FLAGM2</li>
+<li><code>"fp"</code> - FEAT_FP</li>
+<li><code>"fp16"</code> - FEAT_FP16</li>
+<li><code>"fp8"</code> - FEAT_FP8</li>
+<li><code>"fp8dot2"</code> - FEAT_FP8DOT2</li>
+<li><code>"fp8dot4"</code> - FEAT_FP8DOT4</li>
+<li><code>"fp8fma"</code> - FEAT_FP8FMA</li>
+<li><code>"fpmr"</code> - FEAT_FPMR</li>
+<li><code>"frintts"</code> - FEAT_FRINTTS</li>
+<li><code>"hbc"</code> - FEAT_HBC</li>
+<li><code>"i8mm"</code> - FEAT_I8MM</li>
+<li><code>"jsconv"</code> - FEAT_JSCVT</li>
+<li><code>"lse"</code> - FEAT_LSE</li>
+<li><code>"lse128"</code> - FEAT_LSE128</li>
+<li><code>"lse2"</code> - FEAT_LSE2</li>
+<li><code>"lut"</code> - FEAT_LUT</li>
+<li><code>"mops"</code> - FEAT_MOPS</li>
+<li><code>"mte"</code> - FEAT_MTE &amp; FEAT_MTE2</li>
+<li><code>"paca"</code> - FEAT_PAuth (address authentication)</li>
+<li><code>"pacg"</code> - FEAT_Pauth (generic authentication)</li>
+<li><code>"pauth-lr"</code> - FEAT_PAuth_LR</li>
+<li><code>"pmull"</code> - FEAT_PMULL</li>
+<li><code>"rand"</code> - FEAT_RNG</li>
+<li><code>"rcpc"</code> - FEAT_LRCPC</li>
+<li><code>"rcpc2"</code> - FEAT_LRCPC2</li>
+<li><code>"rcpc3"</code> - FEAT_LRCPC3</li>
+<li><code>"rdm"</code> - FEAT_RDM</li>
+<li><code>"sb"</code> - FEAT_SB</li>
+<li><code>"sha2"</code> - FEAT_SHA1 &amp; FEAT_SHA256</li>
+<li><code>"sha3"</code> - FEAT_SHA512 &amp; FEAT_SHA3</li>
+<li><code>"sm4"</code> - FEAT_SM3 &amp; FEAT_SM4</li>
+<li><code>"sme"</code> - FEAT_SME</li>
+<li><code>"sme-b16b16"</code> - FEAT_SME_B16B16</li>
+<li><code>"sme-f16f16"</code> - FEAT_SME_F16F16</li>
+<li><code>"sme-f64f64"</code> - FEAT_SME_F64F64</li>
+<li><code>"sme-f8f16"</code> - FEAT_SME_F8F16</li>
+<li><code>"sme-f8f32"</code> - FEAT_SME_F8F32</li>
+<li><code>"sme-fa64"</code> - FEAT_SME_FA64</li>
+<li><code>"sme-i16i64"</code> - FEAT_SME_I16I64</li>
+<li><code>"sme-lutv2"</code> - FEAT_SME_LUTv2</li>
+<li><code>"sme2"</code> - FEAT_SME2</li>
+<li><code>"sme2p1"</code> - FEAT_SME2p1</li>
+<li><code>"ssbs"</code> - FEAT_SSBS &amp; FEAT_SSBS2</li>
+<li><code>"ssve-fp8dot2"</code> - FEAT_SSVE_FP8DOT2</li>
+<li><code>"ssve-fp8dot4"</code> - FEAT_SSVE_FP8DOT4</li>
+<li><code>"ssve-fp8fma"</code> - FEAT_SSVE_FP8FMA</li>
+<li><code>"sve"</code> - FEAT_SVE</li>
+<li><code>"sve-b16b16"</code> - FEAT_SVE_B16B16 (SVE or SME Z-targeting instructions)</li>
+<li><code>"sve2"</code> - FEAT_SVE2</li>
+<li><code>"sve2-aes"</code> - FEAT_SVE_AES &amp; FEAT_SVE_PMULL128 (SVE2 AES crypto)</li>
+<li><code>"sve2-bitperm"</code> - FEAT_SVE2_BitPerm</li>
+<li><code>"sve2-sha3"</code> - FEAT_SVE2_SHA3</li>
+<li><code>"sve2-sm4"</code> - FEAT_SVE2_SM4</li>
+<li><code>"sve2p1"</code> - FEAT_SVE2p1</li>
+<li><code>"tme"</code> - FEAT_TME</li>
+<li><code>"wfxt"</code> - FEAT_WFxT</li>
+</ul>
+</div></details></section></div></main></body></html>

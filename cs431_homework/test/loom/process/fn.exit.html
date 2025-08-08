@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Terminates the current process with the specified exit code."><title>exit in cs431_homework::test::loom::process - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">exit</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#platform-specific-behavior" title="Platform-specific behavior">Platform-specific behavior</a><ul><li><a href="#safe-interop-with-c-code" title="Safe interop with C code">Safe interop with C code</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>process</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">process</a></div><h1>Function <span class="fn">exit</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/process.rs.html#2432">Source</a> </span></div><pre class="rust item-decl"><code>pub fn exit(code: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.never.html">!</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Terminates the current process with the specified exit code.</p>
+<p>This function will never return and will immediately terminate the current
+process. The exit code is passed through to the underlying OS and will be
+available for consumption by another process.</p>
+<p>Note that because this function never returns, and that it terminates the
+process, no destructors on the current stack or any other thread’s stack
+will be run. If a clean shutdown is needed it is recommended to only call
+this function at a known point where there are no more destructors left
+to run; or, preferably, simply return a type implementing <a href="trait.Termination.html" title="trait cs431_homework::test::loom::process::Termination"><code>Termination</code></a>
+(such as <a href="struct.ExitCode.html" title="struct cs431_homework::test::loom::process::ExitCode"><code>ExitCode</code></a> or <code>Result</code>) from the <code>main</code> function and avoid this
+function altogether:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), MyError&gt; {
+    <span class="comment">// ...
+    </span><span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<p>In its current implementation, this function will execute exit handlers registered with <code>atexit</code>
+as well as other platform-specific exit handlers (e.g. <code>fini</code> sections of ELF shared objects).
+This means that Rust requires that all exit handlers are safe to execute at any time. In
+particular, if an exit handler cleans up some state that might be concurrently accessed by other
+threads, it is required that the exit handler performs suitable synchronization with those
+threads. (The alternative to this requirement would be to not run exit handlers at all, which is
+considered undesirable. Note that returning from <code>main</code> also calls <code>exit</code>, so making <code>exit</code> an
+unsafe operation is not an option.)</p>
+<h3 id="platform-specific-behavior"><a class="doc-anchor" href="#platform-specific-behavior">§</a>Platform-specific behavior</h3>
+<p><strong>Unix</strong>: On Unix-like platforms, it is unlikely that all 32 bits of <code>exit</code>
+will be visible to a parent process inspecting the exit code. On most
+Unix-like platforms, only the eight least-significant bits are considered.</p>
+<p>For example, the exit code for this example will be <code>0</code> on Linux, but <code>256</code>
+on Windows:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process;
+
+process::exit(<span class="number">0x0100</span>);</code></pre></div>
+<h4 id="safe-interop-with-c-code"><a class="doc-anchor" href="#safe-interop-with-c-code">§</a>Safe interop with C code</h4>
+<p>On Unix, this function is currently implemented using the <code>exit</code> C function <a href="https://en.cppreference.com/w/c/program/exit"><code>exit</code></a>. As
+of C23, the C standard does not permit multiple threads to call <code>exit</code> concurrently. Rust
+mitigates this with a lock, but if C code calls <code>exit</code>, that can still cause undefined behavior.
+Note that returning from <code>main</code> is equivalent to calling <code>exit</code>.</p>
+<p>Therefore, it is undefined behavior to have two concurrent threads perform the following
+without synchronization:</p>
+<ul>
+<li>One thread calls Rust’s <code>exit</code> function or returns from Rust’s <code>main</code> function</li>
+<li>Another thread calls the C function <code>exit</code> or <code>quick_exit</code>, or returns from C’s <code>main</code> function</li>
+</ul>
+<p>Note that if a binary contains multiple copies of the Rust runtime (e.g., when combining
+multiple <code>cdylib</code> or <code>staticlib</code>), they each have their own separate lock, so from the
+perspective of code running in one of the Rust runtimes, the “outside” Rust code is basically C
+code, and concurrent <code>exit</code> again causes undefined behavior.</p>
+<p>Individual C implementations might provide more guarantees than the standard and permit concurrent
+calls to <code>exit</code>; consult the documentation of your C implementation for details.</p>
+<p>For some of the on-going discussion to make <code>exit</code> thread-safe in C, see:</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust/issues/126600">Rust issue #126600</a></li>
+<li><a href="https://austingroupbugs.net/view.php?id=1845">Austin Group Bugzilla (for POSIX)</a></li>
+<li><a href="https://sourceware.org/bugzilla/show_bug.cgi?id=31997">GNU C library Bugzilla</a></li>
+</ul>
+</div></details></section></div></main></body></html>

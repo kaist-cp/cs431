@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SEGMENT_LOGSIZE"],"struct":["GrowableArray"],"union":["Segment"]};

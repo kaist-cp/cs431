@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Unix-specific extensions to general I/O primitives."><title>cs431_homework::test::loom::os::unix::io - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module io</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#procselfmem-and-similar-os-features" title="`/proc/self/mem` and similar OS features"><code>/proc/self/mem</code> and similar OS features</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>os::<wbr>unix</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../../../index.html">cs431_homework</a>::<wbr><a href="../../../../index.html">test</a>::<wbr><a href="../../../index.html">loom</a>::<wbr><a href="../../index.html">os</a>::<wbr><a href="../index.html">unix</a></div><h1>Module <span>io</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/os/unix/mod.rs.html#92">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Unix-specific extensions to general I/O primitives.</p>
+<p>Just like raw pointers, raw file descriptors point to resources with
+dynamic lifetimes, and they can dangle if they outlive their resources
+or be forged if they’re created from invalid values.</p>
+<p>This module provides three types for representing file descriptors,
+with different ownership properties: raw, borrowed, and owned, which are
+analogous to types used for representing pointers. These types reflect concepts of <a href="../../../io/index.html#io-safety" title="mod cs431_homework::test::loom::io">I/O
+safety</a> on Unix.</p>
+<div><table><thead><tr><th>Type</th><th>Analogous to</th></tr></thead><tbody>
+<tr><td><a href="../../fd/type.RawFd.html" title="type cs431_homework::test::loom::os::fd::RawFd"><code>RawFd</code></a></td><td><code>*const _</code></td></tr>
+<tr><td><a href="../../fd/struct.BorrowedFd.html" title="struct cs431_homework::test::loom::os::fd::BorrowedFd"><code>BorrowedFd&lt;'a&gt;</code></a></td><td><code>&amp;'a Arc&lt;_&gt;</code></td></tr>
+<tr><td><a href="../../fd/struct.OwnedFd.html" title="struct cs431_homework::test::loom::os::fd::OwnedFd"><code>OwnedFd</code></a></td><td><code>Arc&lt;_&gt;</code></td></tr>
+</tbody></table>
+</div>
+<p>Like raw pointers, <code>RawFd</code> values are primitive values. And in new code,
+they should be considered unsafe to do I/O on (analogous to dereferencing
+them). Rust did not always provide this guidance, so existing code in the
+Rust ecosystem often doesn’t mark <code>RawFd</code> usage as unsafe.
+Libraries are encouraged to migrate,
+either by adding <code>unsafe</code> to APIs that dereference <code>RawFd</code> values, or by
+using to <code>BorrowedFd</code> or <code>OwnedFd</code> instead.</p>
+<p>The use of <code>Arc</code> for borrowed/owned file descriptors may be surprising. Unix file descriptors
+are mere references to internal kernel objects called “open file descriptions”, and the same
+open file description can be referenced by multiple file descriptors (e.g. if <code>dup</code> is used).
+State such as the offset within the file is shared among all file descriptors that refer to the
+same open file description, and the kernel internally does reference-counting to only close the
+underlying resource once all file descriptors referencing it are closed. That’s why <code>Arc</code> (and
+not <code>Box</code>) is the closest Rust analogy to an “owned” file descriptor.</p>
+<p>Like references, <code>BorrowedFd</code> values are tied to a lifetime, to ensure
+that they don’t outlive the resource they point to. These are safe to
+use. <code>BorrowedFd</code> values may be used in APIs which provide safe access to
+any system call except for:</p>
+<ul>
+<li>
+<p><code>close</code>, because that would end the dynamic lifetime of the resource
+without ending the lifetime of the file descriptor. (Equivalently:
+an <code>&amp;Arc&lt;_&gt;</code> cannot be <code>drop</code>ed.)</p>
+</li>
+<li>
+<p><code>dup2</code>/<code>dup3</code>, in the second argument, because this argument is
+closed and assigned a new resource, which may break the assumptions of
+other code using that file descriptor.</p>
+</li>
+</ul>
+<p><code>BorrowedFd</code> values may be used in APIs which provide safe access to <code>dup</code> system calls, so code
+working with <code>OwnedFd</code> cannot assume to have exclusive access to the underlying open file
+description. (Equivalently: <code>&amp;Arc</code> may be used in APIs that provide safe access to <code>clone</code>, so
+code working with an <code>Arc</code> cannot assume that the reference count is 1.)</p>
+<p><code>BorrowedFd</code> values may also be used with <code>mmap</code>, since <code>mmap</code> uses the
+provided file descriptor in a manner similar to <code>dup</code> and does not require
+the <code>BorrowedFd</code> passed to it to live for the lifetime of the resulting
+mapping. That said, <code>mmap</code> is unsafe for other reasons: it operates on raw
+pointers, and it can have undefined behavior if the underlying storage is
+mutated. Mutations may come from other processes, or from the same process
+if the API provides <code>BorrowedFd</code> access, since as mentioned earlier,
+<code>BorrowedFd</code> values may be used in APIs which provide safe access to any
+system call. Consequently, code using <code>mmap</code> and presenting a safe API must
+take full responsibility for ensuring that safe Rust code cannot evoke
+undefined behavior through it.</p>
+<p>Like <code>Arc</code>, <code>OwnedFd</code> values conceptually own one reference to the resource they point to,
+and decrement the reference count when they are dropped (by calling <code>close</code>).
+When the reference count reaches 0, the underlying open file description will be freed
+by the kernel.</p>
+<p>See the <a href="../../../io/index.html#io-safety" title="mod cs431_homework::test::loom::io"><code>io</code> module docs</a> for a general explanation of I/O safety.</p>
+<h3 id="procselfmem-and-similar-os-features"><a class="doc-anchor" href="#procselfmem-and-similar-os-features">§</a><code>/proc/self/mem</code> and similar OS features</h3>
+<p>Some platforms have special files, such as <code>/proc/self/mem</code>, which
+provide read and write access to the process’s memory. Such reads
+and writes happen outside the control of the Rust compiler, so they do not
+uphold Rust’s memory safety guarantees.</p>
+<p>This does not mean that all APIs that might allow <code>/proc/self/mem</code>
+to be opened and read from or written must be <code>unsafe</code>. Rust’s safety guarantees
+only cover what the program itself can do, and not what entities outside
+the program can do to it. <code>/proc/self/mem</code> is considered to be such an
+external entity, along with <code>/proc/self/fd/*</code>, debugging interfaces, and people with physical
+access to the hardware. This is true even in cases where the program is controlling the external
+entity.</p>
+<p>If you desire to comprehensively prevent programs from reaching out and
+causing external entities to reach back in and violate memory safety, it’s
+necessary to use <em>sandboxing</em>, which is outside the scope of <code>std</code>.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.BorrowedFd.html" title="struct cs431_homework::test::loom::os::unix::io::BorrowedFd">Borrowed<wbr>Fd</a></dt><dd>A borrowed file descriptor.</dd><dt><a class="struct" href="struct.OwnedFd.html" title="struct cs431_homework::test::loom::os::unix::io::OwnedFd">OwnedFd</a></dt><dd>An owned file descriptor.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.AsFd.html" title="trait cs431_homework::test::loom::os::unix::io::AsFd">AsFd</a></dt><dd>A trait to borrow the file descriptor from an underlying object.</dd><dt><a class="trait" href="trait.AsRawFd.html" title="trait cs431_homework::test::loom::os::unix::io::AsRawFd">AsRawFd</a></dt><dd>A trait to extract the raw file descriptor from an underlying object.</dd><dt><a class="trait" href="trait.FromRawFd.html" title="trait cs431_homework::test::loom::os::unix::io::FromRawFd">From<wbr>RawFd</a></dt><dd>A trait to express the ability to construct an object from a raw file
+descriptor.</dd><dt><a class="trait" href="trait.IntoRawFd.html" title="trait cs431_homework::test::loom::os::unix::io::IntoRawFd">Into<wbr>RawFd</a></dt><dd>A trait to express the ability to consume an object and acquire ownership of
+its raw file descriptor.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.RawFd.html" title="type cs431_homework::test::loom::os::unix::io::RawFd">RawFd</a></dt><dd>Raw file descriptors.</dd></dl></section></div></main></body></html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A module for working with processes."><title>cs431_homework::test::loom::process - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module process</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#spawning-a-process" title="Spawning a process">Spawning a process</a></li><li><a href="#handling-io" title="Handling I/O">Handling I/O</a></li><li><a href="#windows-argument-splitting" title="Windows argument splitting">Windows argument splitting</a><ul><li><a href="#batch-file-special-handling" title="Batch file special handling">Batch file special handling</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a></div><h1>Module <span>process</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/lib.rs.html#612">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A module for working with processes.</p>
+<p>This module is mostly concerned with spawning and interacting with child
+processes, but it also provides <a href="fn.abort.html" title="fn cs431_homework::test::loom::process::abort"><code>abort</code></a> and <a href="fn.exit.html" title="fn cs431_homework::test::loom::process::exit"><code>exit</code></a> for terminating the
+current process.</p>
+<h2 id="spawning-a-process"><a class="doc-anchor" href="#spawning-a-process">§</a>Spawning a process</h2>
+<p>The <a href="struct.Command.html" title="struct cs431_homework::test::loom::process::Command"><code>Command</code></a> struct is used to configure and spawn processes:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process::Command;
+
+<span class="kw">let </span>output = Command::new(<span class="string">"echo"</span>)
+    .arg(<span class="string">"Hello world"</span>)
+    .output()
+    .expect(<span class="string">"Failed to execute command"</span>);
+
+<span class="macro">assert_eq!</span>(<span class="string">b"Hello world\n"</span>, output.stdout.as_slice());</code></pre></div>
+<p>Several methods on <a href="struct.Command.html" title="struct cs431_homework::test::loom::process::Command"><code>Command</code></a>, such as <a href="struct.Command.html#method.spawn" title="method cs431_homework::test::loom::process::Command::spawn"><code>spawn</code></a> or <a href="struct.Command.html#method.output" title="method cs431_homework::test::loom::process::Command::output"><code>output</code></a>, can be used
+to spawn a process. In particular, <a href="struct.Command.html#method.output" title="method cs431_homework::test::loom::process::Command::output"><code>output</code></a> spawns the child process and
+waits until the process terminates, while <a href="struct.Command.html#method.spawn" title="method cs431_homework::test::loom::process::Command::spawn"><code>spawn</code></a> will return a <a href="struct.Child.html" title="struct cs431_homework::test::loom::process::Child"><code>Child</code></a>
+that represents the spawned child process.</p>
+<h2 id="handling-io"><a class="doc-anchor" href="#handling-io">§</a>Handling I/O</h2>
+<p>The <a href="struct.Command.html#method.stdout" title="method cs431_homework::test::loom::process::Command::stdout"><code>stdout</code></a>, <a href="struct.Command.html#method.stdin" title="method cs431_homework::test::loom::process::Command::stdin"><code>stdin</code></a>, and <a href="struct.Command.html#method.stderr" title="method cs431_homework::test::loom::process::Command::stderr"><code>stderr</code></a> of a child process can be
+configured by passing an <a href="struct.Stdio.html" title="struct cs431_homework::test::loom::process::Stdio"><code>Stdio</code></a> to the corresponding method on
+<a href="struct.Command.html" title="struct cs431_homework::test::loom::process::Command"><code>Command</code></a>. Once spawned, they can be accessed from the <a href="struct.Child.html" title="struct cs431_homework::test::loom::process::Child"><code>Child</code></a>. For
+example, piping output from one command into another command can be done
+like so:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process::{Command, Stdio};
+
+<span class="comment">// stdout must be configured with `Stdio::piped` in order to use
+// `echo_child.stdout`
+</span><span class="kw">let </span>echo_child = Command::new(<span class="string">"echo"</span>)
+    .arg(<span class="string">"Oh no, a tpyo!"</span>)
+    .stdout(Stdio::piped())
+    .spawn()
+    .expect(<span class="string">"Failed to start echo process"</span>);
+
+<span class="comment">// Note that `echo_child` is moved here, but we won't be needing
+// `echo_child` anymore
+</span><span class="kw">let </span>echo_out = echo_child.stdout.expect(<span class="string">"Failed to open echo stdout"</span>);
+
+<span class="kw">let </span><span class="kw-2">mut </span>sed_child = Command::new(<span class="string">"sed"</span>)
+    .arg(<span class="string">"s/tpyo/typo/"</span>)
+    .stdin(Stdio::from(echo_out))
+    .stdout(Stdio::piped())
+    .spawn()
+    .expect(<span class="string">"Failed to start sed process"</span>);
+
+<span class="kw">let </span>output = sed_child.wait_with_output().expect(<span class="string">"Failed to wait on sed"</span>);
+<span class="macro">assert_eq!</span>(<span class="string">b"Oh no, a typo!\n"</span>, output.stdout.as_slice());</code></pre></div>
+<p>Note that <a href="struct.ChildStderr.html" title="struct cs431_homework::test::loom::process::ChildStderr"><code>ChildStderr</code></a> and <a href="struct.ChildStdout.html" title="struct cs431_homework::test::loom::process::ChildStdout"><code>ChildStdout</code></a> implement <a href="../io/trait.Read.html" title="trait cs431_homework::test::loom::io::Read"><code>Read</code></a> and
+<a href="struct.ChildStdin.html" title="struct cs431_homework::test::loom::process::ChildStdin"><code>ChildStdin</code></a> implements <a href="../io/trait.Write.html" title="trait cs431_homework::test::loom::io::Write"><code>Write</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::process::{Command, Stdio};
+<span class="kw">use </span>std::io::Write;
+
+<span class="kw">let </span><span class="kw-2">mut </span>child = Command::new(<span class="string">"/bin/cat"</span>)
+    .stdin(Stdio::piped())
+    .stdout(Stdio::piped())
+    .spawn()
+    .expect(<span class="string">"failed to execute child"</span>);
+
+<span class="comment">// If the child process fills its stdout buffer, it may end up
+// waiting until the parent reads the stdout, and not be able to
+// read stdin in the meantime, causing a deadlock.
+// Writing from another thread ensures that stdout is being read
+// at the same time, avoiding the problem.
+</span><span class="kw">let </span><span class="kw-2">mut </span>stdin = child.stdin.take().expect(<span class="string">"failed to get stdin"</span>);
+std::thread::spawn(<span class="kw">move </span>|| {
+    stdin.write_all(<span class="string">b"test"</span>).expect(<span class="string">"failed to write to stdin"</span>);
+});
+
+<span class="kw">let </span>output = child
+    .wait_with_output()
+    .expect(<span class="string">"failed to wait on child"</span>);
+
+<span class="macro">assert_eq!</span>(<span class="string">b"test"</span>, output.stdout.as_slice());</code></pre></div>
+<h2 id="windows-argument-splitting"><a class="doc-anchor" href="#windows-argument-splitting">§</a>Windows argument splitting</h2>
+<p>On Unix systems arguments are passed to a new process as an array of strings,
+but on Windows arguments are passed as a single commandline string and it is
+up to the child process to parse it into an array. Therefore the parent and
+child processes must agree on how the commandline string is encoded.</p>
+<p>Most programs use the standard C run-time <code>argv</code>, which in practice results
+in consistent argument handling. However, some programs have their own way of
+parsing the commandline string. In these cases using <a href="struct.Command.html#method.arg" title="method cs431_homework::test::loom::process::Command::arg"><code>arg</code></a> or <a href="struct.Command.html#method.args" title="method cs431_homework::test::loom::process::Command::args"><code>args</code></a> may
+result in the child process seeing a different array of arguments than the
+parent process intended.</p>
+<p>Two ways of mitigating this are:</p>
+<ul>
+<li>Validate untrusted input so that only a safe subset is allowed.</li>
+<li>Use <a href="crate::os::windows::process::CommandExt::raw_arg"><code>raw_arg</code></a> to build a custom commandline. This bypasses the escaping
+rules used by <a href="struct.Command.html#method.arg" title="method cs431_homework::test::loom::process::Command::arg"><code>arg</code></a> so should be used with due caution.</li>
+</ul>
+<p><code>cmd.exe</code> and <code>.bat</code> files use non-standard argument parsing and are especially
+vulnerable to malicious input as they may be used to run arbitrary shell
+commands. Untrusted arguments should be restricted as much as possible.
+For examples on handling this see <a href="crate::os::windows::process::CommandExt::raw_arg"><code>raw_arg</code></a>.</p>
+<h4 id="batch-file-special-handling"><a class="doc-anchor" href="#batch-file-special-handling">§</a>Batch file special handling</h4>
+<p>On Windows, <code>Command</code> uses the Windows API function <a href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw"><code>CreateProcessW</code></a> to
+spawn new processes. An undocumented feature of this function is that
+when given a <code>.bat</code> file as the application to run, it will automatically
+convert that into running <code>cmd.exe /c</code> with the batch file as the next argument.</p>
+<p>For historical reasons Rust currently preserves this behavior when using
+<a href="struct.Command.html#method.new" title="associated function cs431_homework::test::loom::process::Command::new"><code>Command::new</code></a>, and escapes the arguments according to <code>cmd.exe</code> rules.
+Due to the complexity of <code>cmd.exe</code> argument handling, it might not be
+possible to safely escape some special characters, and using them will result
+in an error being returned at process spawn. The set of unescapeable
+special characters might change between releases.</p>
+<p>Also note that running batch scripts in this way may be removed in the
+future and so should not be relied upon.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Child.html" title="struct cs431_homework::test::loom::process::Child">Child</a></dt><dd>Representation of a running or exited child process.</dd><dt><a class="struct" href="struct.ChildStderr.html" title="struct cs431_homework::test::loom::process::ChildStderr">Child<wbr>Stderr</a></dt><dd>A handle to a child process’s stderr.</dd><dt><a class="struct" href="struct.ChildStdin.html" title="struct cs431_homework::test::loom::process::ChildStdin">Child<wbr>Stdin</a></dt><dd>A handle to a child process’s standard input (stdin).</dd><dt><a class="struct" href="struct.ChildStdout.html" title="struct cs431_homework::test::loom::process::ChildStdout">Child<wbr>Stdout</a></dt><dd>A handle to a child process’s standard output (stdout).</dd><dt><a class="struct" href="struct.Command.html" title="struct cs431_homework::test::loom::process::Command">Command</a></dt><dd>A process builder, providing fine-grained control
+over how a new process should be spawned.</dd><dt><a class="struct" href="struct.CommandArgs.html" title="struct cs431_homework::test::loom::process::CommandArgs">Command<wbr>Args</a></dt><dd>An iterator over the command arguments.</dd><dt><a class="struct" href="struct.CommandEnvs.html" title="struct cs431_homework::test::loom::process::CommandEnvs">Command<wbr>Envs</a></dt><dd>An iterator over the command environment variables.</dd><dt><a class="struct" href="struct.ExitCode.html" title="struct cs431_homework::test::loom::process::ExitCode">Exit<wbr>Code</a></dt><dd>This type represents the status code the current process can return
+to its parent under normal termination.</dd><dt><a class="struct" href="struct.ExitStatus.html" title="struct cs431_homework::test::loom::process::ExitStatus">Exit<wbr>Status</a></dt><dd>Describes the result of a process after it has terminated.</dd><dt><a class="struct" href="struct.Output.html" title="struct cs431_homework::test::loom::process::Output">Output</a></dt><dd>The output of a finished process.</dd><dt><a class="struct" href="struct.Stdio.html" title="struct cs431_homework::test::loom::process::Stdio">Stdio</a></dt><dd>Describes what to do with a standard I/O stream for a child process when
+passed to the <a href="struct.Command.html#method.stdin" title="method cs431_homework::test::loom::process::Command::stdin"><code>stdin</code></a>, <a href="struct.Command.html#method.stdout" title="method cs431_homework::test::loom::process::Command::stdout"><code>stdout</code></a>, and <a href="struct.Command.html#method.stderr" title="method cs431_homework::test::loom::process::Command::stderr"><code>stderr</code></a> methods of <a href="struct.Command.html" title="struct cs431_homework::test::loom::process::Command"><code>Command</code></a>.</dd><dt><a class="struct" href="struct.ExitStatusError.html" title="struct cs431_homework::test::loom::process::ExitStatusError">Exit<wbr>Status<wbr>Error</a><wbr><span class="stab unstable" title="">Experimental</span></dt><dd>Describes the result of a process after it has failed</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Termination.html" title="trait cs431_homework::test::loom::process::Termination">Termination</a></dt><dd>A trait for implementing arbitrary return types in the <code>main</code> function.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.abort.html" title="fn cs431_homework::test::loom::process::abort">abort</a></dt><dd>Terminates the process in an abnormal fashion.</dd><dt><a class="fn" href="fn.exit.html" title="fn cs431_homework::test::loom::process::exit">exit</a></dt><dd>Terminates the current process with the specified exit code.</dd><dt><a class="fn" href="fn.id.html" title="fn cs431_homework::test::loom::process::id">id</a></dt><dd>Returns the OS-assigned process identifier associated with this process.</dd></dl></section></div></main></body></html>

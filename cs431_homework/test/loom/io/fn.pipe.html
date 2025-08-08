@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Creates an anonymous pipe."><title>pipe in cs431_homework::test::loom::io - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">pipe</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#behavior" title="Behavior">Behavior</a></li><li><a href="#platform-specific-behavior" title="Platform-specific behavior">Platform-specific behavior</a></li><li><a href="#capacity" title="Capacity">Capacity</a></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>io</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">io</a></div><h1>Function <span class="fn">pipe</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.87.0">1.87.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/io/pipe.rs.html#86">Source</a> </span></div><pre class="rust item-decl"><code>pub fn pipe() -&gt; <a class="enum" href="../result/enum.Result.html" title="enum cs431_homework::test::loom::result::Result">Result</a>&lt;(<a class="struct" href="struct.PipeReader.html" title="struct cs431_homework::test::loom::io::PipeReader">PipeReader</a>, <a class="struct" href="struct.PipeWriter.html" title="struct cs431_homework::test::loom::io::PipeWriter">PipeWriter</a>), <a class="struct" href="struct.Error.html" title="struct cs431_homework::test::loom::io::Error">Error</a>&gt;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Creates an anonymous pipe.</p>
+<h2 id="behavior"><a class="doc-anchor" href="#behavior">§</a>Behavior</h2>
+<p>A pipe is a one-way data channel provided by the OS, which works across processes. A pipe is
+typically used to communicate between two or more separate processes, as there are better,
+faster ways to communicate within a single process.</p>
+<p>In particular:</p>
+<ul>
+<li>A read on a <a href="struct.PipeReader.html" title="struct cs431_homework::test::loom::io::PipeReader"><code>PipeReader</code></a> blocks until the pipe is non-empty.</li>
+<li>A write on a <a href="struct.PipeWriter.html" title="struct cs431_homework::test::loom::io::PipeWriter"><code>PipeWriter</code></a> blocks when the pipe is full.</li>
+<li>When all copies of a <a href="struct.PipeWriter.html" title="struct cs431_homework::test::loom::io::PipeWriter"><code>PipeWriter</code></a> are closed, a read on the corresponding <a href="struct.PipeReader.html" title="struct cs431_homework::test::loom::io::PipeReader"><code>PipeReader</code></a>
+returns EOF.</li>
+<li><a href="struct.PipeWriter.html" title="struct cs431_homework::test::loom::io::PipeWriter"><code>PipeWriter</code></a> can be shared, and multiple processes or threads can write to it at once, but
+writes (above a target-specific threshold) may have their data interleaved.</li>
+<li><a href="struct.PipeReader.html" title="struct cs431_homework::test::loom::io::PipeReader"><code>PipeReader</code></a> can be shared, and multiple processes or threads can read it at once. Any
+given byte will only get consumed by one reader. There are no guarantees about data
+interleaving.</li>
+<li>Portable applications cannot assume any atomicity of messages larger than a single byte.</li>
+</ul>
+<h2 id="platform-specific-behavior"><a class="doc-anchor" href="#platform-specific-behavior">§</a>Platform-specific behavior</h2>
+<p>This function currently corresponds to the <code>pipe</code> function on Unix and the
+<code>CreatePipe</code> function on Windows.</p>
+<p>Note that this <a href="index.html#platform-specific-behavior" title="mod cs431_homework::test::loom::io">may change in the future</a>.</p>
+<h2 id="capacity"><a class="doc-anchor" href="#capacity">§</a>Capacity</h2>
+<p>Pipe capacity is platform dependent. To quote the Linux <a href="https://man7.org/linux/man-pages/man7/pipe.7.html">man page</a>:</p>
+<blockquote>
+<p>Different implementations have different limits for the pipe capacity. Applications should
+not rely on a particular capacity: an application should be designed so that a reading process
+consumes data as soon as it is available, so that a writing process does not remain blocked.</p>
+</blockquote>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::io::{Read, Write, pipe};
+<span class="kw">use </span>std::process::Command;
+<span class="kw">let </span>(ping_reader, <span class="kw-2">mut </span>ping_writer) = pipe()<span class="question-mark">?</span>;
+<span class="kw">let </span>(<span class="kw-2">mut </span>pong_reader, pong_writer) = pipe()<span class="question-mark">?</span>;
+
+<span class="comment">// Spawn a child process that echoes its input.
+</span><span class="kw">let </span><span class="kw-2">mut </span>echo_command = Command::new(<span class="string">"cat"</span>);
+echo_command.stdin(ping_reader);
+echo_command.stdout(pong_writer);
+<span class="kw">let </span><span class="kw-2">mut </span>echo_child = echo_command.spawn()<span class="question-mark">?</span>;
+
+<span class="comment">// Send input to the child process. Note that because we're writing all the input before we
+// read any output, this could deadlock if the child's input and output pipe buffers both
+// filled up. Those buffers are usually at least a few KB, so "hello" is fine, but for longer
+// inputs we'd need to read and write at the same time, e.g. using threads.
+</span>ping_writer.write_all(<span class="string">b"hello"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// `cat` exits when it reads EOF from stdin, but that can't happen while any ping writer
+// remains open. We need to drop our ping writer, or read_to_string will deadlock below.
+</span>drop(ping_writer);
+
+<span class="comment">// The pong reader can't report EOF while any pong writer remains open. Our Command object is
+// holding a pong writer, and again read_to_string will deadlock if we don't drop it.
+</span>drop(echo_command);
+
+<span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+<span class="comment">// Block until `cat` closes its stdout (a pong writer).
+</span>pong_reader.read_to_string(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>buf, <span class="string">"hello"</span>);
+
+<span class="comment">// At this point we know `cat` has exited, but we still need to wait to clean up the "zombie".
+</span>echo_child.wait()<span class="question-mark">?</span>;</code></pre></div>
+</div></details></section></div></main></body></html>

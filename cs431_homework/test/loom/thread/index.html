@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Native threads."><title>cs431_homework::test::loom::thread - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module thread</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#the-threading-model" title="The threading model">The threading model</a></li><li><a href="#spawning-a-thread" title="Spawning a thread">Spawning a thread</a></li><li><a href="#configuring-threads" title="Configuring threads">Configuring threads</a></li><li><a href="#the-thread-type" title="The `Thread` type">The <code>Thread</code> type</a></li><li><a href="#thread-local-storage" title="Thread-local storage">Thread-local storage</a></li><li><a href="#naming-threads" title="Naming threads">Naming threads</a></li><li><a href="#stack-size" title="Stack size">Stack size</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a></div><h1>Module <span>thread</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/lib.rs.html#593">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Native threads.</p>
+<h3 id="the-threading-model"><a class="doc-anchor" href="#the-threading-model">§</a>The threading model</h3>
+<p>An executing Rust program consists of a collection of native OS threads,
+each with their own stack and local state. Threads can be named, and
+provide some built-in support for low-level synchronization.</p>
+<p>Communication between threads can be done through
+<a href="../sync/mpsc/index.html" title="mod cs431_homework::test::loom::sync::mpsc">channels</a>, Rust’s message-passing types, along with <a href="../../std/sync/index.html">other forms of thread
+synchronization</a> and shared-memory data
+structures. In particular, types that are guaranteed to be
+threadsafe are easily shared between threads using the
+atomically-reference-counted container, <a href="../sync/struct.Arc.html" title="struct cs431_homework::test::loom::sync::Arc"><code>Arc</code></a>.</p>
+<p>Fatal logic errors in Rust cause <em>thread panic</em>, during which
+a thread will unwind the stack, running destructors and freeing
+owned resources. While not meant as a ‘try/catch’ mechanism, panics
+in Rust can nonetheless be caught (unless compiling with <code>panic=abort</code>) with
+<a href="../../std/panic/fn.catch_unwind.html"><code>catch_unwind</code></a> and recovered
+from, or alternatively be resumed with
+<a href="../../std/panic/fn.resume_unwind.html"><code>resume_unwind</code></a>. If the panic
+is not caught the thread will exit, but the panic may optionally be
+detected from a different thread with <a href="struct.JoinHandle.html#method.join" title="method cs431_homework::test::loom::thread::JoinHandle::join"><code>join</code></a>. If the main thread panics
+without the panic being caught, the application will exit with a
+non-zero exit code.</p>
+<p>When the main thread of a Rust program terminates, the entire program shuts
+down, even if other threads are still running. However, this module provides
+convenient facilities for automatically waiting for the termination of a
+thread (i.e., join).</p>
+<h3 id="spawning-a-thread"><a class="doc-anchor" href="#spawning-a-thread">§</a>Spawning a thread</h3>
+<p>A new thread can be spawned using the <a href="fn.spawn.html" title="fn cs431_homework::test::loom::thread::spawn"><code>thread::spawn</code></a> function:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::thread;
+
+thread::spawn(<span class="kw">move </span>|| {
+    <span class="comment">// some work here
+</span>});</code></pre></div>
+<p>In this example, the spawned thread is “detached,” which means that there is
+no way for the program to learn when the spawned thread completes or otherwise
+terminates.</p>
+<p>To learn when a thread completes, it is necessary to capture the <a href="struct.JoinHandle.html" title="struct cs431_homework::test::loom::thread::JoinHandle"><code>JoinHandle</code></a>
+object that is returned by the call to <a href="fn.spawn.html" title="fn cs431_homework::test::loom::thread::spawn"><code>spawn</code></a>, which provides
+a <code>join</code> method that allows the caller to wait for the completion of the
+spawned thread:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::thread;
+
+<span class="kw">let </span>thread_join_handle = thread::spawn(<span class="kw">move </span>|| {
+    <span class="comment">// some work here
+</span>});
+<span class="comment">// some work here
+</span><span class="kw">let </span>res = thread_join_handle.join();</code></pre></div>
+<p>The <a href="struct.JoinHandle.html#method.join" title="method cs431_homework::test::loom::thread::JoinHandle::join"><code>join</code></a> method returns a <a href="type.Result.html" title="type cs431_homework::test::loom::thread::Result"><code>thread::Result</code></a> containing <a href="../result/enum.Result.html#variant.Ok" title="variant cs431_homework::test::loom::result::Result::Ok"><code>Ok</code></a> of the final
+value produced by the spawned thread, or <a href="../result/enum.Result.html#variant.Err" title="variant cs431_homework::test::loom::result::Result::Err"><code>Err</code></a> of the value given to
+a call to <a href="../macro.panic.html" title="macro cs431_homework::test::loom::panic"><code>panic!</code></a> if the thread panicked.</p>
+<p>Note that there is no parent/child relationship between a thread that spawns a
+new thread and the thread being spawned.  In particular, the spawned thread may or
+may not outlive the spawning thread, unless the spawning thread is the main thread.</p>
+<h3 id="configuring-threads"><a class="doc-anchor" href="#configuring-threads">§</a>Configuring threads</h3>
+<p>A new thread can be configured before it is spawned via the <a href="struct.Builder.html" title="struct cs431_homework::test::loom::thread::Builder"><code>Builder</code></a> type,
+which currently allows you to set the name and stack size for the thread:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::thread;
+
+thread::Builder::new().name(<span class="string">"thread1"</span>.to_string()).spawn(<span class="kw">move </span>|| {
+    <span class="macro">println!</span>(<span class="string">"Hello, world!"</span>);
+});</code></pre></div>
+<h3 id="the-thread-type"><a class="doc-anchor" href="#the-thread-type">§</a>The <code>Thread</code> type</h3>
+<p>Threads are represented via the <a href="struct.Thread.html" title="struct cs431_homework::test::loom::thread::Thread"><code>Thread</code></a> type, which you can get in one of
+two ways:</p>
+<ul>
+<li>By spawning a new thread, e.g., using the <a href="fn.spawn.html" title="fn cs431_homework::test::loom::thread::spawn"><code>thread::spawn</code></a>
+function, and calling <a href="struct.JoinHandle.html#method.thread" title="method cs431_homework::test::loom::thread::JoinHandle::thread"><code>thread</code></a> on the <a href="struct.JoinHandle.html" title="struct cs431_homework::test::loom::thread::JoinHandle"><code>JoinHandle</code></a>.</li>
+<li>By requesting the current thread, using the <a href="fn.current.html" title="fn cs431_homework::test::loom::thread::current"><code>thread::current</code></a> function.</li>
+</ul>
+<p>The <a href="fn.current.html" title="fn cs431_homework::test::loom::thread::current"><code>thread::current</code></a> function is available even for threads not spawned
+by the APIs of this module.</p>
+<h3 id="thread-local-storage"><a class="doc-anchor" href="#thread-local-storage">§</a>Thread-local storage</h3>
+<p>This module also provides an implementation of thread-local storage for Rust
+programs. Thread-local storage is a method of storing data into a global
+variable that each thread in the program will have its own copy of.
+Threads do not share this data, so accesses do not need to be synchronized.</p>
+<p>A thread-local key owns the value it contains and will destroy the value when the
+thread exits. It is created with the <a href="../macro.thread_local.html" title="macro cs431_homework::test::loom::thread_local"><code>thread_local!</code></a> macro and can contain any
+value that is <code>'static</code> (no borrowed pointers). It provides an accessor function,
+<a href="struct.LocalKey.html#method.with" title="method cs431_homework::test::loom::thread::LocalKey::with"><code>with</code></a>, that yields a shared reference to the value to the specified
+closure. Thread-local keys allow only shared access to values, as there would be no
+way to guarantee uniqueness if mutable borrows were allowed. Most values
+will want to make use of some form of <strong>interior mutability</strong> through the
+<a href="../cell/struct.Cell.html" title="struct cs431_homework::test::loom::cell::Cell"><code>Cell</code></a> or <a href="../cell/struct.RefCell.html" title="struct cs431_homework::test::loom::cell::RefCell"><code>RefCell</code></a> types.</p>
+<h3 id="naming-threads"><a class="doc-anchor" href="#naming-threads">§</a>Naming threads</h3>
+<p>Threads are able to have associated names for identification purposes. By default, spawned
+threads are unnamed. To specify a name for a thread, build the thread with <a href="struct.Builder.html" title="struct cs431_homework::test::loom::thread::Builder"><code>Builder</code></a> and pass
+the desired thread name to <a href="struct.Builder.html#method.name" title="method cs431_homework::test::loom::thread::Builder::name"><code>Builder::name</code></a>. To retrieve the thread name from within the
+thread, use <a href="struct.Thread.html#method.name" title="method cs431_homework::test::loom::thread::Thread::name"><code>Thread::name</code></a>. A couple of examples where the name of a thread gets used:</p>
+<ul>
+<li>If a panic occurs in a named thread, the thread name will be printed in the panic message.</li>
+<li>The thread name is provided to the OS where applicable (e.g., <code>pthread_setname_np</code> in
+unix-like platforms).</li>
+</ul>
+<h3 id="stack-size"><a class="doc-anchor" href="#stack-size">§</a>Stack size</h3>
+<p>The default stack size is platform-dependent and subject to change.
+Currently, it is 2 MiB on all Tier-1 platforms.</p>
+<p>There are two ways to manually specify the stack size for spawned threads:</p>
+<ul>
+<li>Build the thread with <a href="struct.Builder.html" title="struct cs431_homework::test::loom::thread::Builder"><code>Builder</code></a> and pass the desired stack size to <a href="struct.Builder.html#method.stack_size" title="method cs431_homework::test::loom::thread::Builder::stack_size"><code>Builder::stack_size</code></a>.</li>
+<li>Set the <code>RUST_MIN_STACK</code> environment variable to an integer representing the desired stack
+size (in bytes). Note that setting <a href="struct.Builder.html#method.stack_size" title="method cs431_homework::test::loom::thread::Builder::stack_size"><code>Builder::stack_size</code></a> will override this. Be aware that
+changes to <code>RUST_MIN_STACK</code> may be ignored after program start.</li>
+</ul>
+<p>Note that the stack size of the main thread is <em>not</em> determined by Rust.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.AccessError.html" title="struct cs431_homework::test::loom::thread::AccessError">Access<wbr>Error</a></dt><dd>An error returned by <a href="struct.LocalKey.html#method.try_with"><code>LocalKey::try_with</code></a>.</dd><dt><a class="struct" href="struct.Builder.html" title="struct cs431_homework::test::loom::thread::Builder">Builder</a></dt><dd>Thread factory, which can be used in order to configure the properties of
+a new thread.</dd><dt><a class="struct" href="struct.JoinHandle.html" title="struct cs431_homework::test::loom::thread::JoinHandle">Join<wbr>Handle</a></dt><dd>An owned permission to join on a thread (block on its termination).</dd><dt><a class="struct" href="struct.LocalKey.html" title="struct cs431_homework::test::loom::thread::LocalKey">Local<wbr>Key</a></dt><dd>A thread local storage (TLS) key which owns its contents.</dd><dt><a class="struct" href="struct.Scope.html" title="struct cs431_homework::test::loom::thread::Scope">Scope</a></dt><dd>A scope to spawn scoped threads in.</dd><dt><a class="struct" href="struct.ScopedJoinHandle.html" title="struct cs431_homework::test::loom::thread::ScopedJoinHandle">Scoped<wbr>Join<wbr>Handle</a></dt><dd>An owned permission to join on a scoped thread (block on its termination).</dd><dt><a class="struct" href="struct.Thread.html" title="struct cs431_homework::test::loom::thread::Thread">Thread</a></dt><dd>A handle to a thread.</dd><dt><a class="struct" href="struct.ThreadId.html" title="struct cs431_homework::test::loom::thread::ThreadId">Thread<wbr>Id</a></dt><dd>A unique identifier for a running thread.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.available_parallelism.html" title="fn cs431_homework::test::loom::thread::available_parallelism">available_<wbr>parallelism</a></dt><dd>Returns an estimate of the default amount of parallelism a program should use.</dd><dt><a class="fn" href="fn.current.html" title="fn cs431_homework::test::loom::thread::current">current</a></dt><dd>Gets a handle to the thread that invokes it.</dd><dt><a class="fn" href="fn.panicking.html" title="fn cs431_homework::test::loom::thread::panicking">panicking</a></dt><dd>Determines whether the current thread is unwinding because of panic.</dd><dt><a class="fn" href="fn.park.html" title="fn cs431_homework::test::loom::thread::park">park</a></dt><dd>Blocks unless or until the current thread’s token is made available.</dd><dt><a class="fn" href="fn.park_timeout.html" title="fn cs431_homework::test::loom::thread::park_timeout">park_<wbr>timeout</a></dt><dd>Blocks unless or until the current thread’s token is made available or
+the specified duration has been reached (may wake spuriously).</dd><dt><a class="fn" href="fn.park_timeout_ms.html" title="fn cs431_homework::test::loom::thread::park_timeout_ms">park_<wbr>timeout_<wbr>ms</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Uses <a href="fn.park_timeout.html" title="fn cs431_homework::test::loom::thread::park_timeout"><code>park_timeout</code></a>.</dd><dt><a class="fn" href="fn.scope.html" title="fn cs431_homework::test::loom::thread::scope">scope</a></dt><dd>Creates a scope for spawning scoped threads.</dd><dt><a class="fn" href="fn.sleep.html" title="fn cs431_homework::test::loom::thread::sleep">sleep</a></dt><dd>Puts the current thread to sleep for at least the specified amount of time.</dd><dt><a class="fn" href="fn.sleep_ms.html" title="fn cs431_homework::test::loom::thread::sleep_ms">sleep_<wbr>ms</a><wbr><span class="stab deprecated" title="">Deprecated</span></dt><dd>Uses <a href="fn.sleep.html" title="fn cs431_homework::test::loom::thread::sleep"><code>sleep</code></a>.</dd><dt><a class="fn" href="fn.spawn.html" title="fn cs431_homework::test::loom::thread::spawn">spawn</a></dt><dd>Spawns a new thread, returning a <a href="struct.JoinHandle.html" title="struct cs431_homework::test::loom::thread::JoinHandle"><code>JoinHandle</code></a> for it.</dd><dt><a class="fn" href="fn.yield_now.html" title="fn cs431_homework::test::loom::thread::yield_now">yield_<wbr>now</a></dt><dd>Cooperatively gives up a timeslice to the OS scheduler.</dd><dt><a class="fn" href="fn.add_spawn_hook.html" title="fn cs431_homework::test::loom::thread::add_spawn_hook">add_<wbr>spawn_<wbr>hook</a><wbr><span class="stab unstable" title="">Experimental</span></dt><dd>Registers a function to run for every newly thread spawned.</dd><dt><a class="fn" href="fn.sleep_until.html" title="fn cs431_homework::test::loom::thread::sleep_until">sleep_<wbr>until</a><wbr><span class="stab unstable" title="">Experimental</span></dt><dd>Puts the current thread to sleep until the specified deadline has passed.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.Result.html" title="type cs431_homework::test::loom::thread::Result">Result</a></dt><dd>A specialized <a href="../result/enum.Result.html" title="enum cs431_homework::test::loom::result::Result"><code>Result</code></a> type for threads.</dd></dl></section></div></main></body></html>

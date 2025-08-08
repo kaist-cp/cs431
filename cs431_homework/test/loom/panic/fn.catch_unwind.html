@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Invokes a closure, capturing the cause of an unwinding panic if one occurs."><title>catch_unwind in cs431_homework::test::loom::panic - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="cs431_homework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (2fd855fbf 2025-08-07)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../../cs431_homework/index.html">cs431_<wbr>homework</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">catch_<wbr>unwind</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#notes" title="Notes">Notes</a></li><li><a href="#examples" title="Examples">Examples</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In cs431_<wbr>homework::<wbr>test::<wbr>loom::<wbr>panic</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../../index.html">cs431_homework</a>::<wbr><a href="../../index.html">test</a>::<wbr><a href="../index.html">loom</a>::<wbr><a href="index.html">panic</a></div><h1>Function <span class="fn">catch_unwind</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><span class="since" title="Stable since Rust version 1.9.0">1.9.0</span> · <a class="src" href="https://doc.rust-lang.org/nightly/src/std/panic.rs.html#356">Source</a> </span></div><pre class="rust item-decl"><code>pub fn catch_unwind&lt;F, R&gt;(f: F) -&gt; <a class="enum" href="../result/enum.Result.html" title="enum cs431_homework::test::loom::result::Result">Result</a>&lt;R, <a class="struct" href="../boxed/struct.Box.html" title="struct cs431_homework::test::loom::boxed::Box">Box</a>&lt;dyn <a class="trait" href="../any/trait.Any.html" title="trait cs431_homework::test::loom::any::Any">Any</a> + <a class="trait" href="../marker/trait.Send.html" title="trait cs431_homework::test::loom::marker::Send">Send</a>&gt;&gt;<div class="where">where
+    F: <a class="trait" href="../ops/trait.FnOnce.html" title="trait cs431_homework::test::loom::ops::FnOnce">FnOnce</a>() -&gt; R + <a class="trait" href="trait.UnwindSafe.html" title="trait cs431_homework::test::loom::panic::UnwindSafe">UnwindSafe</a>,</div></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Invokes a closure, capturing the cause of an unwinding panic if one occurs.</p>
+<p>This function will return <code>Ok</code> with the closure’s result if the closure does
+not panic, and will return <code>Err(cause)</code> if the closure panics. The <code>cause</code>
+returned is the object with which panic was originally invoked.</p>
+<p>Rust functions that are expected to be called from foreign code that does
+not support unwinding (such as C compiled with <code>-fno-exceptions</code>) should be
+defined using <code>extern "C"</code>, which ensures that if the Rust code panics, it
+is automatically caught and the process is aborted. If this is the desired
+behavior, it is not necessary to use <code>catch_unwind</code> explicitly. This
+function should instead be used when more graceful error-handling is needed.</p>
+<p>It is <strong>not</strong> recommended to use this function for a general try/catch
+mechanism. The <a href="../thread/type.Result.html" title="type cs431_homework::test::loom::thread::Result"><code>Result</code></a> type is more appropriate to use for functions that
+can fail on a regular basis. Additionally, this function is not guaranteed
+to catch all panics, see the “Notes” section below.</p>
+<p>The closure provided is required to adhere to the <a href="trait.UnwindSafe.html" title="trait cs431_homework::test::loom::panic::UnwindSafe"><code>UnwindSafe</code></a> trait to
+ensure that all captured variables are safe to cross this boundary. The
+purpose of this bound is to encode the concept of <a href="https://github.com/rust-lang/rfcs/blob/master/text/1236-stabilize-catch-panic.md">exception safety</a> in
+the type system. Most usage of this function should not need to worry about
+this bound as programs are naturally unwind safe without <code>unsafe</code> code. If
+it becomes a problem the <a href="struct.AssertUnwindSafe.html" title="struct cs431_homework::test::loom::panic::AssertUnwindSafe"><code>AssertUnwindSafe</code></a> wrapper struct can be used to
+quickly assert that the usage here is indeed unwind safe.</p>
+<h2 id="notes"><a class="doc-anchor" href="#notes">§</a>Notes</h2>
+<p>This function <strong>might not catch all Rust panics</strong>. A Rust panic is not
+always implemented via unwinding, but can be implemented by aborting the
+process as well. This function <em>only</em> catches unwinding panics, not those
+that abort the process.</p>
+<p>If a custom panic hook has been set, it will be invoked before the panic is
+caught, before unwinding.</p>
+<p>Although unwinding into Rust code with a foreign exception (e.g. an
+exception thrown from C++ code, or a <code>panic!</code> in Rust code compiled or
+linked with a different runtime) via an appropriate ABI (e.g. <code>"C-unwind"</code>)
+is permitted, catching such an exception using this function will have one
+of two behaviors, and it is unspecified which will occur:</p>
+<ul>
+<li>The process aborts, after executing all destructors of <code>f</code> and the
+functions it called.</li>
+<li>The function returns a <code>Result::Err</code> containing an opaque type.</li>
+</ul>
+<p>Finally, be <strong>careful in how you drop the result of this function</strong>. If it
+is <code>Err</code>, it contains the panic payload, and dropping that may in turn
+panic!</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::panic;
+
+<span class="kw">let </span>result = panic::catch_unwind(|| {
+    <span class="macro">println!</span>(<span class="string">"hello!"</span>);
+});
+<span class="macro">assert!</span>(result.is_ok());
+
+<span class="kw">let </span>result = panic::catch_unwind(|| {
+    <span class="macro">panic!</span>(<span class="string">"oh no!"</span>);
+});
+<span class="macro">assert!</span>(result.is_err());</code></pre></div>
+</div></details></section></div></main></body></html>
