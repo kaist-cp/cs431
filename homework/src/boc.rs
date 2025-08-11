@@ -1,6 +1,8 @@
 //! Concurrent Owner (Cown) type.
 
 use core::cell::UnsafeCell;
+use core::mem::ManuallyDrop;
+use core::pin::Pin;
 use core::sync::atomic::Ordering::SeqCst;
 use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize};
 use core::{fmt, hint, ptr};
@@ -175,7 +177,8 @@ impl Behavior {
     ///
     /// Performs two phase locking (2PL) over the enqueuing of the requests.
     /// This ensures that the overall effect of the enqueue is atomic.
-    fn schedule(self) {
+    /// Behavior should remain valid after calling this function.
+    fn schedule(self: Pin<Box<Self>>) -> ManuallyDrop<Pin<Box<Self>>> {
         todo!()
     }
 
@@ -204,7 +207,7 @@ impl fmt::Debug for Behavior {
 
 // TODO: terminator?
 impl Behavior {
-    fn new<C, F>(cowns: C, f: F) -> Behavior
+    fn new<C, F>(cowns: C, f: F) -> Pin<Box<Behavior>>
     where
         C: CownPtrs + Send + 'static,
         F: for<'l> Fn(C::CownRefs<'l>) + Send + 'static,
